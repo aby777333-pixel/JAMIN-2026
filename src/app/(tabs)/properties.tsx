@@ -1,25 +1,87 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { ActivityIndicator, FlatList, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
-import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { FilterBar } from '@/features/buyer/components/FilterBar';
+import { PropertyCard } from '@/features/buyer/components/PropertyCard';
+import {
+  useProperties,
+  useProjects,
+  usePropertyTypes,
+  useToggleWishlist,
+  useWishlistIds,
+} from '@/features/buyer/hooks';
+import type { PropertyFilters } from '@/features/buyer/types';
+import { color } from '@/theme/tokens';
 
 export default function Properties() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const [filters, setFilters] = useState<PropertyFilters>({ status: 'available' });
+
+  const { data: types = [] } = usePropertyTypes();
+  const { data: projects = [] } = useProjects();
+  const { data: saved } = useWishlistIds();
+  const { data: properties = [], isLoading, isError, refetch, isRefetching } = useProperties(filters);
+  const toggle = useToggleWishlist();
+
+  const patch = (p: Partial<PropertyFilters>) => setFilters((f) => ({ ...f, ...p }));
+
   return (
-    <Screen scroll={false} contentClassName="pt-4">
-      <Text variant="h1">{t('tabs.properties')}</Text>
-      <View className="mt-3">
-        <Input placeholder="Search projects, plots, locations…" autoCapitalize="none" />
-      </View>
-      <EmptyState
-        icon="business"
-        title="Inventory is on the way"
-        body="Dynamic projects, plans, property types and live plot codes — with map search, tours, EMI/ROI calculators and booking."
-        phase="Phase 3 · Buyer App"
+    <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
+      <FlatList
+        data={properties}
+        keyExtractor={(p) => p.id}
+        contentContainerClassName="px-5 pb-8 gap-3"
+        showsVerticalScrollIndicator={false}
+        onRefresh={refetch}
+        refreshing={isRefetching}
+        ListHeaderComponent={
+          <View className="gap-3 pb-1 pt-2">
+            <Text variant="h1">{t('tabs.properties')}</Text>
+            <Input
+              placeholder="Search by plot code…"
+              autoCapitalize="characters"
+              value={filters.search ?? ''}
+              onChangeText={(v) => patch({ search: v })}
+            />
+            <FilterBar types={types} projects={projects} filters={filters} onChange={patch} />
+            {!isLoading ? (
+              <Text variant="caption">
+                {properties.length} {properties.length === 1 ? 'property' : 'properties'}
+              </Text>
+            ) : null}
+          </View>
+        }
+        renderItem={({ item }) => (
+          <PropertyCard
+            item={item}
+            saved={saved?.has(item.id) ?? false}
+            onToggleSave={() =>
+              toggle.mutate({ propertyId: item.id, saved: saved?.has(item.id) ?? false })
+            }
+          />
+        )}
+        ListEmptyComponent={
+          isLoading ? (
+            <View className="items-center py-20">
+              <ActivityIndicator color={color.red} />
+            </View>
+          ) : isError ? (
+            <EmptyState icon="cloud-offline" title="Couldn't load" body="Pull to refresh and try again." />
+          ) : (
+            <EmptyState
+              icon="search"
+              title="No matches"
+              body={filters.savedOnly ? 'Save properties to see them here.' : 'Try widening your filters.'}
+            />
+          )
+        }
       />
-    </Screen>
+    </View>
   );
 }

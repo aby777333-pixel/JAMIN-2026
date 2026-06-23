@@ -94,7 +94,9 @@ npm test             # jest
 
 ## Build sequence (§15)
 
-P0 Foundation ✓ · P1 Auth & Onboarding (in progress) · P2 Dynamic config & inventory
-(DB ✓) · P3 Buyer App · P4 Partner portals · P5 Commission engine · P6 Business Card +
-Smart Brochure + Photo Ad · P7 Form Builder + Admin · P8 AI · P9 Gamification +
-Notifications + Analytics · P10 Hardening & store prep.
+P0 Foundation ✓ · P1 Auth & Onboarding ✓ · P2 Dynamic config & inventory (DB ✓) ·
+P3 Buyer App ✓ (discovery, filters, detail, EMI/ROI calculators, dynamic enquiry,
+site-visit booking, reserve, wishlist; map view deferred pending Maps API key) ·
+P4 Partner portals · P5 Commission engine · P6 Business Card + Smart Brochure +
+Photo Ad · P7 Form Builder + Admin · P8 AI · P9 Gamification + Notifications +
+Analytics · P10 Hardening & store prep.
