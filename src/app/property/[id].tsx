@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/Card';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { CommissionPreview } from '@/features/commission/components/CommissionPreview';
 import { EmiCalculator } from '@/features/buyer/components/EmiCalculator';
 import { EnquirySheet } from '@/features/buyer/components/EnquirySheet';
 import { PropertyGallery } from '@/features/buyer/components/PropertyGallery';
@@ -21,12 +22,15 @@ import {
   useToggleWishlist,
   useWishlistIds,
 } from '@/features/buyer/hooks';
+import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
 
 export default function PropertyDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: property, isLoading } = useProperty(id);
   const { data: saved } = useWishlistIds();
+  const role = useAuth((s) => s.profile?.role_slug);
+  const isPartner = !!role && role !== 'buyer';
   const toggle = useToggleWishlist();
   const reserve = useReserveProperty();
 
@@ -113,6 +117,17 @@ export default function PropertyDetail() {
           <Detail key={k} label={k} value={String(v)} />
         ))}
       </Card>
+
+      {isPartner ? (
+        <CommissionPreview
+          ctx={{
+            price: property.price,
+            project_id: property.project_id,
+            plan_id: property.plan_id,
+            property_type_id: property.property_type_id,
+          }}
+        />
+      ) : null}
 
       <EmiCalculator price={property.price} />
       <RoiCalculator price={property.price} />

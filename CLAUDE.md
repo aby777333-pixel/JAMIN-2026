@@ -100,6 +100,9 @@ site-visit booking, reserve, wishlist; map view deferred pending Maps API key) �
 P4 Partner portals ✓ (team/downline, recruit-share, leads + follow-up scheduler,
 referral-attributed sharing, wallet/earnings/ledger + balance-checked withdrawals,
 partner Home dashboard; partner UI requires role ≥ agent — elevate via admin/SQL) ·
-P5 Commission engine · P6 Business Card + Smart Brochure + Photo Ad · P7 Form
-Builder + Admin · P8 AI · P9 Gamification + Notifications + Analytics · P10
-Hardening & store prep.
+P5 Commission engine ✓ (deterministic Postgres engine: resolve commission_rules on a
+closed sale → credit agent (direct) + hierarchy (team overrides) into the ledger,
+idempotent + audited; close_sale admin RPC; referral attribution event; mirrored by a
+Jest-tested pure-TS engine + in-app partner earning preview) · P6 Business Card + Smart
+Brochure + Photo Ad · P7 Form Builder + Admin · P8 AI · P9 Gamification + Notifications
++ Analytics · P10 Hardening & store prep.

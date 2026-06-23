@@ -20,6 +20,8 @@ export interface PropertyListItem {
 
 export interface PropertyDetail extends PropertyListItem {
   project_id: string;
+  plan_id: string | null;
+  property_type_id: string;
   plan: { name: string } | null;
 }
 
