@@ -58,7 +58,7 @@ export default function Home() {
               </View>
             ) : null}
           </Pressable>
-          <Pressable onPress={() => router.push('/settings/notifications')} hitSlop={8}>
+          <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
             <Ionicons name="settings-outline" size={22} color={color.muted} />
           </Pressable>
           <View className="rounded-full bg-red/10 px-3 py-1.5">

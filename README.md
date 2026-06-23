@@ -24,28 +24,40 @@ npm run typecheck # tsc --noEmit
 npm test          # jest (money math, …)
 ```
 
-## What's in this build
+## What's in this build — **all 16 modules, complete**
 
-- **P0 Foundation** — Expo Router shell, NativeWind + brand tokens, Inter + JetBrains
-  Mono fonts, Supabase client, decimal.js money layer, i18n (8 languages), branded
-  splash & icons.
-- **P1 (start)** — email-OTP login → verify → onboarding (referral binding); role-aware
-  bottom tabs; live **Digital Business Card** with referral QR + share.
-- **P2 DB** — the full dynamic schema (roles, hierarchy via `ltree`, projects/plans/
-  property types, auto-coded plots with an auto-replacement engine, commission rules,
-  append-only ledger, derived wallets, referral/CRM/booking/card tables) with **RLS
-  everywhere** — migrations `supabase/migrations/0001`–`0008`, applied live.
+- **Foundation** — Expo Router, NativeWind + brand tokens, Inter + JetBrains Mono,
+  Supabase, decimal.js money layer, i18n (English + 7 Indian languages), branded splash/icons.
+- **Auth & onboarding** — email-OTP → profile → referral binding → hierarchy placement; KYC.
+- **Buyer app** — discovery (search/filters), property detail, EMI & ROI calculators,
+  dynamic enquiry, site-visit booking, reserve, wishlist.
+- **Partner portals** — team/downline, recruit-share, leads + follow-up scheduler,
+  wallet/earnings/ledger + balance-checked withdrawals, partner dashboard.
+- **Commission engine** — deterministic Postgres engine credits the agent + the whole
+  hierarchy on a closed sale; append-only ledger → derived wallets (verified e2e).
+- **Marketing** — Digital Business Card (QR + vCard + channels), Smart Brochures, and a
+  live-camera + GPS **Photo Ad Creator**; referral-attributed sharing.
+- **Dynamic Form Builder + Admin Portal** — render any form schema; manage users/roles,
+  KYC, approvals (incl. Close-Sale firing the engine), rules, analytics & audit.
+- **AI** — Claude via a single Edge Function (8 features incl. lead scoring + assistant).
+- **Gamification + notifications** — badges, leaderboards, Realtime in-app notifications,
+  push, preferences.
+- **Hardening** — biometric app-lock, 8-language UI, EAS build config, store metadata.
 
+The full schema (migrations `0001`–`0018`) + two Edge Functions are applied/deployed live.
 See [`CLAUDE.md`](CLAUDE.md) for governance, [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-for the module map, and [`docs/RLS.md`](docs/RLS.md) for the security matrix.
+for the module map, [`docs/RLS.md`](docs/RLS.md) for the security matrix, and
+[`docs/STORE.md`](docs/STORE.md) to build & ship.
 
 ## Setup notes
 
-- **Email OTP:** in the Supabase dashboard, the magic-link/OTP email template must
-  include `{{ .Token }}` so users receive a 6-digit code.
-- **AI:** Anthropic Claude is called only from a Supabase Edge Function (never the app).
+- **Email OTP:** the Supabase magic-link/OTP email template must include `{{ .Token }}`.
+- **AI:** set `ANTHROPIC_API_KEY` in the `ai-generate` Edge Function secrets.
+- **Push & first admin:** run `eas init`; bootstrap the first admin — see `docs/STORE.md`.
 
-## Roadmap
+## Build & ship
+
+See [`docs/STORE.md`](docs/STORE.md). Earlier roadmap (now done):
 
 P3 Buyer App · P4 Partner portals · P5 Commission engine · P6 Brochure + Photo Ad
 Creator · P7 Form Builder + Admin · P8 AI · P9 Gamification + Notifications · P10

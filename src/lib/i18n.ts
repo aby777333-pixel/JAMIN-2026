@@ -2,8 +2,14 @@ import { getLocales } from 'expo-localization';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+import bn from '@/locales/bn.json';
 import en from '@/locales/en.json';
+import gu from '@/locales/gu.json';
 import hi from '@/locales/hi.json';
+import kn from '@/locales/kn.json';
+import mr from '@/locales/mr.json';
+import ta from '@/locales/ta.json';
+import te from '@/locales/te.json';
 
 /**
  * i18n — SuperPrompt §2. English default; structure ready for Indian languages:
@@ -24,12 +30,12 @@ export const SUPPORTED_LANGUAGES = [
 const resources = {
   en: { translation: en },
   hi: { translation: hi },
-  ta: { translation: {} },
-  te: { translation: {} },
-  kn: { translation: {} },
-  mr: { translation: {} },
-  bn: { translation: {} },
-  gu: { translation: {} },
+  ta: { translation: ta },
+  te: { translation: te },
+  kn: { translation: kn },
+  mr: { translation: mr },
+  bn: { translation: bn },
+  gu: { translation: gu },
 } as const;
 
 const deviceLanguage = getLocales()[0]?.languageCode ?? 'en';

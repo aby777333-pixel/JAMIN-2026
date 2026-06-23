@@ -22,6 +22,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { queryClient } from '@/lib/query';
 import '@/lib/i18n';
+import { LockGate } from '@/components/LockGate';
 import { NotificationsBridge } from '@/features/notifications/Bridge';
 import { useAuth } from '@/stores/auth';
 
@@ -78,10 +79,13 @@ export default function RootLayout() {
             <Stack.Screen name="kyc" />
             <Stack.Screen name="notifications" />
             <Stack.Screen name="rewards" />
+            <Stack.Screen name="settings/index" />
             <Stack.Screen name="settings/notifications" />
+            <Stack.Screen name="settings/security" />
             <Stack.Screen name="admin" />
             <Stack.Screen name="onboarding" options={{ presentation: 'modal' }} />
           </Stack>
+          <LockGate />
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

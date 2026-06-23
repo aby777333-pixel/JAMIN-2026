@@ -119,7 +119,10 @@ sales assistant; AI Studio, AI Assistant chat, AI lead scoring; results logged t
 ai_generations) · P9 Gamification + Notifications + Analytics ✓ (auto-awarded badges +
 get_leaderboard RPC; DB-trigger in-app notifications delivered live via Realtime,
 local banners, push tokens + push-send Edge Function; preferences; Rewards + Notifications
-feed + Admin Analytics screens) · P10 Hardening & store prep.
+feed + Admin Analytics screens) · P10 Hardening & store prep ✓ (8 locales filled +
+in-app language picker; biometric app-lock via expo-local-authentication + LockGate;
+settings hub; eas.json + store metadata; final RLS/grants hardening; docs/STORE.md
+launch guide). **All 10 phases / 16 modules complete.**
 
 ⚠️ AI requires the `ANTHROPIC_API_KEY` secret on the Supabase Edge Function (Dashboard →
 Edge Functions → ai-generate → Secrets). Without it the function returns a friendly
