@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JAMIN Admin Console</title>
+    <meta name="theme-color" content="#FD0001" />
+    <link rel="icon" href="logo.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root { --red:#fd0001; --red-deep:#c70000; --gold:#fbbc15; --gold-deep:#c8911e; --ink:#1a1a1a;
+        --charcoal:#202020; --muted:#74746e; --line:#e6e7e2; --paper:#f7f7f5; --surface:#fff;
+        --success:#1e9e5a; --danger:#d4351c; --warn:#e6a10d; }
+      * { box-sizing:border-box; }
+      body { margin:0; font-family:Inter,-apple-system,"Segoe UI",sans-serif; color:var(--ink); background:var(--paper); }
+      .mono { font-family:"JetBrains Mono",monospace; }
+      button { font-family:inherit; cursor:pointer; }
+      input,select,textarea { font-family:inherit; }
+      a { color:var(--red); }
+      .hidden { display:none !important; }
+
+      /* Login */
+      .login-wrap { min-height:100vh; display:grid; place-items:center; padding:20px; }
+      .card { background:var(--surface); border:1px solid var(--line); border-radius:20px; }
+      .login { width:100%; max-width:400px; padding:30px; }
+      .login img { height:40px; margin-bottom:18px; }
+      .login h1 { font-size:22px; margin:0 0 4px; }
+      .login p { color:var(--muted); margin:0 0 18px; font-size:14px; }
+      label { display:block; font-size:12px; font-weight:600; color:var(--muted); margin:12px 0 6px; }
+      .inp { width:100%; height:48px; border:1px solid var(--line); border-radius:12px; padding:0 14px; font-size:16px; outline:none; background:var(--paper); }
+      .inp:focus { border-color:var(--red); }
+      textarea.inp { height:auto; padding:10px 14px; }
+      .btn { border:none; border-radius:12px; padding:12px 18px; font-weight:600; font-size:15px; background:var(--red); color:#fff; }
+      .btn:hover { background:var(--red-deep); }
+      .btn:disabled { opacity:.5; }
+      .btn-g { background:var(--gold); color:var(--ink); } .btn-g:hover{ background:var(--gold-deep); }
+      .btn-o { background:var(--surface); color:var(--ink); border:1px solid var(--line); }
+      .btn-o:hover { background:var(--paper); }
+      .btn-d { background:transparent; color:var(--danger); border:1px solid var(--line); }
+      .btn-sm { padding:8px 12px; font-size:13px; border-radius:10px; }
+      .full { width:100%; margin-top:16px; }
+      .msg { margin-top:12px; font-size:13px; font-weight:600; min-height:16px; }
+      .msg.ok { color:var(--success); } .msg.err { color:var(--danger); }
+
+      /* App shell */
+      .shell { display:grid; grid-template-columns:230px 1fr; min-height:100vh; }
+      .side { background:var(--charcoal); color:#fff; padding:18px 14px; }
+      .side .brand { display:flex; align-items:center; gap:8px; padding:6px 8px 16px; }
+      .side .brand img { height:30px; border-radius:6px; }
+      .side .brand b { font-size:13px; letter-spacing:1px; }
+      .nav-i { display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:transparent; border:none; color:rgba(255,255,255,.8); padding:11px 12px; border-radius:10px; font-size:14.5px; font-weight:500; }
+      .nav-i:hover { background:rgba(255,255,255,.08); color:#fff; }
+      .nav-i.active { background:var(--red); color:#fff; }
+      .nav-i .dot { margin-left:auto; background:var(--gold); color:var(--ink); font-size:11px; font-weight:700; border-radius:999px; padding:1px 7px; }
+      .who { margin-top:22px; padding:10px 12px; font-size:12px; color:rgba(255,255,255,.6); border-top:1px solid rgba(255,255,255,.12); }
+      .main { padding:24px 26px; max-width:1100px; }
+      .head { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:12px; }
+      .head h2 { margin:0; font-size:24px; font-weight:800; letter-spacing:-.4px; }
+      .stat-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+      .stat { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 16px; min-width:120px; }
+      .stat .n { font-family:"JetBrains Mono",monospace; font-weight:700; font-size:22px; }
+      .stat .l { color:var(--muted); font-size:12px; }
+
+      table { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+      th,td { text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:middle; }
+      th { background:var(--paper); font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); }
+      tr:last-child td { border-bottom:none; }
+      .pill { display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; padding:3px 9px; border-radius:999px; }
+      .pill.available,.pill.verified,.pill.paid { background:rgba(30,158,90,.14); color:var(--success); }
+      .pill.reserved,.pill.pending,.pill.requested,.pill.approved { background:rgba(230,161,13,.16); color:var(--warn); }
+      .pill.sold,.pill.rejected { background:rgba(212,53,28,.14); color:var(--danger); }
+      .pill.neutral { background:rgba(26,26,26,.08); color:var(--ink); }
+      .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+      .panel { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:18px; }
+      .panel h3 { margin:0 0 12px; font-size:16px; }
+      .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+      .thumbs { display:flex; gap:6px; flex-wrap:wrap; }
+      .thumbs img { width:40px; height:40px; object-fit:cover; border-radius:6px; border:1px solid var(--line); }
+      .muted { color:var(--muted); font-size:13px; }
+      select.inp { height:48px; }
+      @media (max-width:760px){ .shell{ grid-template-columns:1fr; } .side{ display:flex; gap:6px; overflow-x:auto; } .nav-i{ width:auto; white-space:nowrap; } .who{ display:none; } .grid2{ grid-template-columns:1fr; } }
+    </style>
+  </head>
+  <body>
+    <!-- LOGIN -->
+    <div id="loginView" class="login-wrap">
+      <div class="card login">
+        <img src="logo.jpg" alt="JAMIN" />
+        <h1>Admin Console</h1>
+        <p>Sign in with your Super Admin email. You'll get a 6-digit code.</p>
+        <div id="step1">
+          <label>Email</label>
+          <input id="email" class="inp" type="email" placeholder="admin@example.com" autocomplete="email" />
+          <button id="sendBtn" class="btn full">Send code</button>
+        </div>
+        <div id="step2" class="hidden">
+          <label>6-digit code (sent to <span id="emailEcho"></span>)</label>
+          <input id="code" class="inp mono" inputmode="numeric" maxlength="6" placeholder="••••••" style="letter-spacing:6px;text-align:center" />
+          <button id="verifyBtn" class="btn full">Verify &amp; sign in</button>
+          <button id="backBtn" class="btn-o btn full" style="margin-top:8px">Use a different email</button>
+        </div>
+        <div id="loginMsg" class="msg"></div>
+      </div>
+    </div>
+
+    <!-- APP -->
+    <div id="appView" class="shell hidden">
+      <aside class="side">
+        <div class="brand"><img src="logo.jpg" alt="" /><b>ADMIN</b></div>
+        <button class="nav-i active" data-tab="properties">🏠 Properties</button>
+        <button class="nav-i" data-tab="catalog">📁 Catalog</button>
+        <button class="nav-i" data-tab="users">👤 Users &amp; roles</button>
+        <button class="nav-i" data-tab="approvals">✅ Approvals <span id="apprDot" class="dot hidden">0</span></button>
+        <div class="who"><span id="whoEmail"></span><br /><button id="signOut" class="btn-o btn-sm" style="margin-top:8px">Sign out</button></div>
+      </aside>
+      <main class="main">
+        <div id="tabProperties"></div>
+        <div id="tabCatalog" class="hidden"></div>
+        <div id="tabUsers" class="hidden"></div>
+        <div id="tabApprovals" class="hidden"></div>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      var SUPABASE_URL = 'https://oaqwnjgaypmuafvnfhxv.supabase.co';
+      var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXduamdheXBtdWFmdm5maHh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMDI2ODAsImV4cCI6MjA5Nzc3ODY4MH0.2tfyC3Z8Kzib8FdLjnE-z8m830PZUd9vfcWtDXIqp3E';
+      var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+      var $ = function (id) { return document.getElementById(id); };
+      var state = { user: null, projects: [], plans: [], types: [], roles: [] };
+
+      // ─── Auth ───────────────────────────────────────────────────────────
+      function setLoginMsg(t, ok) { var m = $('loginMsg'); m.textContent = t || ''; m.className = 'msg ' + (ok ? 'ok' : 'err'); }
+
+      $('sendBtn').onclick = async function () {
+        var email = $('email').value.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setLoginMsg('Enter a valid email.', false); return; }
+        this.disabled = true; setLoginMsg('Sending…', true);
+        var r = await sb.auth.signInWithOtp({ email: email, options: { shouldCreateUser: false } });
+        this.disabled = false;
+        if (r.error) { setLoginMsg(r.error.message, false); return; }
+        $('emailEcho').textContent = email; $('step1').classList.add('hidden'); $('step2').classList.remove('hidden');
+        setLoginMsg('Code sent. Check your email.', true);
+      };
+      $('backBtn').onclick = function () { $('step2').classList.add('hidden'); $('step1').classList.remove('hidden'); setLoginMsg(''); };
+      $('verifyBtn').onclick = async function () {
+        var email = $('email').value.trim(), token = $('code').value.trim();
+        if (!/^\d{6}$/.test(token)) { setLoginMsg('Enter the 6-digit code.', false); return; }
+        this.disabled = true; setLoginMsg('Verifying…', true);
+        var r = await sb.auth.verifyOtp({ email: email, token: token, type: 'email' });
+        this.disabled = false;
+        if (r.error) { setLoginMsg(r.error.message, false); return; }
+        await boot();
+      };
+      $('signOut').onclick = async function () { await sb.auth.signOut(); location.reload(); };
+
+      async function boot() {
+        var s = await sb.auth.getSession();
+        if (!s.data.session) { show('login'); return; }
+        state.user = s.data.session.user;
+        var prof = await sb.from('profiles').select('email, role:roles(is_admin)').eq('id', state.user.id).maybeSingle();
+        var isAdmin = prof.data && prof.data.role && prof.data.role.is_admin === true;
+        if (!isAdmin) { setLoginMsg('This account is not an administrator.', false); await sb.auth.signOut(); show('login'); return; }
+        $('whoEmail').textContent = prof.data.email || state.user.email;
+        show('app');
+        await loadLookups();
+        switchTab('properties');
+        refreshApprovalsBadge();
+      }
+      function show(which) { $('loginView').classList.toggle('hidden', which !== 'login'); $('appView').classList.toggle('hidden', which !== 'app'); }
+
+      // ─── Lookups ────────────────────────────────────────────────────────
+      async function loadLookups() {
+        var p = await sb.from('projects').select('id,code,name,location,status').order('name');
+        var pl = await sb.from('plans').select('id,project_id,name');
+        var t = await sb.from('property_types').select('id,slug,name,code_prefix').eq('active', true).order('name');
+        var r = await sb.from('roles').select('id,slug,name,level').order('level');
+        state.projects = p.data || []; state.plans = pl.data || []; state.types = t.data || []; state.roles = r.data || [];
+      }
+      function opt(arr, val, labelFn) { return arr.map(function (x) { return '<option value="' + x.id + '"' + (x.id === val ? ' selected' : '') + '>' + labelFn(x) + '</option>'; }).join(''); }
+      function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]); }); }
+      function inr(n) { return '₹' + Number(n || 0).toLocaleString('en-IN'); }
+
+      // ─── Tabs ───────────────────────────────────────────────────────────
+      document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
+      function switchTab(tab) {
+        document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
+        ['properties', 'catalog', 'users', 'approvals'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        if (tab === 'properties') renderProperties();
+        if (tab === 'catalog') renderCatalog();
+        if (tab === 'users') renderUsers();
+        if (tab === 'approvals') renderApprovals();
+      }
+
+      // ─── Properties ─────────────────────────────────────────────────────
+      async function renderProperties() {
+        var el = $('tabProperties');
+        el.innerHTML = '<div class="head"><h2>Properties</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('properties')
+          .select('id,plot_code,price,status,media,project_id,plan_id,property_type_id, project:projects(name), type:property_types(name)')
+          .order('plot_code');
+        var rows = q.data || [];
+        var byStatus = { available: 0, reserved: 0, sold: 0 };
+        rows.forEach(function (r) { byStatus[r.status] = (byStatus[r.status] || 0) + 1; });
+
+        var addForm =
+          '<div class="panel"><h3>Add property</h3><div class="grid2">' +
+          '<div><label>Project</label><select id="np_project" class="inp">' + opt(state.projects, null, function (x) { return esc(x.name); }) + '</select></div>' +
+          '<div><label>Plan</label><select id="np_plan" class="inp"><option value="">—</option></select></div>' +
+          '<div><label>Property type</label><select id="np_type" class="inp">' + opt(state.types, null, function (x) { return esc(x.name) + ' (' + x.code_prefix + ')'; }) + '</select></div>' +
+          '<div><label>Price (₹)</label><input id="np_price" class="inp" inputmode="numeric" placeholder="1500000" /></div>' +
+          '</div><button id="np_add" class="btn" style="margin-top:14px">+ Add property</button> <span id="np_msg" class="muted"></span></div>';
+
+        var table = '<table><thead><tr><th>Plot</th><th>Project</th><th>Type</th><th>Price</th><th>Status</th><th>Images</th><th>Actions</th></tr></thead><tbody>' +
+          rows.map(function (r) {
+            var imgs = Array.isArray(r.media) ? r.media : [];
+            return '<tr data-id="' + r.id + '">' +
+              '<td class="mono">' + esc(r.plot_code) + '</td>' +
+              '<td>' + esc(r.project ? r.project.name : '') + '</td>' +
+              '<td>' + esc(r.type ? r.type.name : '') + '</td>' +
+              '<td><input class="inp btn-sm pp_price" style="width:120px;height:36px" value="' + Number(r.price) + '" /></td>' +
+              '<td><select class="inp pp_status" style="width:130px;height:36px">' +
+                ['available', 'reserved', 'sold'].map(function (s) { return '<option value="' + s + '"' + (s === r.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') +
+              '</select></td>' +
+              '<td><div class="thumbs">' + imgs.map(function (m) { return '<img src="' + esc(m.url || m) + '" />'; }).join('') +
+                '<label class="btn-o btn-sm" style="display:inline-block">+<input type="file" accept="image/*" class="pp_file hidden" multiple /></label></div></td>' +
+              '<td class="row"><button class="btn btn-sm pp_save">Save</button><button class="btn-d btn-sm pp_del">Delete</button></td>' +
+              '</tr>';
+          }).join('') + '</tbody></table>';
+
+        el.innerHTML =
+          '<div class="head"><h2>Properties</h2></div>' +
+          '<div class="stat-row">' +
+            '<div class="stat"><div class="n">' + rows.length + '</div><div class="l">Total</div></div>' +
+            '<div class="stat"><div class="n">' + (byStatus.available || 0) + '</div><div class="l">Available</div></div>' +
+            '<div class="stat"><div class="n">' + (byStatus.reserved || 0) + '</div><div class="l">Reserved</div></div>' +
+            '<div class="stat"><div class="n">' + (byStatus.sold || 0) + '</div><div class="l">Sold</div></div>' +
+          '</div>' + addForm + (rows.length ? table : '<div class="muted">No properties yet — add one above.</div>');
+
+        // plan dropdown depends on project
+        function fillPlans() {
+          var pid = $('np_project').value;
+          var plans = state.plans.filter(function (p) { return p.project_id === pid; });
+          $('np_plan').innerHTML = '<option value="">—</option>' + opt(plans, null, function (x) { return esc(x.name); });
+        }
+        if ($('np_project')) { $('np_project').onchange = fillPlans; fillPlans(); }
+
+        if ($('np_add')) $('np_add').onclick = async function () {
+          var price = parseFloat($('np_price').value || '0');
+          var body = { project_id: $('np_project').value, property_type_id: $('np_type').value, price: isNaN(price) ? 0 : price, status: 'available' };
+          if ($('np_plan').value) body.plan_id = $('np_plan').value;
+          $('np_msg').textContent = 'Adding…';
+          var r = await sb.from('properties').insert(body);
+          if (r.error) { $('np_msg').textContent = 'Error: ' + r.error.message; return; }
+          renderProperties();
+        };
+
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          tr.querySelector('.pp_save').onclick = async function () {
+            var price = parseFloat(tr.querySelector('.pp_price').value || '0');
+            var status = tr.querySelector('.pp_status').value;
+            this.textContent = '…';
+            var r = await sb.from('properties').update({ price: isNaN(price) ? 0 : price, status: status }).eq('id', id);
+            this.textContent = r.error ? 'Err' : 'Saved';
+            if (r.error) alert(r.error.message);
+          };
+          tr.querySelector('.pp_del').onclick = async function () {
+            if (!confirm('Delete this property?')) return;
+            var r = await sb.from('properties').delete().eq('id', id);
+            if (r.error) { alert(r.error.message); return; }
+            renderProperties();
+          };
+          var fileInput = tr.querySelector('.pp_file');
+          fileInput.onchange = async function () {
+            var files = Array.from(this.files || []);
+            if (!files.length) return;
+            var current = await sb.from('properties').select('media').eq('id', id).single();
+            var media = Array.isArray(current.data && current.data.media) ? current.data.media : [];
+            for (var f of files) {
+              var path = id + '/' + Date.now() + '_' + f.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+              var up = await sb.storage.from('property-media').upload(path, f, { contentType: f.type, upsert: false });
+              if (up.error) { alert('Upload failed: ' + up.error.message); continue; }
+              var pub = sb.storage.from('property-media').getPublicUrl(path);
+              media.push({ url: pub.data.publicUrl });
+            }
+            var r = await sb.from('properties').update({ media: media }).eq('id', id);
+            if (r.error) { alert(r.error.message); return; }
+            renderProperties();
+          };
+        });
+      }
+
+      // ─── Catalog (projects / plans / types) ─────────────────────────────
+      async function renderCatalog() {
+        await loadLookups();
+        var el = $('tabCatalog');
+        el.innerHTML =
+          '<div class="head"><h2>Catalog</h2></div>' +
+          // projects
+          '<div class="panel"><h3>Projects</h3>' +
+            '<div class="row"><input id="c_pcode" class="inp" style="max-width:120px" placeholder="Code (JP-C)" />' +
+            '<input id="c_pname" class="inp" style="max-width:220px" placeholder="Name" />' +
+            '<input id="c_ploc" class="inp" style="max-width:200px" placeholder="Location" />' +
+            '<button id="c_padd" class="btn btn-sm">Add</button></div>' +
+            '<div class="muted" style="margin-top:10px">' + state.projects.map(function (p) { return esc(p.code) + ' · ' + esc(p.name) + (p.location ? ' (' + esc(p.location) + ')' : ''); }).join('<br>') + '</div></div>' +
+          // plans
+          '<div class="panel"><h3>Plans</h3>' +
+            '<div class="row"><select id="c_plproj" class="inp" style="max-width:220px">' + opt(state.projects, null, function (x) { return esc(x.name); }) + '</select>' +
+            '<input id="c_plname" class="inp" style="max-width:200px" placeholder="Plan name" />' +
+            '<button id="c_pladd" class="btn btn-sm">Add</button></div>' +
+            '<div class="muted" style="margin-top:10px">' + state.plans.map(function (p) { var pr = state.projects.find(function (x) { return x.id === p.project_id; }); return esc(p.name) + (pr ? ' — ' + esc(pr.name) : ''); }).join('<br>') + '</div></div>' +
+          // types
+          '<div class="panel"><h3>Property types</h3>' +
+            '<div class="row"><input id="c_tname" class="inp" style="max-width:180px" placeholder="Name (Penthouse)" />' +
+            '<input id="c_tslug" class="inp" style="max-width:140px" placeholder="slug" />' +
+            '<input id="c_tpre" class="inp" style="max-width:90px" placeholder="PH" />' +
+            '<button id="c_tadd" class="btn btn-sm">Add</button></div>' +
+            '<div class="muted" style="margin-top:10px">' + state.types.map(function (t) { return esc(t.name) + ' (' + esc(t.code_prefix) + ')'; }).join('<br>') + '</div></div>';
+
+        $('c_padd').onclick = async function () {
+          var r = await sb.from('projects').insert({ code: $('c_pcode').value.trim(), name: $('c_pname').value.trim(), location: $('c_ploc').value.trim() || null });
+          if (r.error) return alert(r.error.message); renderCatalog();
+        };
+        $('c_pladd').onclick = async function () {
+          var r = await sb.from('plans').insert({ project_id: $('c_plproj').value, name: $('c_plname').value.trim() });
+          if (r.error) return alert(r.error.message); renderCatalog();
+        };
+        $('c_tadd').onclick = async function () {
+          var r = await sb.from('property_types').insert({ name: $('c_tname').value.trim(), slug: $('c_tslug').value.trim().toLowerCase(), code_prefix: $('c_tpre').value.trim().toUpperCase() });
+          if (r.error) return alert(r.error.message); renderCatalog();
+        };
+      }
+
+      // ─── Users & roles ──────────────────────────────────────────────────
+      async function renderUsers() {
+        var el = $('tabUsers');
+        el.innerHTML = '<div class="head"><h2>Users &amp; roles</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('profiles').select('id,full_name,email,kyc_status, role:roles(slug,name)').order('created_at', { ascending: false });
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>Users &amp; roles</h2></div><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>KYC</th><th>Actions</th></tr></thead><tbody>' +
+          rows.map(function (u) {
+            var curRole = (state.roles.find(function (r) { return r.slug === (u.role && u.role.slug); }) || {}).id;
+            var roleSel = state.roles.map(function (r) { return '<option value="' + r.id + '"' + (r.id === curRole ? ' selected' : '') + '>' + esc(r.name) + '</option>'; }).join('');
+            return '<tr data-id="' + u.id + '"><td>' + esc(u.full_name || '—') + '</td><td>' + esc(u.email || '') + '</td>' +
+              '<td><select class="inp uu_role" style="width:160px;height:36px">' + roleSel + '</select></td>' +
+              '<td><span class="pill ' + (u.kyc_status || 'neutral') + '">' + esc(u.kyc_status) + '</span></td>' +
+              '<td class="row"><button class="btn btn-sm uu_save">Set role</button>' +
+                (u.kyc_status === 'pending' ? '<button class="btn-g btn-sm uu_kok">Approve KYC</button><button class="btn-d btn-sm uu_kno">Reject</button>' : '') +
+              '</td></tr>';
+          }).join('') + '</tbody></table>';
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          tr.querySelector('.uu_save').onclick = async function () {
+            var roleId = tr.querySelector('.uu_role').value; this.textContent = '…';
+            var r = await sb.from('profiles').update({ role_id: roleId }).eq('id', id);
+            this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+          var ok = tr.querySelector('.uu_kok'), no = tr.querySelector('.uu_kno');
+          if (ok) ok.onclick = async function () { var r = await sb.from('profiles').update({ kyc_status: 'verified' }).eq('id', id); if (r.error) return alert(r.error.message); renderUsers(); };
+          if (no) no.onclick = async function () { var r = await sb.from('profiles').update({ kyc_status: 'rejected' }).eq('id', id); if (r.error) return alert(r.error.message); renderUsers(); };
+        });
+      }
+
+      // ─── Approvals (withdrawals) ────────────────────────────────────────
+      async function renderApprovals() {
+        var el = $('tabApprovals');
+        el.innerHTML = '<div class="head"><h2>Approvals</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('withdrawals').select('id,amount,status,rail,requested_at, user:profiles(full_name)').in('status', ['requested', 'approved']).order('requested_at');
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>Approvals — withdrawals</h2></div>' +
+          (rows.length ? '<table><thead><tr><th>Member</th><th>Amount</th><th>Rail</th><th>Status</th><th>Actions</th></tr></thead><tbody>' +
+          rows.map(function (w) {
+            return '<tr data-id="' + w.id + '"><td>' + esc(w.user ? w.user.full_name : '—') + '</td><td class="mono">' + inr(w.amount) + '</td><td>' + esc(w.rail || '') + '</td>' +
+              '<td><span class="pill ' + w.status + '">' + w.status + '</span></td>' +
+              '<td class="row">' + (w.status === 'requested'
+                ? '<button class="btn-g btn-sm wa_set" data-s="approved">Approve</button><button class="btn-d btn-sm wa_set" data-s="rejected">Reject</button>'
+                : '<button class="btn btn-sm wa_set" data-s="paid">Mark paid</button>') + '</td></tr>';
+          }).join('') + '</tbody></table>'
+          : '<div class="muted">No pending payouts.</div>');
+        el.querySelectorAll('.wa_set').forEach(function (b) {
+          b.onclick = async function () {
+            var id = b.closest('tr').dataset.id, s = b.dataset.s;
+            var r = await sb.from('withdrawals').update({ status: s }).eq('id', id);
+            if (r.error) return alert(r.error.message); renderApprovals(); refreshApprovalsBadge();
+          };
+        });
+      }
+      async function refreshApprovalsBadge() {
+        var c = await sb.from('withdrawals').select('id', { count: 'exact', head: true }).in('status', ['requested', 'approved']);
+        var p = await sb.from('profiles').select('id', { count: 'exact', head: true }).eq('kyc_status', 'pending');
+        var n = (c.count || 0) + (p.count || 0);
+        var dot = $('apprDot'); dot.textContent = n; dot.classList.toggle('hidden', n === 0);
+      }
+
+      boot();
+    </script>
+  </body>
+</html>
