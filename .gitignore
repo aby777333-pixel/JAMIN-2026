@@ -45,3 +45,6 @@ example
 # expo export / metro output
 /dist-check
 *.hbc
+
+# Netlify CLI local state
+.netlify/
