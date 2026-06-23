@@ -22,6 +22,7 @@ export interface Profile {
   id: string;
   role_id: string | null;
   role_slug: RoleSlug | null;
+  role_is_admin: boolean;
   parent_id: string | null;
   hierarchy_path: string | null;
   referral_code: string;

@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Screen } from '@/components/ui/Screen';
 import { StatCard } from '@/components/ui/StatCard';
+import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
 import { useLeads } from '@/features/leads/hooks';
 import { shareReferral } from '@/features/share/referral';
@@ -72,6 +73,21 @@ export default function Home() {
         </View>
       </Card>
 
+      {profile && profile.kyc_status !== 'verified' ? (
+        <Pressable onPress={() => router.push('/kyc')}>
+          <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/10">
+            <Ionicons name="id-card" size={22} color={color.goldDeep} />
+            <View className="flex-1">
+              <Text variant="title" className="text-[14px]">
+                Complete your KYC
+              </Text>
+              <Text variant="caption">Verify your identity to unlock payouts</Text>
+            </View>
+            <StatusPill status={profile.kyc_status} />
+          </Card>
+        </Pressable>
+      ) : null}
+
       {isPartner ? (
         <>
           <View className="flex-row gap-3">
@@ -98,6 +114,9 @@ export default function Home() {
             <QuickLink icon="git-network" label="Network" onPress={() => router.push('/(tabs)/network')} />
             <QuickLink icon="wallet" label="Wallet" onPress={() => router.push('/(tabs)/wallet')} />
             <QuickLink icon="qr-code" label="My Card" onPress={() => router.push('/(tabs)/card')} />
+            {profile?.role_is_admin ? (
+              <QuickLink icon="shield-checkmark" label="Admin" onPress={() => router.push('/admin')} />
+            ) : null}
           </View>
         </>
       ) : (

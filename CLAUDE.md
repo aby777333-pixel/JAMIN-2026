@@ -108,7 +108,15 @@ Brochure + Photo Ad ✓ (vCard + multi-channel ShareChannels on the card; brochu
 library from brochure_templates → personalized view-shot poster + share; Photo Ad
 Creator = camera/upload + GPS reverse-geocode + timestamp → branded auto-ad, format
 selector, save-to-gallery + share; referral-attributed artifact logging) · P7 Form
-Builder + Admin · P8 AI · P9 Gamification + Notifications + Analytics · P10 Hardening
-& store prep.
+Builder + Admin ✓ (DynamicForm renders ANY form_definitions schema with zod
+validation; admin Form Builder edits/reorders fields live; Admin Portal = dashboard,
+Users & roles, KYC approve, Approvals incl. Close-Sale firing the commission engine,
+commission-rule toggles; profile-column guard blocks self-escalation; KYC via
+submit_kyc + form_submissions) · P8 AI · P9 Gamification + Notifications + Analytics ·
+P10 Hardening & store prep.
+
+Admin UI is gated on `profile.role_is_admin` (roles.is_admin). super_admin is seeded;
+elevate the first admin via Users & roles (or SQL) — non-admins cannot self-promote
+(guard_profile_columns trigger).
 
 Marketing deps added (first-party Expo): expo-image-picker, expo-file-system.

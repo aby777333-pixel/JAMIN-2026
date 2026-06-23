@@ -1103,6 +1103,33 @@ export type Database = {
           },
         ]
       }
+      form_submissions: {
+        Row: {
+          created_at: string
+          data: Json
+          form_key: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          form_key: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          form_key?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ad_creatives: {
         Row: {
           captured_at: string | null
@@ -1247,6 +1274,8 @@ export type Database = {
       gen_referral_code: { Args: Record<PropertyKey, never>; Returns: string }
       next_plot_code: { Args: { p_type: string }; Returns: string }
       request_withdrawal: { Args: { p_amount: number; p_rail?: string }; Returns: string }
+      close_sale: { Args: { p_booking: string }; Returns: number }
+      submit_kyc: { Args: { p_data: Json }; Returns: undefined }
       uuid_label: { Args: { p: string }; Returns: string }
     }
     Enums: {

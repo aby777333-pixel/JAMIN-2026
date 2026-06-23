@@ -71,6 +71,8 @@ export default function RootLayout() {
             <Stack.Screen name="tools/ad-creator" />
             <Stack.Screen name="brochures/index" />
             <Stack.Screen name="brochures/[id]" />
+            <Stack.Screen name="kyc" />
+            <Stack.Screen name="admin" />
             <Stack.Screen name="onboarding" options={{ presentation: 'modal' }} />
           </Stack>
         </QueryClientProvider>
