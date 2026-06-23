@@ -1153,6 +1153,7 @@ export type Database = {
       }
       gen_referral_code: { Args: Record<PropertyKey, never>; Returns: string }
       next_plot_code: { Args: { p_type: string }; Returns: string }
+      request_withdrawal: { Args: { p_amount: number; p_rail?: string }; Returns: string }
       uuid_label: { Args: { p: string }; Returns: string }
     }
     Enums: {

@@ -1,12 +1,21 @@
+import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, View } from 'react-native';
 
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Screen } from '@/components/ui/Screen';
+import { StatCard } from '@/components/ui/StatCard';
 import { Text } from '@/components/ui/Text';
+import { useLeads } from '@/features/leads/hooks';
+import { shareReferral } from '@/features/share/referral';
+import { useDownline } from '@/features/team/hooks';
+import { useWalletSummary } from '@/features/wallet/hooks';
 import { useAuth } from '@/stores/auth';
+import { color } from '@/theme/tokens';
 
 function roleLabel(slug?: string | null) {
   if (!slug) return 'Member';
@@ -17,8 +26,12 @@ export default function Home() {
   const { t } = useTranslation();
   const profile = useAuth((s) => s.profile);
   const signOut = useAuth((s) => s.signOut);
+  const isPartner = !!profile?.role_slug && profile.role_slug !== 'buyer';
 
-  const referral = profile?.referral_code ?? '—';
+  const { data: summary } = useWalletSummary();
+  const { data: team = [] } = useDownline();
+  const { data: openLeads = [] } = useLeads();
+  const activeLeads = openLeads.filter((l) => l.status !== 'won' && l.status !== 'lost').length;
 
   async function copyReferral() {
     if (!profile?.referral_code) return;
@@ -43,38 +56,86 @@ export default function Home() {
           Your referral code
         </Text>
         <View className="mt-2 flex-row items-center justify-between">
-          <Text className="font-mono-bold text-[28px] text-white tracking-[2px]">{referral}</Text>
-          <Pressable onPress={copyReferral} className="rounded-xl bg-white/10 px-4 py-2">
-            <Text className="font-semibold text-white">Copy</Text>
-          </Pressable>
+          <Text className="font-mono-bold text-[28px] text-white tracking-[2px]">
+            {profile?.referral_code ?? '—'}
+          </Text>
+          <View className="flex-row gap-2">
+            <Pressable onPress={copyReferral} className="rounded-xl bg-white/10 px-3 py-2">
+              <Ionicons name="copy-outline" size={18} color="#FFFFFF" />
+            </Pressable>
+            <Pressable
+              onPress={() => profile?.referral_code && shareReferral({ referralCode: profile.referral_code })}
+              className="rounded-xl bg-white/10 px-3 py-2">
+              <Ionicons name="share-social-outline" size={18} color="#FFFFFF" />
+            </Pressable>
+          </View>
         </View>
-        <Text className="mt-2 text-[12px] text-white/60">
-          Share your card to grow your network — every signup binds to you.
-        </Text>
       </Card>
 
-      <View className="flex-row gap-3">
-        <Card className="flex-1">
-          <Text variant="label">Earnings</Text>
-          <MoneyText value={0} className="mt-1 text-[20px]" />
-        </Card>
-        <Card className="flex-1">
-          <Text variant="label">Wallet</Text>
-          <MoneyText value={0} className="mt-1 text-[20px]" />
-        </Card>
-      </View>
+      {isPartner ? (
+        <>
+          <View className="flex-row gap-3">
+            <StatCard label="Wallet" icon="wallet">
+              <MoneyText value={summary?.balance ?? '0'} className="text-[18px]" />
+            </StatCard>
+            <StatCard label="Earnings" icon="trending-up">
+              <MoneyText value={summary?.earnings ?? '0'} className="text-[18px]" />
+            </StatCard>
+          </View>
+          <View className="flex-row gap-3">
+            <StatCard label="Team" icon="people">
+              <Text className="font-mono-bold text-[18px] text-ink">{team.length}</Text>
+            </StatCard>
+            <StatCard label="Active leads" icon="flame">
+              <Text className="font-mono-bold text-[18px] text-ink">{activeLeads}</Text>
+            </StatCard>
+          </View>
 
-      <Card>
-        <Text variant="title">Getting started</Text>
-        <Text variant="body" className="mt-1 text-muted">
-          Your Digital Business Card is ready in the Card tab. Browse inventory in Properties and
-          track your team in Network as your platform fills in.
-        </Text>
-      </Card>
+          <View className="flex-row flex-wrap gap-3">
+            <QuickLink icon="people" label="Leads" onPress={() => router.push('/leads')} />
+            <QuickLink icon="git-network" label="Network" onPress={() => router.push('/(tabs)/network')} />
+            <QuickLink icon="wallet" label="Wallet" onPress={() => router.push('/(tabs)/wallet')} />
+            <QuickLink icon="qr-code" label="My Card" onPress={() => router.push('/(tabs)/card')} />
+          </View>
+        </>
+      ) : (
+        <Card>
+          <Text variant="title">Find your next property</Text>
+          <Text variant="body" className="mt-1 text-muted">
+            Browse dynamic inventory, calculate EMI & ROI, and enquire or book a visit.
+          </Text>
+          <View className="mt-3">
+            <Button title="Browse properties" onPress={() => router.push('/(tabs)/properties')} />
+          </View>
+        </Card>
+      )}
 
       <Pressable onPress={() => signOut()} className="self-center py-3">
         <Text className="font-semibold text-muted">{t('auth.signOut')}</Text>
       </Pressable>
     </Screen>
+  );
+}
+
+function QuickLink({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: keyof typeof import('@expo/vector-icons').Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="w-[47%] flex-grow flex-row items-center gap-3 rounded-2xl border border-line bg-surface p-4">
+      <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
+        <Ionicons name={icon} size={20} color={color.red} />
+      </View>
+      <Text variant="title" className="text-[15px]">
+        {label}
+      </Text>
+    </Pressable>
   );
 }

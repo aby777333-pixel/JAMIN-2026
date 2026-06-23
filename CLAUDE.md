@@ -97,6 +97,9 @@ npm test             # jest
 P0 Foundation ✓ · P1 Auth & Onboarding ✓ · P2 Dynamic config & inventory (DB ✓) ·
 P3 Buyer App ✓ (discovery, filters, detail, EMI/ROI calculators, dynamic enquiry,
 site-visit booking, reserve, wishlist; map view deferred pending Maps API key) ·
-P4 Partner portals · P5 Commission engine · P6 Business Card + Smart Brochure +
-Photo Ad · P7 Form Builder + Admin · P8 AI · P9 Gamification + Notifications +
-Analytics · P10 Hardening & store prep.
+P4 Partner portals ✓ (team/downline, recruit-share, leads + follow-up scheduler,
+referral-attributed sharing, wallet/earnings/ledger + balance-checked withdrawals,
+partner Home dashboard; partner UI requires role ≥ agent — elevate via admin/SQL) ·
+P5 Commission engine · P6 Business Card + Smart Brochure + Photo Ad · P7 Form
+Builder + Admin · P8 AI · P9 Gamification + Notifications + Analytics · P10
+Hardening & store prep.

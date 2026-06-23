@@ -1,17 +1,113 @@
+import { Ionicons } from '@expo/vector-icons';
+import { ActivityIndicator, FlatList, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Screen } from '@/components/ui/Screen';
+import { StatCard } from '@/components/ui/StatCard';
 import { Text } from '@/components/ui/Text';
+import { shareReferral } from '@/features/share/referral';
+import { useDownline } from '@/features/team/hooks';
+import type { TeamMember } from '@/features/team/api';
+import { useAuth } from '@/stores/auth';
+import { color } from '@/theme/tokens';
 
 export default function Network() {
+  const insets = useSafeAreaInsets();
+  const profile = useAuth((s) => s.profile);
+  const { data: team = [], isLoading, refetch, isRefetching } = useDownline();
+
+  const direct = team.filter((m) => m.parent_id === profile?.id).length;
+  const sorted = [...team].sort((a, b) => (a.role?.level ?? 99) - (b.role?.level ?? 99));
+
+  async function recruit() {
+    if (!profile?.referral_code) return;
+    await shareReferral({ referralCode: profile.referral_code, channel: 'recruit' });
+  }
+
   return (
-    <Screen scroll={false} contentClassName="pt-4">
-      <Text variant="h1">Network</Text>
-      <EmptyState
-        icon="people"
-        title="Your team, mapped"
-        body="The full referral hierarchy from you down — recruitment, team performance, territory and commission tracking across unlimited levels."
-        phase="Phase 2 · Hierarchy & RLS"
+    <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
+      <FlatList
+        data={sorted}
+        keyExtractor={(m) => m.id}
+        contentContainerClassName="px-5 pb-8 gap-3"
+        showsVerticalScrollIndicator={false}
+        onRefresh={refetch}
+        refreshing={isRefetching}
+        ListHeaderComponent={
+          <View className="gap-3 pb-1 pt-2">
+            <Text variant="h1">Network</Text>
+            <View className="flex-row gap-3">
+              <StatCard label="Team size" icon="people">
+                <Text className="font-mono-bold text-[22px] text-ink">{team.length}</Text>
+              </StatCard>
+              <StatCard label="Direct" icon="git-branch">
+                <Text className="font-mono-bold text-[22px] text-ink">{direct}</Text>
+              </StatCard>
+            </View>
+
+            <Card className="bg-charcoal gap-2">
+              <Text className="font-medium text-[12px] uppercase tracking-[2px] text-gold">
+                Recruit your team
+              </Text>
+              <Text className="text-[13px] text-white/70">
+                Share your invite — every signup binds under you automatically.
+              </Text>
+              <View className="mt-1 flex-row items-center justify-between">
+                <Text className="font-mono-bold text-[20px] text-white tracking-[2px]">
+                  {profile?.referral_code ?? '—'}
+                </Text>
+              </View>
+              <Button title="Share invite" variant="secondary" onPress={recruit} />
+            </Card>
+
+            {team.length > 0 ? (
+              <Text variant="label" className="mt-1">
+                Your team
+              </Text>
+            ) : null}
+          </View>
+        }
+        renderItem={({ item }) => <TeamMemberRow member={item} />}
+        ListEmptyComponent={
+          isLoading ? (
+            <View className="items-center py-16">
+              <ActivityIndicator color={color.red} />
+            </View>
+          ) : (
+            <EmptyState
+              icon="people"
+              title="No team yet"
+              body="Share your invite to start building your network. New members appear here instantly."
+            />
+          )
+        }
       />
-    </Screen>
+    </View>
+  );
+}
+
+function TeamMemberRow({ member }: { member: TeamMember }) {
+  const initials = (member.full_name ?? '?')
+    .split(' ')
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+  return (
+    <Card className="flex-row items-center gap-3">
+      <View className="h-11 w-11 items-center justify-center rounded-full bg-red/10">
+        <Text className="font-bold text-red">{initials}</Text>
+      </View>
+      <View className="flex-1">
+        <Text variant="title" numberOfLines={1}>
+          {member.full_name ?? 'New member'}
+        </Text>
+        <Text variant="caption">Ref {member.referral_code}</Text>
+      </View>
+      <Badge label={member.role?.name ?? 'Member'} />
+    </Card>
   );
 }
