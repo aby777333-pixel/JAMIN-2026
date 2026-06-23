@@ -1,6 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -42,7 +44,16 @@ export default function Properties() {
         refreshing={isRefetching}
         ListHeaderComponent={
           <View className="gap-3 pb-1 pt-2">
-            <Text variant="h1">{t('tabs.properties')}</Text>
+            <View className="flex-row items-center justify-between">
+              <Text variant="h1">{t('tabs.properties')}</Text>
+              <Pressable
+                onPress={() => router.push('/compare')}
+                className="flex-row items-center gap-1 rounded-full border border-line bg-surface px-3 py-2"
+              >
+                <Ionicons name="git-compare" size={15} color={color.ink} />
+                <Text className="text-[13px] font-semibold text-ink">Compare</Text>
+              </Pressable>
+            </View>
             <Input
               placeholder="Search by plot code…"
               autoCapitalize="characters"

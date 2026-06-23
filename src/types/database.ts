@@ -1402,6 +1402,11 @@ export type Database = {
       request_withdrawal: { Args: { p_amount: number; p_rail?: string }; Returns: string }
       close_sale: { Args: { p_booking: string }; Returns: number }
       submit_kyc: { Args: { p_data: Json }; Returns: undefined }
+      team_summary: { Args: never; Returns: Json }
+      log_referral_click: {
+        Args: { p_code: string; p_artifact?: string; p_channel?: string; p_device?: Json }
+        Returns: boolean
+      }
       uuid_label: { Args: { p: string }; Returns: string }
     }
     Enums: {

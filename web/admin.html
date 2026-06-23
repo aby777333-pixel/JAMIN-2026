@@ -111,7 +111,11 @@
         <button class="nav-i active" data-tab="properties">🏠 Properties</button>
         <button class="nav-i" data-tab="catalog">📁 Catalog</button>
         <button class="nav-i" data-tab="users">👤 Users &amp; roles</button>
+        <button class="nav-i" data-tab="crm">📇 CRM / Leads</button>
+        <button class="nav-i" data-tab="marketing">🎨 Marketing</button>
+        <button class="nav-i" data-tab="territories">🗺️ Territories</button>
         <button class="nav-i" data-tab="approvals">✅ Approvals <span id="apprDot" class="dot hidden">0</span></button>
+        <button class="nav-i" data-tab="config">⚙️ System config</button>
         <div style="margin-top:14px;padding:10px 12px;font-size:11px;line-height:1.55;color:rgba(255,255,255,.6);background:rgba(255,255,255,.06);border-radius:10px">✓ Every change you save here is <b style="color:#7ee2a8">live in the phone app instantly</b> — no deploy needed.</div>
         <div class="who"><span id="whoEmail"></span><br /><button id="signOut" class="btn-o btn-sm" style="margin-top:8px">Sign out</button></div>
       </aside>
@@ -119,7 +123,11 @@
         <div id="tabProperties"></div>
         <div id="tabCatalog" class="hidden"></div>
         <div id="tabUsers" class="hidden"></div>
+        <div id="tabCrm" class="hidden"></div>
+        <div id="tabMarketing" class="hidden"></div>
+        <div id="tabTerritories" class="hidden"></div>
         <div id="tabApprovals" class="hidden"></div>
+        <div id="tabConfig" class="hidden"></div>
       </main>
     </div>
 
@@ -130,7 +138,7 @@
       var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
       var $ = function (id) { return document.getElementById(id); };
-      var state = { user: null, projects: [], plans: [], types: [], roles: [] };
+      var state = { user: null, projects: [], plans: [], types: [], roles: [], territories: [] };
 
       // ─── Auth ───────────────────────────────────────────────────────────
       function setLoginMsg(t, ok) { var m = $('loginMsg'); m.textContent = t || ''; m.className = 'msg ' + (ok ? 'ok' : 'err'); }
@@ -178,7 +186,8 @@
         var pl = await sb.from('plans').select('id,project_id,name');
         var t = await sb.from('property_types').select('id,slug,name,code_prefix').eq('active', true).order('name');
         var r = await sb.from('roles').select('id,slug,name,level').order('level');
-        state.projects = p.data || []; state.plans = pl.data || []; state.types = t.data || []; state.roles = r.data || [];
+        var tr = await sb.from('territories').select('id,name,parent_id').order('name');
+        state.projects = p.data || []; state.plans = pl.data || []; state.types = t.data || []; state.roles = r.data || []; state.territories = tr.data || [];
       }
       function opt(arr, val, labelFn) { return arr.map(function (x) { return '<option value="' + x.id + '"' + (x.id === val ? ' selected' : '') + '>' + labelFn(x) + '</option>'; }).join(''); }
       function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]); }); }
@@ -188,11 +197,15 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'approvals'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
+        if (tab === 'crm') renderCrm();
+        if (tab === 'marketing') renderMarketing();
+        if (tab === 'territories') renderTerritories();
         if (tab === 'approvals') renderApprovals();
+        if (tab === 'config') renderConfig();
       }
 
       // ─── Properties ─────────────────────────────────────────────────────
@@ -339,16 +352,18 @@
       async function renderUsers() {
         var el = $('tabUsers');
         el.innerHTML = '<div class="head"><h2>Users &amp; roles</h2></div><div class="muted">Loading…</div>';
-        var q = await sb.from('profiles').select('id,full_name,email,kyc_status, role:roles(slug,name)').order('created_at', { ascending: false });
+        var q = await sb.from('profiles').select('id,full_name,email,kyc_status,territory_id, role:roles(slug,name)').order('created_at', { ascending: false });
         var rows = q.data || [];
-        el.innerHTML = '<div class="head"><h2>Users &amp; roles</h2></div><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>KYC</th><th>Actions</th></tr></thead><tbody>' +
+        el.innerHTML = '<div class="head"><h2>Users &amp; roles</h2></div><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Territory</th><th>KYC</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (u) {
             var curRole = (state.roles.find(function (r) { return r.slug === (u.role && u.role.slug); }) || {}).id;
             var roleSel = state.roles.map(function (r) { return '<option value="' + r.id + '"' + (r.id === curRole ? ' selected' : '') + '>' + esc(r.name) + '</option>'; }).join('');
+            var terrSel = '<option value="">—</option>' + state.territories.map(function (t) { return '<option value="' + t.id + '"' + (t.id === u.territory_id ? ' selected' : '') + '>' + esc(t.name) + '</option>'; }).join('');
             return '<tr data-id="' + u.id + '"><td>' + esc(u.full_name || '—') + '</td><td>' + esc(u.email || '') + '</td>' +
-              '<td><select class="inp uu_role" style="width:160px;height:36px">' + roleSel + '</select></td>' +
+              '<td><select class="inp uu_role" style="width:150px;height:36px">' + roleSel + '</select></td>' +
+              '<td><select class="inp uu_terr" style="width:140px;height:36px">' + terrSel + '</select></td>' +
               '<td><span class="pill ' + (u.kyc_status || 'neutral') + '">' + esc(u.kyc_status) + '</span></td>' +
-              '<td class="row"><button class="btn btn-sm uu_save">Set role</button>' +
+              '<td class="row"><button class="btn btn-sm uu_save">Save</button>' +
                 (u.kyc_status === 'pending' ? '<button class="btn-g btn-sm uu_kok">Approve KYC</button><button class="btn-d btn-sm uu_kno">Reject</button>' : '') +
               '</td></tr>';
           }).join('') + '</tbody></table>';
@@ -356,7 +371,8 @@
           var id = tr.dataset.id;
           tr.querySelector('.uu_save').onclick = async function () {
             var roleId = tr.querySelector('.uu_role').value; this.textContent = '…';
-            var r = await sb.from('profiles').update({ role_id: roleId }).eq('id', id);
+            var terr = tr.querySelector('.uu_terr').value || null;
+            var r = await sb.from('profiles').update({ role_id: roleId, territory_id: terr }).eq('id', id);
             this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
           };
           var ok = tr.querySelector('.uu_kok'), no = tr.querySelector('.uu_kno');
@@ -394,6 +410,120 @@
         var p = await sb.from('profiles').select('id', { count: 'exact', head: true }).eq('kyc_status', 'pending');
         var n = (c.count || 0) + (p.count || 0);
         var dot = $('apprDot'); dot.textContent = n; dot.classList.toggle('hidden', n === 0);
+      }
+
+      // ─── CRM / Leads ────────────────────────────────────────────────────
+      var LEAD_STATUSES = ['new', 'contacted', 'qualified', 'visit', 'won', 'lost'];
+      async function renderCrm() {
+        var el = $('tabCrm');
+        el.innerHTML = '<div class="head"><h2>CRM / Leads</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('leads').select('id,source,status,contact,score,created_at, owner:profiles!owner_id(full_name), property:properties(plot_code)').order('created_at', { ascending: false }).limit(300);
+        if (q.error) { el.innerHTML = '<div class="head"><h2>CRM / Leads</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>CRM / Leads</h2></div>' +
+          '<div class="stat-row"><div class="stat"><div class="n">' + rows.length + '</div><div class="l">Leads</div></div>' +
+            '<div class="stat"><div class="n">' + rows.filter(function (l) { return l.status === 'won'; }).length + '</div><div class="l">Won</div></div></div>' +
+          (rows.length ? '<table><thead><tr><th>Contact</th><th>Owner</th><th>Property</th><th>Source</th><th>Score</th><th>Status</th></tr></thead><tbody>' +
+          rows.map(function (l) {
+            var c = l.contact || {};
+            return '<tr data-id="' + l.id + '"><td>' + esc(c.name || c.full_name || '—') + (c.phone ? '<br><span class="muted">' + esc(c.phone) + '</span>' : '') + '</td>' +
+              '<td>' + esc(l.owner ? l.owner.full_name : '—') + '</td><td class="mono">' + esc(l.property ? l.property.plot_code : '') + '</td>' +
+              '<td>' + esc(l.source || '') + '</td><td class="mono">' + (l.score == null ? '—' : l.score) + '</td>' +
+              '<td><select class="inp lead_status" style="width:130px;height:36px">' + LEAD_STATUSES.map(function (s) { return '<option value="' + s + '"' + (s === l.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No leads yet.</div>');
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          tr.querySelector('.lead_status').onchange = async function () {
+            var r = await sb.from('leads').update({ status: this.value }).eq('id', tr.dataset.id);
+            if (r.error) alert(r.error.message);
+          };
+        });
+      }
+
+      // ─── Marketing assets (brochure templates) ──────────────────────────
+      async function renderMarketing() {
+        var el = $('tabMarketing');
+        el.innerHTML = '<div class="head"><h2>Marketing assets</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('brochure_templates').select('id,name,kind,active,is_default').order('created_at');
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Marketing assets</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        var KINDS = ['project', 'flyer', 'offer', 'image', 'video', 'campaign'];
+        el.innerHTML = '<div class="head"><h2>Marketing assets</h2></div>' +
+          '<div class="panel"><h3>Add brochure / template</h3><div class="row">' +
+            '<input id="mk_name" class="inp" style="max-width:240px" placeholder="Template name" />' +
+            '<select id="mk_kind" class="inp" style="max-width:160px">' + KINDS.map(function (k) { return '<option value="' + k + '">' + k + '</option>'; }).join('') + '</select>' +
+            '<button id="mk_add" class="btn btn-sm">Add</button></div></div>' +
+          (rows.length ? '<table><thead><tr><th>Name</th><th>Kind</th><th>Default</th><th>Active</th><th>Actions</th></tr></thead><tbody>' +
+          rows.map(function (b) {
+            return '<tr data-id="' + b.id + '"><td>' + esc(b.name) + '</td><td><span class="pill neutral">' + esc(b.kind) + '</span></td>' +
+              '<td>' + (b.is_default ? '★' : '') + '</td><td><span class="pill ' + (b.active ? 'available' : 'sold') + '">' + (b.active ? 'active' : 'off') + '</span></td>' +
+              '<td><button class="btn-o btn-sm mk_tog">' + (b.active ? 'Disable' : 'Enable') + '</button></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No templates.</div>');
+        $('mk_add').onclick = async function () {
+          var name = $('mk_name').value.trim(); if (!name) return;
+          var r = await sb.from('brochure_templates').insert({ name: name, kind: $('mk_kind').value, config: {}, active: true });
+          if (r.error) return alert(r.error.message); renderMarketing();
+        };
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          tr.querySelector('.mk_tog').onclick = async function () {
+            var cur = this.textContent === 'Disable';
+            var r = await sb.from('brochure_templates').update({ active: !cur }).eq('id', tr.dataset.id);
+            if (r.error) return alert(r.error.message); renderMarketing();
+          };
+        });
+      }
+
+      // ─── Territories ────────────────────────────────────────────────────
+      async function renderTerritories() {
+        await loadLookups();
+        var el = $('tabTerritories');
+        el.innerHTML = '<div class="head"><h2>Territories</h2></div>' +
+          '<div class="panel"><h3>Add territory</h3><div class="row">' +
+            '<input id="tr_name" class="inp" style="max-width:240px" placeholder="Territory name (e.g. Karnataka)" />' +
+            '<select id="tr_parent" class="inp" style="max-width:220px"><option value="">— no parent —</option>' + opt(state.territories, null, function (x) { return esc(x.name); }) + '</select>' +
+            '<button id="tr_add" class="btn btn-sm">Add</button></div></div>' +
+          (state.territories.length ? '<table><thead><tr><th>Name</th><th>Parent</th></tr></thead><tbody>' +
+          state.territories.map(function (t) { var pr = state.territories.find(function (x) { return x.id === t.parent_id; }); return '<tr><td>' + esc(t.name) + '</td><td class="muted">' + esc(pr ? pr.name : '—') + '</td></tr>'; }).join('') + '</tbody></table>'
+          : '<div class="muted">No territories yet — add one above. Assign members to territories in Users &amp; roles.</div>');
+        $('tr_add').onclick = async function () {
+          var name = $('tr_name').value.trim(); if (!name) return;
+          var body = { name: name }; if ($('tr_parent').value) body.parent_id = $('tr_parent').value;
+          var r = await sb.from('territories').insert(body);
+          if (r.error) return alert(r.error.message); renderTerritories();
+        };
+      }
+
+      // ─── System configuration (key/value) ───────────────────────────────
+      async function renderConfig() {
+        var el = $('tabConfig');
+        el.innerHTML = '<div class="head"><h2>System configuration</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('system_config').select('key,value').order('key');
+        if (q.error) { el.innerHTML = '<div class="head"><h2>System configuration</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>System configuration</h2></div>' +
+          '<div class="panel"><h3>Add / set key</h3><div class="row">' +
+            '<input id="cfg_key" class="inp" style="max-width:200px" placeholder="key" />' +
+            '<input id="cfg_val" class="inp" style="max-width:280px" placeholder="value (text or JSON)" />' +
+            '<button id="cfg_add" class="btn btn-sm">Save</button></div>' +
+            '<div class="muted" style="margin-top:6px">Values are stored as JSON. Plain text is fine; for objects use valid JSON.</div></div>' +
+          (rows.length ? '<table><thead><tr><th>Key</th><th>Value</th><th></th></tr></thead><tbody>' +
+          rows.map(function (c) {
+            return '<tr data-k="' + esc(c.key) + '"><td class="mono">' + esc(c.key) + '</td>' +
+              '<td><input class="inp cfg_edit" style="width:320px;height:36px" value="' + esc(typeof c.value === 'string' ? c.value : JSON.stringify(c.value)) + '" /></td>' +
+              '<td><button class="btn btn-sm cfg_save">Save</button></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No config keys.</div>');
+        function parseVal(raw) { try { return JSON.parse(raw); } catch (e) { return raw; } }
+        $('cfg_add').onclick = async function () {
+          var k = $('cfg_key').value.trim(); if (!k) return;
+          var r = await sb.from('system_config').upsert({ key: k, value: parseVal($('cfg_val').value) });
+          if (r.error) return alert(r.error.message); renderConfig();
+        };
+        el.querySelectorAll('tr[data-k]').forEach(function (tr) {
+          tr.querySelector('.cfg_save').onclick = async function () {
+            this.textContent = '…';
+            var r = await sb.from('system_config').update({ value: parseVal(tr.querySelector('.cfg_edit').value) }).eq('key', tr.dataset.k);
+            this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+        });
       }
 
       boot();

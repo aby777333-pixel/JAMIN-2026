@@ -7,6 +7,12 @@
   publish = "."
   command = "echo 'JAMIN landing — static site, no build step'"
 
+# Referral share links (/r/<code>) → click-tracking landing.
+[[redirects]]
+  from = "/r/*"
+  to = "/r.html"
+  status = 200
+
 # Single-page site: serve existing files (logo.jpg, etc.), otherwise the page.
 [[redirects]]
   from = "/*"

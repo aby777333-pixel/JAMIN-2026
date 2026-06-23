@@ -9,8 +9,9 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { StatCard } from '@/components/ui/StatCard';
 import { Text } from '@/components/ui/Text';
 import { shareReferral } from '@/features/share/referral';
-import { useDownline } from '@/features/team/hooks';
+import { useDownline, useTeamSummary } from '@/features/team/hooks';
 import type { TeamMember } from '@/features/team/api';
+import { formatINR } from '@/lib/money';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
 
@@ -18,6 +19,7 @@ export default function Network() {
   const insets = useSafeAreaInsets();
   const profile = useAuth((s) => s.profile);
   const { data: team = [], isLoading, refetch, isRefetching } = useDownline();
+  const { data: summary } = useTeamSummary();
 
   const direct = team.filter((m) => m.parent_id === profile?.id).length;
   const sorted = [...team].sort((a, b) => (a.role?.level ?? 99) - (b.role?.level ?? 99));
@@ -45,6 +47,16 @@ export default function Network() {
               </StatCard>
               <StatCard label="Direct" icon="git-branch">
                 <Text className="font-mono-bold text-[22px] text-ink">{direct}</Text>
+              </StatCard>
+            </View>
+            <View className="flex-row gap-3">
+              <StatCard label="Team sales" icon="trending-up">
+                <Text className="font-mono-bold text-[22px] text-ink">{summary?.team_sales ?? 0}</Text>
+              </StatCard>
+              <StatCard label="Team revenue" icon="cash">
+                <Text className="font-mono-bold text-[18px] text-ink">
+                  {formatINR(summary?.team_revenue ?? 0)}
+                </Text>
               </StatCard>
             </View>
 

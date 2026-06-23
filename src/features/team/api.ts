@@ -23,3 +23,18 @@ export async function getDownline(): Promise<TeamMember[]> {
   const rows = (data ?? []) as unknown as TeamMember[];
   return rows.filter((r) => r.id !== me.user?.id);
 }
+
+export interface TeamSummary {
+  team_count: number;
+  team_sales: number;
+  team_revenue: number;
+}
+
+/** Subtree rollup (§6 Promoter Portal — team revenue + sales). Server-computed via team_summary(). */
+export async function getTeamSummary(): Promise<TeamSummary> {
+  const { data, error } = await supabase.rpc('team_summary');
+  if (error) throw error;
+  return (
+    (data as unknown as TeamSummary) ?? { team_count: 0, team_sales: 0, team_revenue: 0 }
+  );
+}

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JAMIN Properties — Invitation</title>
+    <link rel="icon" href="logo.jpg" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root { --red:#fd0001; --gold-deep:#c8911e; --ink:#1a1a1a; --muted:#74746e; --paper:#f7f7f5; }
+      * { box-sizing:border-box; }
+      body { margin:0; font-family:Inter,-apple-system,"Segoe UI",sans-serif; background:var(--paper); color:var(--ink); min-height:100vh; display:grid; place-items:center; padding:24px; }
+      .card { max-width:420px; width:100%; background:#fff; border:1px solid #e6e7e2; border-radius:22px; padding:30px; text-align:center; }
+      img { height:42px; margin-bottom:16px; }
+      h1 { font-size:24px; margin:0 0 6px; letter-spacing:-.4px; }
+      p { color:var(--muted); font-size:15px; line-height:1.55; margin:0 0 14px; }
+      .code { font-family:monospace; font-weight:700; letter-spacing:4px; font-size:20px; background:rgba(251,188,21,.16); color:var(--gold-deep); padding:8px 14px; border-radius:10px; display:inline-block; margin:6px 0 18px; }
+      .btn { display:block; width:100%; border:none; border-radius:12px; padding:14px; font-size:16px; font-weight:700; background:var(--red); color:#fff; text-decoration:none; margin-bottom:10px; }
+      .tag { font-size:11px; font-weight:700; letter-spacing:2px; color:var(--gold-deep); margin-top:14px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <img src="logo.jpg" alt="JAMIN Properties" />
+      <h1>You've been invited</h1>
+      <p>Join <b>JAMIN Properties</b> — discover plots, calculate EMI &amp; ROI, and start earning with a referral code already linked to you.</p>
+      <div class="code" id="code">—</div>
+      <a class="btn" id="go" href="/?ref=">Continue to JAMIN →</a>
+      <p style="font-size:13px">Your invitation is saved on this device — it applies automatically when you register in the app.</p>
+      <div class="tag">SIGNATURE FOR FORTUNE</div>
+    </div>
+
+    <script>
+      var SUPABASE_URL = 'https://oaqwnjgaypmuafvnfhxv.supabase.co';
+      var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXduamdheXBtdWFmdm5maHh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMDI2ODAsImV4cCI6MjA5Nzc3ODY4MH0.2tfyC3Z8Kzib8FdLjnE-z8m830PZUd9vfcWtDXIqp3E';
+
+      // Pull the referral code from /r/<code> (Netlify rewrite keeps the URL).
+      var parts = location.pathname.split('/').filter(Boolean); // ['r','<code>']
+      var code = (parts[1] || new URLSearchParams(location.search).get('ref') || '').trim();
+
+      if (code) {
+        document.getElementById('code').textContent = code.toUpperCase();
+        document.getElementById('go').setAttribute('href', '/?ref=' + encodeURIComponent(code));
+        // Cookie + localStorage so the app/landing can attribute the signup later.
+        try {
+          document.cookie = 'jamin_ref=' + encodeURIComponent(code) + ';path=/;max-age=2592000;samesite=lax';
+          localStorage.setItem('jamin_ref', code);
+        } catch (e) {}
+        // Log the click (MOD 08 — referral tracking). Fire-and-forget; never blocks the page.
+        try {
+          fetch(SUPABASE_URL + '/rest/v1/rpc/log_referral_click', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON },
+            body: JSON.stringify({
+              p_code: code, p_artifact: 'link', p_channel: 'web',
+              p_device: { ua: navigator.userAgent, lang: navigator.language, platform: navigator.platform },
+            }),
+          }).catch(function () {});
+        } catch (e) {}
+      } else {
+        document.getElementById('code').textContent = 'JAMIN';
+        document.getElementById('go').setAttribute('href', '/');
+      }
+    </script>
+  </body>
+</html>
