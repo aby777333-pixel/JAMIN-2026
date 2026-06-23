@@ -1,0 +1,53 @@
+{
+  "brand": {
+    "name": "JAMIN PROPERTIES",
+    "tagline": "Signature for Fortune"
+  },
+  "common": {
+    "continue": "Continue",
+    "back": "Back",
+    "cancel": "Cancel",
+    "loading": "Loading…",
+    "retry": "Retry",
+    "save": "Save"
+  },
+  "auth": {
+    "welcome": "Welcome to JAMIN",
+    "subtitle": "Sign in to your property network",
+    "email": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "sendCode": "Send code",
+    "otpTitle": "Enter the 6-digit code",
+    "otpSubtitle": "We sent a code to {{email}}",
+    "verify": "Verify & continue",
+    "resend": "Resend code",
+    "checkEmail": "Check your email",
+    "invalidEmail": "Enter a valid email address",
+    "invalidCode": "Enter the 6-digit code",
+    "signOut": "Sign out"
+  },
+  "onboarding": {
+    "title": "Complete your profile",
+    "subtitle": "A few details to set up your business card and hierarchy",
+    "fullName": "Full name",
+    "phone": "Phone number",
+    "referralCode": "Referral code (optional)",
+    "finish": "Finish setup"
+  },
+  "tabs": {
+    "home": "Home",
+    "properties": "Properties",
+    "card": "Card",
+    "network": "Network",
+    "wallet": "Wallet"
+  },
+  "home": {
+    "greeting": "Welcome back",
+    "role": "Role"
+  },
+  "wallet": {
+    "balance": "Wallet balance",
+    "earnings": "Earnings",
+    "withdraw": "Withdraw"
+  }
+}
