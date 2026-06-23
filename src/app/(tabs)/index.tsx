@@ -12,6 +12,7 @@ import { StatCard } from '@/components/ui/StatCard';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
 import { useLeads } from '@/features/leads/hooks';
+import { useUnreadCount } from '@/features/notifications/api';
 import { shareReferral } from '@/features/share/referral';
 import { useDownline } from '@/features/team/hooks';
 import { useWalletSummary } from '@/features/wallet/hooks';
@@ -33,6 +34,7 @@ export default function Home() {
   const { data: team = [] } = useDownline();
   const { data: openLeads = [] } = useLeads();
   const activeLeads = openLeads.filter((l) => l.status !== 'won' && l.status !== 'lost').length;
+  const { data: unread = 0 } = useUnreadCount();
 
   async function copyReferral() {
     if (!profile?.referral_code) return;
@@ -47,8 +49,21 @@ export default function Home() {
           <Text variant="label">{t('home.greeting')}</Text>
           <Text variant="h1">{profile?.full_name ?? 'Member'}</Text>
         </View>
-        <View className="rounded-full bg-red/10 px-3 py-1.5">
-          <Text className="font-semibold text-[12px] text-red">{roleLabel(profile?.role_slug)}</Text>
+        <View className="flex-row items-center gap-3">
+          <Pressable onPress={() => router.push('/notifications')} hitSlop={8}>
+            <Ionicons name="notifications-outline" size={24} color={color.ink} />
+            {unread > 0 ? (
+              <View className="absolute -right-1.5 -top-1.5 h-4 min-w-[16px] items-center justify-center rounded-full bg-red px-1">
+                <Text className="font-mono-bold text-[10px] text-white">{unread > 9 ? '9+' : unread}</Text>
+              </View>
+            ) : null}
+          </Pressable>
+          <Pressable onPress={() => router.push('/settings/notifications')} hitSlop={8}>
+            <Ionicons name="settings-outline" size={22} color={color.muted} />
+          </Pressable>
+          <View className="rounded-full bg-red/10 px-3 py-1.5">
+            <Text className="font-semibold text-[12px] text-red">{roleLabel(profile?.role_slug)}</Text>
+          </View>
         </View>
       </View>
 
@@ -112,6 +127,7 @@ export default function Home() {
             <QuickLink icon="camera" label="Create Ad" onPress={() => router.push('/tools/ad-creator')} />
             <QuickLink icon="document-text" label="Brochures" onPress={() => router.push('/brochures')} />
             <QuickLink icon="sparkles" label="AI Studio" onPress={() => router.push('/tools/ai-studio')} />
+            <QuickLink icon="trophy" label="Rewards" onPress={() => router.push('/rewards')} />
             <QuickLink icon="git-network" label="Network" onPress={() => router.push('/(tabs)/network')} />
             <QuickLink icon="wallet" label="Wallet" onPress={() => router.push('/(tabs)/wallet')} />
             <QuickLink icon="qr-code" label="My Card" onPress={() => router.push('/(tabs)/card')} />

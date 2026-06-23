@@ -116,8 +116,10 @@ submit_kyc + form_submissions) · P8 AI ✓ (ai-generate Edge Function = the ONL
 of Claude — default claude-opus-4-8 via the Anthropic SDK, key only in function env;
 8 features: listing/social/flyer/campaign/video-script/brochure copy + lead scoring +
 sales assistant; AI Studio, AI Assistant chat, AI lead scoring; results logged to
-ai_generations) · P9 Gamification + Notifications + Analytics · P10 Hardening & store
-prep.
+ai_generations) · P9 Gamification + Notifications + Analytics ✓ (auto-awarded badges +
+get_leaderboard RPC; DB-trigger in-app notifications delivered live via Realtime,
+local banners, push tokens + push-send Edge Function; preferences; Rewards + Notifications
+feed + Admin Analytics screens) · P10 Hardening & store prep.
 
 ⚠️ AI requires the `ANTHROPIC_API_KEY` secret on the Supabase Edge Function (Dashboard →
 Edge Functions → ai-generate → Secrets). Without it the function returns a friendly

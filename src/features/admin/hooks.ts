@@ -11,6 +11,7 @@ export const useRules = () => useQuery({ queryKey: ['admin', 'rules'], queryFn: 
 export const usePendingWithdrawals = () =>
   useQuery({ queryKey: ['admin', 'withdrawals'], queryFn: api.listPendingWithdrawals });
 export const useOpenBookings = () => useQuery({ queryKey: ['admin', 'bookings'], queryFn: api.listOpenBookings });
+export const useAudit = () => useQuery({ queryKey: ['admin', 'audit'], queryFn: api.listAudit });
 
 export function useSetUserRole() {
   const qc = useQueryClient();

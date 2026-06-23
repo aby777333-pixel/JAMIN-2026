@@ -47,6 +47,7 @@ export default function AdminDashboard() {
         <Tile icon="people-circle" title="Users & roles" sub="Promote, verify KYC" onPress={() => router.push('/admin/users')} />
         <Tile icon="checkmark-circle" title="Approvals" sub="Payouts & close sales" onPress={() => router.push('/admin/approvals')} />
         <Tile icon="cash" title="Commission rules" sub="Toggle & inspect" onPress={() => router.push('/admin/rules')} />
+        <Tile icon="bar-chart" title="Analytics" sub="Performance & audit log" onPress={() => router.push('/admin/analytics')} />
       </View>
     </Screen>
   );

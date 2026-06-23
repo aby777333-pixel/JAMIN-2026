@@ -162,3 +162,21 @@ export async function closeSale(bookingId: string): Promise<number> {
   if (error) throw error;
   return (data as number) ?? 0;
 }
+
+export interface AuditEntry {
+  id: string;
+  action: string;
+  entity: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
+}
+
+export async function listAudit(): Promise<AuditEntry[]> {
+  const { data, error } = await supabase
+    .from('audit_logs')
+    .select('id, action, entity, payload, created_at')
+    .order('created_at', { ascending: false })
+    .limit(30);
+  if (error) throw error;
+  return (data ?? []) as unknown as AuditEntry[];
+}

@@ -53,6 +53,92 @@ export type Database = {
         }
         Relationships: []
       }
+      badges: {
+        Row: {
+          active: boolean
+          created_at: string
+          criteria: Json
+          description: string | null
+          icon: string | null
+          id: string
+          key: string
+          name: string
+          tier: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          criteria?: Json
+          description?: string | null
+          icon?: string | null
+          id?: string
+          key: string
+          name: string
+          tier?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          criteria?: Json
+          description?: string | null
+          icon?: string | null
+          id?: string
+          key?: string
+          name?: string
+          tier?: string
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          awarded_at: string
+          badge_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          badge_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          awarded_at?: string
+          badge_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_tokens: {
+        Row: {
+          platform: string | null
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          platform?: string | null
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          platform?: string | null
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1308,6 +1394,10 @@ export type Database = {
         Returns: undefined
       }
       gen_referral_code: { Args: Record<PropertyKey, never>; Returns: string }
+      get_leaderboard: {
+        Args: { p_metric?: string; p_limit?: number }
+        Returns: { user_id: string; full_name: string; role_name: string; value: number; rank: number }[]
+      }
       next_plot_code: { Args: { p_type: string }; Returns: string }
       request_withdrawal: { Args: { p_amount: number; p_rail?: string }; Returns: string }
       close_sale: { Args: { p_booking: string }; Returns: number }

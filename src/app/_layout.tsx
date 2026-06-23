@@ -22,6 +22,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { queryClient } from '@/lib/query';
 import '@/lib/i18n';
+import { NotificationsBridge } from '@/features/notifications/Bridge';
 import { useAuth } from '@/stores/auth';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -56,6 +57,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
+          <NotificationsBridge />
           <StatusBar style="dark" />
           <Stack
             screenOptions={{
@@ -74,6 +76,9 @@ export default function RootLayout() {
             <Stack.Screen name="brochures/index" />
             <Stack.Screen name="brochures/[id]" />
             <Stack.Screen name="kyc" />
+            <Stack.Screen name="notifications" />
+            <Stack.Screen name="rewards" />
+            <Stack.Screen name="settings/notifications" />
             <Stack.Screen name="admin" />
             <Stack.Screen name="onboarding" options={{ presentation: 'modal' }} />
           </Stack>
