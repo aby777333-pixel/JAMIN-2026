@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, View } from 'react-native';
 
 import { Badge } from '@/components/ui/Badge';
 import { BackHeader } from '@/components/ui/BackHeader';
@@ -57,7 +57,26 @@ export default function PropertyDetail() {
 
   const isSaved = saved?.has(property.id) ?? false;
   const label = `${property.project?.name ?? 'Property'} · ${property.plot_code}`;
-  const attrs = Object.entries(property.attrs ?? {}).filter(([k]) => k !== 'featured');
+
+  // Tours are data-driven: the admin sets URLs on the property's attrs.
+  const a = (property.attrs ?? {}) as Record<string, unknown>;
+  const pick = (...keys: string[]) => {
+    for (const k of keys) if (typeof a[k] === 'string' && a[k]) return a[k] as string;
+    return undefined;
+  };
+  const tours = (
+    [
+      { label: 'Video tour', icon: 'play-circle' as const, url: pick('video_tour', 'video_url', 'video') },
+      { label: 'Virtual tour', icon: 'compass' as const, url: pick('virtual_tour', 'virtual_tour_url', 'tour_360') },
+      { label: '3D walkthrough', icon: 'cube' as const, url: pick('walkthrough', 'tour_3d', 'walkthrough_3d') },
+    ] as const
+  ).filter((t) => !!t.url) as { label: string; icon: keyof typeof Ionicons.glyphMap; url: string }[];
+
+  const TOUR_KEYS = ['featured', 'video_tour', 'video_url', 'video', 'virtual_tour', 'virtual_tour_url', 'tour_360', 'walkthrough', 'tour_3d', 'walkthrough_3d'];
+  const attrs = Object.entries(property.attrs ?? {}).filter(([k]) => !TOUR_KEYS.includes(k));
+  const lat = property.coordinates?.lat;
+  const lng = property.coordinates?.lng;
+  const hasCoords = lat != null && lng != null;
 
   function onReserve() {
     Alert.alert('Reserve this plot?', `${label}\nThis places a soft reservation.`, [
@@ -127,6 +146,33 @@ export default function PropertyDetail() {
             property_type_id: property.property_type_id,
           }}
         />
+      ) : null}
+
+      {tours.length > 0 || hasCoords ? (
+        <View className="gap-2">
+          <Text variant="label">Tours & location</Text>
+          <View className="flex-row flex-wrap gap-2">
+            {tours.map((tr) => (
+              <Pressable
+                key={tr.label}
+                onPress={() => router.push({ pathname: '/webview', params: { url: tr.url, title: tr.label } })}
+                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                <Ionicons name={tr.icon} size={16} color={color.red} />
+                <Text className="text-[13px] font-semibold text-ink">{tr.label}</Text>
+              </Pressable>
+            ))}
+            {hasCoords ? (
+              <Pressable
+                onPress={() =>
+                  Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`)
+                }
+                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                <Ionicons name="navigate" size={16} color={color.red} />
+                <Text className="text-[13px] font-semibold text-ink">Nearby & directions</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
       ) : null}
 
       <EmiCalculator price={property.price} />

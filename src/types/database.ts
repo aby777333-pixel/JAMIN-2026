@@ -177,6 +177,18 @@ export type Database = {
           },
         ]
       }
+      chat_threads: {
+        Row: { id: string; buyer_id: string; agent_id: string | null; subject: string | null; status: string; last_message_at: string; created_at: string }
+        Insert: { id?: string; buyer_id: string; agent_id?: string | null; subject?: string | null; status?: string; last_message_at?: string; created_at?: string }
+        Update: { id?: string; buyer_id?: string; agent_id?: string | null; subject?: string | null; status?: string; last_message_at?: string; created_at?: string }
+        Relationships: []
+      }
+      messages: {
+        Row: { id: string; thread_id: string; sender_id: string; body: string; read_at: string | null; created_at: string }
+        Insert: { id?: string; thread_id: string; sender_id: string; body: string; read_at?: string | null; created_at?: string }
+        Update: { id?: string; thread_id?: string; sender_id?: string; body?: string; read_at?: string | null; created_at?: string }
+        Relationships: []
+      }
       bookings: {
         Row: {
           agent_id: string | null
@@ -1403,6 +1415,7 @@ export type Database = {
       close_sale: { Args: { p_booking: string }; Returns: number }
       submit_kyc: { Args: { p_data: Json }; Returns: undefined }
       team_summary: { Args: never; Returns: Json }
+      can_see_thread: { Args: { t: string }; Returns: boolean }
       log_referral_click: {
         Args: { p_code: string; p_artifact?: string; p_channel?: string; p_device?: Json }
         Returns: boolean

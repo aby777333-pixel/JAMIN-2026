@@ -4,7 +4,16 @@ import { Alert, Linking, Share } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 
-export type Channel = 'whatsapp' | 'telegram' | 'sms' | 'email' | 'copy' | 'system';
+export type Channel =
+  | 'whatsapp'
+  | 'telegram'
+  | 'facebook'
+  | 'twitter'
+  | 'linkedin'
+  | 'sms'
+  | 'email'
+  | 'copy'
+  | 'system';
 
 export const BASE_URL = 'https://jaminproperties.co';
 
@@ -38,6 +47,19 @@ export async function shareToChannel(channel: Channel, text: string, url: string
       case 'telegram':
         return await Linking.openURL(
           `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+        );
+      case 'facebook':
+        // Facebook's sharer only accepts a URL (no prefilled text, by FB policy).
+        return await Linking.openURL(
+          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+        );
+      case 'twitter':
+        return await Linking.openURL(
+          `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+        );
+      case 'linkedin':
+        return await Linking.openURL(
+          `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
         );
       case 'sms':
         return await Linking.openURL(`sms:?body=${enc}`);

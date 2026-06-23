@@ -50,6 +50,9 @@ export default function Home() {
           <Text variant="h1">{profile?.full_name ?? 'Member'}</Text>
         </View>
         <View className="flex-row items-center gap-3">
+          <Pressable onPress={() => router.push('/chat')} hitSlop={8}>
+            <Ionicons name="chatbubbles-outline" size={23} color={color.ink} />
+          </Pressable>
           <Pressable onPress={() => router.push('/notifications')} hitSlop={8}>
             <Ionicons name="notifications-outline" size={24} color={color.ink} />
             {unread > 0 ? (

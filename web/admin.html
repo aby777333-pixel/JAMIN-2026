@@ -116,6 +116,7 @@
         <button class="nav-i" data-tab="territories">🗺️ Territories</button>
         <button class="nav-i" data-tab="approvals">✅ Approvals <span id="apprDot" class="dot hidden">0</span></button>
         <button class="nav-i" data-tab="payments">💳 Payments</button>
+        <button class="nav-i" data-tab="chat">💬 Live chat</button>
         <button class="nav-i" data-tab="config">⚙️ System config</button>
         <div style="margin-top:14px;padding:10px 12px;font-size:11px;line-height:1.55;color:rgba(255,255,255,.6);background:rgba(255,255,255,.06);border-radius:10px">✓ Every change you save here is <b style="color:#7ee2a8">live in the phone app instantly</b> — no deploy needed.</div>
         <div class="who"><span id="whoEmail"></span><br /><button id="signOut" class="btn-o btn-sm" style="margin-top:8px">Sign out</button></div>
@@ -129,6 +130,7 @@
         <div id="tabTerritories" class="hidden"></div>
         <div id="tabApprovals" class="hidden"></div>
         <div id="tabPayments" class="hidden"></div>
+        <div id="tabChat" class="hidden"></div>
         <div id="tabConfig" class="hidden"></div>
       </main>
     </div>
@@ -141,6 +143,7 @@
 
       var $ = function (id) { return document.getElementById(id); };
       var state = { user: null, projects: [], plans: [], types: [], roles: [], territories: [] };
+      var chatThread = null, chatChannel = null;
 
       // ─── Auth ───────────────────────────────────────────────────────────
       function setLoginMsg(t, ok) { var m = $('loginMsg'); m.textContent = t || ''; m.className = 'msg ' + (ok ? 'ok' : 'err'); }
@@ -199,7 +202,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'payments', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'payments', 'chat', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -208,6 +211,7 @@
         if (tab === 'territories') renderTerritories();
         if (tab === 'approvals') renderApprovals();
         if (tab === 'payments') renderPayments();
+        if (tab === 'chat') renderChat();
         if (tab === 'config') renderConfig();
       }
 
@@ -228,6 +232,11 @@
           '<div><label>Plan</label><select id="np_plan" class="inp"><option value="">—</option></select></div>' +
           '<div><label>Property type</label><select id="np_type" class="inp">' + opt(state.types, null, function (x) { return esc(x.name) + ' (' + x.code_prefix + ')'; }) + '</select></div>' +
           '<div><label>Price (₹)</label><input id="np_price" class="inp" inputmode="numeric" placeholder="1500000" /></div>' +
+          '<div><label>Latitude (optional)</label><input id="np_lat" class="inp" inputmode="decimal" placeholder="12.9716" /></div>' +
+          '<div><label>Longitude (optional)</label><input id="np_lng" class="inp" inputmode="decimal" placeholder="77.5946" /></div>' +
+          '<div><label>Video tour URL (optional)</label><input id="np_video" class="inp" placeholder="https://youtu.be/…" /></div>' +
+          '<div><label>Virtual tour URL (optional)</label><input id="np_virtual" class="inp" placeholder="360° / Matterport link" /></div>' +
+          '<div><label>3D walkthrough URL (optional)</label><input id="np_3d" class="inp" placeholder="https://…" /></div>' +
           '</div><button id="np_add" class="btn" style="margin-top:14px">+ Add property</button> <span id="np_msg" class="muted"></span></div>';
 
         var table = '<table><thead><tr><th>Plot</th><th>Project</th><th>Type</th><th>Price</th><th>Status</th><th>Images</th><th>Actions</th></tr></thead><tbody>' +
@@ -268,6 +277,13 @@
           var price = parseFloat($('np_price').value || '0');
           var body = { project_id: $('np_project').value, property_type_id: $('np_type').value, price: isNaN(price) ? 0 : price, status: 'available' };
           if ($('np_plan').value) body.plan_id = $('np_plan').value;
+          var lat = parseFloat($('np_lat').value), lng = parseFloat($('np_lng').value);
+          if (!isNaN(lat) && !isNaN(lng)) body.coordinates = { lat: lat, lng: lng };
+          var attrs = {};
+          if ($('np_video').value.trim()) attrs.video_tour = $('np_video').value.trim();
+          if ($('np_virtual').value.trim()) attrs.virtual_tour = $('np_virtual').value.trim();
+          if ($('np_3d').value.trim()) attrs.walkthrough = $('np_3d').value.trim();
+          if (Object.keys(attrs).length) body.attrs = attrs;
           $('np_msg').textContent = 'Adding…';
           var r = await sb.from('properties').insert(body);
           if (r.error) { $('np_msg').textContent = 'Error: ' + r.error.message; return; }
@@ -559,6 +575,63 @@
             renderPayments();
           };
         });
+      }
+
+      // ─── Live chat (support console, Realtime) ──────────────────────────
+      async function renderChat() {
+        var el = $('tabChat');
+        el.innerHTML = '<div class="head"><h2>Live chat</h2></div>' +
+          '<div class="row" style="align-items:flex-start;gap:16px">' +
+            '<div id="threadList" style="width:280px"></div>' +
+            '<div id="msgPane" style="flex:1;min-width:0"><div class="muted">Select a conversation.</div></div>' +
+          '</div>';
+        await loadThreads();
+        if (!chatChannel) {
+          chatChannel = sb.channel('admin-chat')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, function (p) {
+              if (chatThread && p.new && p.new.thread_id === chatThread) loadMessages(chatThread);
+              loadThreads();
+            })
+            .subscribe();
+        }
+      }
+      async function loadThreads() {
+        var tl = $('threadList'); if (!tl) return;
+        var q = await sb.from('chat_threads')
+          .select('id,status,last_message_at, buyer:profiles!buyer_id(full_name)')
+          .order('last_message_at', { ascending: false }).limit(100);
+        var rows = q.data || [];
+        tl.innerHTML = '<div class="muted" style="margin-bottom:6px">Conversations</div>' +
+          (rows.length ? rows.map(function (t) {
+            return '<div class="chatThreadItem" data-id="' + t.id + '" style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer;background:' + (t.id === chatThread ? 'var(--paper)' : '#fff') + '">' +
+              '<b>' + esc(t.buyer ? t.buyer.full_name : 'Member') + '</b><br><span class="muted" style="font-size:11px">' + new Date(t.last_message_at).toLocaleString() + '</span></div>';
+          }).join('') : '<div class="muted">No conversations yet.</div>');
+        tl.querySelectorAll('.chatThreadItem').forEach(function (d) {
+          d.onclick = function () { chatThread = d.dataset.id; loadThreads(); loadMessages(chatThread); };
+        });
+      }
+      async function loadMessages(tid) {
+        var mp = $('msgPane'); if (!mp) return;
+        var q = await sb.from('messages').select('id,sender_id,body,created_at').eq('thread_id', tid).order('created_at');
+        var rows = q.data || [];
+        mp.innerHTML = '<div style="border:1px solid var(--line);border-radius:12px;height:440px;display:flex;flex-direction:column;overflow:hidden">' +
+          '<div id="msgScroll" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px">' +
+          rows.map(function (m) {
+            var mine = m.sender_id === state.user.id;
+            return '<div style="max-width:75%;padding:8px 12px;border-radius:12px;font-size:14px;' + (mine ? 'align-self:flex-end;background:var(--red);color:#fff' : 'align-self:flex-start;background:var(--paper);color:var(--ink)') + '">' + esc(m.body) + '</div>';
+          }).join('') +
+          '</div>' +
+          '<div class="row" style="padding:8px;border-top:1px solid var(--line)"><input id="chatInput" class="inp" style="flex:1" placeholder="Reply…" /><button id="chatSend" class="btn btn-sm">Send</button></div></div>';
+        var sc = $('msgScroll'); if (sc) sc.scrollTop = sc.scrollHeight;
+        $('chatSend').onclick = sendChat;
+        $('chatInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') sendChat(); });
+      }
+      async function sendChat() {
+        var inp = $('chatInput'); var body = (inp.value || '').trim(); if (!body || !chatThread) return;
+        inp.value = '';
+        var r = await sb.from('messages').insert({ thread_id: chatThread, sender_id: state.user.id, body: body });
+        if (r.error) { alert(r.error.message); return; }
+        loadMessages(chatThread);
       }
 
       boot();
