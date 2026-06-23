@@ -130,6 +130,7 @@ export default function Home() {
             <QuickLink icon="trophy" label="Rewards" onPress={() => router.push('/rewards')} />
             <QuickLink icon="git-network" label="Network" onPress={() => router.push('/(tabs)/network')} />
             <QuickLink icon="wallet" label="Wallet" onPress={() => router.push('/(tabs)/wallet')} />
+            <QuickLink icon="receipt" label="Bookings" onPress={() => router.push('/payments')} />
             <QuickLink icon="qr-code" label="My Card" onPress={() => router.push('/(tabs)/card')} />
             {profile?.role_is_admin ? (
               <QuickLink icon="shield-checkmark" label="Admin" onPress={() => router.push('/admin')} />
@@ -142,8 +143,13 @@ export default function Home() {
           <Text variant="body" className="mt-1 text-muted">
             Browse dynamic inventory, calculate EMI & ROI, and enquire or book a visit.
           </Text>
-          <View className="mt-3">
+          <View className="mt-3 gap-2">
             <Button title="Browse properties" onPress={() => router.push('/(tabs)/properties')} />
+            <Button
+              title="My bookings & payments"
+              variant="secondary"
+              onPress={() => router.push('/payments')}
+            />
           </View>
         </Card>
       )}

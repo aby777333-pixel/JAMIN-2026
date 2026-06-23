@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>JAMIN Properties — Invitation</title>
-    <link rel="icon" href="logo.jpg" />
+    <link rel="icon" href="/logo.jpg" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <style>
       :root { --red:#fd0001; --gold-deep:#c8911e; --ink:#1a1a1a; --muted:#74746e; --paper:#f7f7f5; }
@@ -21,7 +21,7 @@
   </head>
   <body>
     <div class="card">
-      <img src="logo.jpg" alt="JAMIN Properties" />
+      <img src="/logo.jpg" alt="JAMIN Properties" />
       <h1>You've been invited</h1>
       <p>Join <b>JAMIN Properties</b> — discover plots, calculate EMI &amp; ROI, and start earning with a referral code already linked to you.</p>
       <div class="code" id="code">—</div>
@@ -34,9 +34,12 @@
       var SUPABASE_URL = 'https://oaqwnjgaypmuafvnfhxv.supabase.co';
       var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXduamdheXBtdWFmdm5maHh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMDI2ODAsImV4cCI6MjA5Nzc3ODY4MH0.2tfyC3Z8Kzib8FdLjnE-z8m830PZUd9vfcWtDXIqp3E';
 
-      // Pull the referral code from /r/<code> (Netlify rewrite keeps the URL).
+      // Pull the referral code from /r/<code> (Netlify rewrite keeps the URL) or ?ref=.
       var parts = location.pathname.split('/').filter(Boolean); // ['r','<code>']
-      var code = (parts[1] || new URLSearchParams(location.search).get('ref') || '').trim();
+      var raw = (parts[1] || new URLSearchParams(location.search).get('ref') || '').trim();
+      // Referral codes are short alphanumerics (Crockford base32). Reject anything else
+      // so a malformed URL never dumps junk into the page.
+      var code = /^[A-Za-z0-9]{3,16}$/.test(raw) ? raw : '';
 
       if (code) {
         document.getElementById('code').textContent = code.toUpperCase();

@@ -115,6 +115,7 @@
         <button class="nav-i" data-tab="marketing">🎨 Marketing</button>
         <button class="nav-i" data-tab="territories">🗺️ Territories</button>
         <button class="nav-i" data-tab="approvals">✅ Approvals <span id="apprDot" class="dot hidden">0</span></button>
+        <button class="nav-i" data-tab="payments">💳 Payments</button>
         <button class="nav-i" data-tab="config">⚙️ System config</button>
         <div style="margin-top:14px;padding:10px 12px;font-size:11px;line-height:1.55;color:rgba(255,255,255,.6);background:rgba(255,255,255,.06);border-radius:10px">✓ Every change you save here is <b style="color:#7ee2a8">live in the phone app instantly</b> — no deploy needed.</div>
         <div class="who"><span id="whoEmail"></span><br /><button id="signOut" class="btn-o btn-sm" style="margin-top:8px">Sign out</button></div>
@@ -127,6 +128,7 @@
         <div id="tabMarketing" class="hidden"></div>
         <div id="tabTerritories" class="hidden"></div>
         <div id="tabApprovals" class="hidden"></div>
+        <div id="tabPayments" class="hidden"></div>
         <div id="tabConfig" class="hidden"></div>
       </main>
     </div>
@@ -197,7 +199,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'payments', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -205,6 +207,7 @@
         if (tab === 'marketing') renderMarketing();
         if (tab === 'territories') renderTerritories();
         if (tab === 'approvals') renderApprovals();
+        if (tab === 'payments') renderPayments();
         if (tab === 'config') renderConfig();
       }
 
@@ -522,6 +525,38 @@
             this.textContent = '…';
             var r = await sb.from('system_config').update({ value: parseVal(tr.querySelector('.cfg_edit').value) }).eq('key', tr.dataset.k);
             this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+        });
+      }
+
+      // ─── Payments (booking payments — tracking + manual mark-paid) ──────
+      async function renderPayments() {
+        var el = $('tabPayments');
+        el.innerHTML = '<div class="head"><h2>Payments</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('payments')
+          .select('id,amount,status,method,gateway,created_at, booking:bookings(status, property:properties(plot_code), buyer:profiles!buyer_id(full_name))')
+          .order('created_at', { ascending: false }).limit(300);
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Payments</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        var collected = rows.filter(function (p) { return p.status === 'paid'; }).reduce(function (s, p) { return s + Number(p.amount || 0); }, 0);
+        el.innerHTML = '<div class="head"><h2>Payments</h2></div>' +
+          '<div class="stat-row"><div class="stat"><div class="n">' + rows.length + '</div><div class="l">Records</div></div>' +
+            '<div class="stat"><div class="n mono">' + inr(collected) + '</div><div class="l">Collected</div></div></div>' +
+          (rows.length ? '<table><thead><tr><th>Plot</th><th>Buyer</th><th>Amount</th><th>Via</th><th>Status</th><th>Action</th></tr></thead><tbody>' +
+          rows.map(function (p) {
+            var b = p.booking || {};
+            return '<tr data-id="' + p.id + '"><td class="mono">' + esc(b.property ? b.property.plot_code : '—') + '</td>' +
+              '<td>' + esc(b.buyer ? b.buyer.full_name : '—') + '</td><td class="mono">' + inr(p.amount) + '</td>' +
+              '<td>' + esc(p.gateway || p.method || '—') + '</td>' +
+              '<td><span class="pill ' + (p.status === 'paid' ? 'paid' : p.status === 'created' ? 'requested' : 'neutral') + '">' + esc(p.status) + '</span></td>' +
+              '<td>' + (p.status !== 'paid' ? '<button class="btn-g btn-sm pay_mark">Mark paid</button>' : '✓') + '</td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No payments yet. Booking payments appear here once buyers reserve and pay.</div>');
+        el.querySelectorAll('.pay_mark').forEach(function (btn) {
+          btn.onclick = async function () {
+            var id = btn.closest('tr').dataset.id; this.textContent = '…';
+            var r = await sb.from('payments').update({ status: 'paid' }).eq('id', id);
+            if (r.error) { this.textContent = 'Err'; return alert(r.error.message); }
+            renderPayments();
           };
         });
       }
