@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Image } from 'expo-image';
+import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import * as MediaLibrary from 'expo-media-library';
@@ -14,6 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { enhancePhoto } from '@/features/ai/api';
 import { AD_FORMATS, type AdFormatKey } from '@/features/marketing/formats';
 import { logArtifactShare, shareImageFile } from '@/features/marketing/share';
 import { supabase } from '@/lib/supabase';
@@ -36,6 +38,35 @@ export default function AdCreator() {
   const [capture, setCapture] = useState<Capture | null>(null);
   const [format, setFormat] = useState<AdFormatKey>('post');
   const [busy, setBusy] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
+  const [enhanced, setEnhanced] = useState(false);
+
+  async function onEnhance() {
+    if (!capture) return;
+    setEnhancing(true);
+    try {
+      const m = await ImageManipulator.manipulateAsync(capture.uri, [{ resize: { width: 1280 } }], {
+        compress: 0.8,
+        format: ImageManipulator.SaveFormat.JPEG,
+        base64: true,
+      });
+      if (!m.base64) throw new Error('Could not read the image.');
+      const res = await enhancePhoto(m.base64, 'image/jpeg');
+      if (res.configured === false) {
+        Alert.alert('AI Enhance', res.message ?? 'Not enabled yet.');
+        return;
+      }
+      if (res.url) {
+        setCapture({ ...capture, uri: res.url });
+        setEnhanced(true);
+        Alert.alert('Enhanced ✨', 'Your photo has been sharpened and upscaled by AI.');
+      }
+    } catch (e) {
+      Alert.alert('Enhance failed', e instanceof Error ? e.message : String(e));
+    } finally {
+      setEnhancing(false);
+    }
+  }
 
   async function withLocation(uri: string) {
     let lat: number | undefined;
@@ -54,6 +85,7 @@ export default function AdCreator() {
     } catch {
       // location optional — ad still generates without it
     }
+    setEnhanced(false);
     setCapture({ uri, lat, lng, place, at: new Date() });
   }
 
@@ -221,13 +253,28 @@ export default function AdCreator() {
         </ScrollView>
 
         <View className="mt-5 gap-3">
+          <Button
+            title={enhancing ? 'Enhancing…' : enhanced ? '✨ Enhanced — enhance again' : '✨ Enhance photo with AI'}
+            variant="secondary"
+            loading={enhancing}
+            disabled={busy}
+            onPress={onEnhance}
+          />
           <Button title="Share ad" loading={busy} onPress={onShare} />
           <View className="flex-row gap-3">
             <View className="flex-1">
               <Button title="Save to gallery" variant="outline" onPress={onSave} disabled={busy} />
             </View>
             <View className="flex-1">
-              <Button title="Retake" variant="ghost" onPress={() => setCapture(null)} disabled={busy} />
+              <Button
+                title="Retake"
+                variant="ghost"
+                onPress={() => {
+                  setEnhanced(false);
+                  setCapture(null);
+                }}
+                disabled={busy}
+              />
             </View>
           </View>
         </View>

@@ -46,3 +46,29 @@ export function useAIGenerate() {
       callAI(feature, input),
   });
 }
+
+export interface EnhanceResult {
+  configured: boolean;
+  url?: string;
+  message?: string;
+  error?: string;
+}
+
+/** AI photo enhancement (§14) — sends a base64 image to the image-enhance Edge Function. */
+export async function enhancePhoto(base64: string, mime = 'image/jpeg'): Promise<EnhanceResult> {
+  const { data, error } = await supabase.functions.invoke('image-enhance', {
+    body: { image_base64: base64, mime },
+  });
+  if (error) {
+    let message = error.message;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const body = await (error as any).context?.json?.();
+      if (body?.error) message = body.error;
+    } catch {
+      /* keep default */
+    }
+    throw new Error(message);
+  }
+  return data as EnhanceResult;
+}
