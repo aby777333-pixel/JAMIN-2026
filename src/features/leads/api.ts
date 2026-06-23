@@ -69,3 +69,8 @@ export async function setFollowUpStatus(id: string, status: string) {
   const { error } = await supabase.from('follow_ups').update({ status }).eq('id', id);
   if (error) throw error;
 }
+
+export async function setLeadScore(id: string, score: number) {
+  const { error } = await supabase.from('leads').update({ score }).eq('id', id);
+  if (error) throw error;
+}

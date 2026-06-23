@@ -112,8 +112,16 @@ Builder + Admin ✓ (DynamicForm renders ANY form_definitions schema with zod
 validation; admin Form Builder edits/reorders fields live; Admin Portal = dashboard,
 Users & roles, KYC approve, Approvals incl. Close-Sale firing the commission engine,
 commission-rule toggles; profile-column guard blocks self-escalation; KYC via
-submit_kyc + form_submissions) · P8 AI · P9 Gamification + Notifications + Analytics ·
-P10 Hardening & store prep.
+submit_kyc + form_submissions) · P8 AI ✓ (ai-generate Edge Function = the ONLY caller
+of Claude — default claude-opus-4-8 via the Anthropic SDK, key only in function env;
+8 features: listing/social/flyer/campaign/video-script/brochure copy + lead scoring +
+sales assistant; AI Studio, AI Assistant chat, AI lead scoring; results logged to
+ai_generations) · P9 Gamification + Notifications + Analytics · P10 Hardening & store
+prep.
+
+⚠️ AI requires the `ANTHROPIC_API_KEY` secret on the Supabase Edge Function (Dashboard →
+Edge Functions → ai-generate → Secrets). Without it the function returns a friendly
+"AI is not configured yet" message. Switch model with the `AI_MODEL` secret.
 
 Admin UI is gated on `profile.role_is_admin` (roles.is_admin). super_admin is seeded;
 elevate the first admin via Users & roles (or SQL) — non-admins cannot self-promote

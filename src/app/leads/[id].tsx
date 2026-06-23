@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
-import { LEAD_STATUSES, type FollowUp, type LeadStatus } from '@/features/leads/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { callAI } from '@/features/ai/api';
+import { LEAD_STATUSES, setLeadScore, type FollowUp, type LeadStatus } from '@/features/leads/api';
 import {
   useCreateFollowUp,
   useFollowUps,
@@ -28,6 +30,31 @@ export default function LeadDetail() {
   const { data: followUps = [] } = useFollowUps(id);
   const createFollowUp = useCreateFollowUp(id ?? '');
   const setFollowUpStatus = useSetFollowUpStatus(id ?? '');
+  const qc = useQueryClient();
+  const [scoring, setScoring] = useState(false);
+
+  async function scoreWithAI() {
+    if (!lead) return;
+    setScoring(true);
+    try {
+      const res = await callAI('lead_score', {
+        name: lead.contact?.name,
+        source: lead.source ?? undefined,
+        message: JSON.stringify(lead.contact ?? {}),
+        context: lead.property ? `${lead.property.project?.name} ${lead.property.plot_code}` : undefined,
+      });
+      if (res.score != null) {
+        await setLeadScore(lead.id, res.score);
+        void qc.invalidateQueries({ queryKey: ['lead', lead.id] });
+        void qc.invalidateQueries({ queryKey: ['leads'] });
+      }
+      Alert.alert(`AI score: ${res.score ?? '—'}/100`, res.output);
+    } catch (e) {
+      Alert.alert('AI', e instanceof Error ? e.message : String(e));
+    } finally {
+      setScoring(false);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -90,6 +117,19 @@ export default function LeadDetail() {
             ))}
           </View>
         ) : null}
+      </Card>
+
+      <Card className="flex-row items-center gap-3">
+        <Ionicons name="sparkles" size={20} color={color.gold} />
+        <View className="flex-1">
+          <Text variant="title" className="text-[14px]">
+            AI lead score
+          </Text>
+          <Text variant="caption">
+            {lead.score ? `${lead.score}/100 — tap to re-score` : 'Estimate buyer intent with Claude'}
+          </Text>
+        </View>
+        <Button title={scoring ? '…' : 'Score'} variant="outline" loading={scoring} onPress={scoreWithAI} />
       </Card>
 
       <View>

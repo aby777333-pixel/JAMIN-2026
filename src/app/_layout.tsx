@@ -69,6 +69,8 @@ export default function RootLayout() {
             <Stack.Screen name="leads/index" />
             <Stack.Screen name="leads/[id]" />
             <Stack.Screen name="tools/ad-creator" />
+            <Stack.Screen name="tools/ai-studio" />
+            <Stack.Screen name="tools/ai-assistant" />
             <Stack.Screen name="brochures/index" />
             <Stack.Screen name="brochures/[id]" />
             <Stack.Screen name="kyc" />

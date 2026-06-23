@@ -17,6 +17,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_generations: {
+        Row: {
+          created_at: string
+          feature: string
+          id: string
+          input: Json
+          meta: Json
+          output: string | null
+          score: number | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          feature: string
+          id?: string
+          input?: Json
+          meta?: Json
+          output?: string | null
+          score?: number | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          feature?: string
+          id?: string
+          input?: Json
+          meta?: Json
+          output?: string | null
+          score?: number | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string

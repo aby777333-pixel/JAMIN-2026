@@ -111,6 +111,7 @@ export default function Home() {
             <QuickLink icon="people" label="Leads" onPress={() => router.push('/leads')} />
             <QuickLink icon="camera" label="Create Ad" onPress={() => router.push('/tools/ad-creator')} />
             <QuickLink icon="document-text" label="Brochures" onPress={() => router.push('/brochures')} />
+            <QuickLink icon="sparkles" label="AI Studio" onPress={() => router.push('/tools/ai-studio')} />
             <QuickLink icon="git-network" label="Network" onPress={() => router.push('/(tabs)/network')} />
             <QuickLink icon="wallet" label="Wallet" onPress={() => router.push('/(tabs)/wallet')} />
             <QuickLink icon="qr-code" label="My Card" onPress={() => router.push('/(tabs)/card')} />
