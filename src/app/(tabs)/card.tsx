@@ -3,17 +3,20 @@ import { Share, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { captureRef } from 'react-native-view-shot';
 
+import { ShareChannels } from '@/components/share/ShareChannels';
 import { Button } from '@/components/ui/Button';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { logArtifactShare } from '@/features/marketing/share';
+import { shareVCard } from '@/features/marketing/vcard';
 import { useAuth } from '@/stores/auth';
 import { BRAND, TAGLINE, color } from '@/theme/tokens';
 
 /**
  * ★ Digital Business Card (SuperPrompt §6) — auto-filled from the profile, the
  * first-class entry point of the referral funnel. The referral QR/link carries
- * the user's code so every scan attributes back to them. Full template engine,
- * vCard export and per-channel tracking land in P6; this is the live P1 card.
+ * the user's code so every scan attributes back to them. vCard export and
+ * per-channel sharing (P6) make it the full marketing artifact.
  */
 export default function CardScreen() {
   const profile = useAuth((s) => s.profile);
@@ -21,6 +24,15 @@ export default function CardScreen() {
 
   const code = profile?.referral_code ?? 'JAMIN';
   const referralUrl = `https://jaminproperties.co/r/${code}`;
+
+  async function onVCard() {
+    await shareVCard({
+      name: profile?.full_name ?? 'JAMIN Partner',
+      phone: profile?.phone,
+      email: profile?.email,
+      url: referralUrl,
+    });
+  }
 
   async function onShare() {
     try {
@@ -84,7 +96,20 @@ export default function CardScreen() {
         </View>
       </View>
 
-      <Button title="Share my card" onPress={onShare} />
+      <View className="gap-3">
+        <Button title="Share my card" onPress={onShare} />
+        <Button title="Save contact (vCard)" variant="outline" onPress={onVCard} />
+      </View>
+
+      <View className="gap-2">
+        <Text variant="label">Send your invite link</Text>
+        <ShareChannels
+          text="Join me on JAMIN Properties —"
+          url={referralUrl}
+          onShare={(ch) => logArtifactShare({ artifact: 'card', referralCode: code, channel: ch })}
+        />
+      </View>
+
       <Text variant="caption" className="text-center">
         Scanning the code opens the app (or the web invite) and binds the new signup to you.
       </Text>

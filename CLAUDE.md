@@ -104,5 +104,11 @@ P5 Commission engine ✓ (deterministic Postgres engine: resolve commission_rule
 closed sale → credit agent (direct) + hierarchy (team overrides) into the ledger,
 idempotent + audited; close_sale admin RPC; referral attribution event; mirrored by a
 Jest-tested pure-TS engine + in-app partner earning preview) · P6 Business Card + Smart
-Brochure + Photo Ad · P7 Form Builder + Admin · P8 AI · P9 Gamification + Notifications
-+ Analytics · P10 Hardening & store prep.
+Brochure + Photo Ad ✓ (vCard + multi-channel ShareChannels on the card; brochure
+library from brochure_templates → personalized view-shot poster + share; Photo Ad
+Creator = camera/upload + GPS reverse-geocode + timestamp → branded auto-ad, format
+selector, save-to-gallery + share; referral-attributed artifact logging) · P7 Form
+Builder + Admin · P8 AI · P9 Gamification + Notifications + Analytics · P10 Hardening
+& store prep.
+
+Marketing deps added (first-party Expo): expo-image-picker, expo-file-system.

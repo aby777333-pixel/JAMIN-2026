@@ -1103,6 +1103,99 @@ export type Database = {
           },
         ]
       }
+      ad_creatives: {
+        Row: {
+          captured_at: string | null
+          created_at: string
+          format: string
+          geo: Json | null
+          id: string
+          image_path: string | null
+          place: string | null
+          property_id: string | null
+          user_id: string
+        }
+        Insert: {
+          captured_at?: string | null
+          created_at?: string
+          format?: string
+          geo?: Json | null
+          id?: string
+          image_path?: string | null
+          place?: string | null
+          property_id?: string | null
+          user_id: string
+        }
+        Update: {
+          captured_at?: string | null
+          created_at?: string
+          format?: string
+          geo?: Json | null
+          id?: string
+          image_path?: string | null
+          place?: string | null
+          property_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      brochure_templates: {
+        Row: {
+          active: boolean
+          config: Json
+          created_at: string
+          id: string
+          is_default: boolean
+          kind: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          config?: Json
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          kind?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          config?: Json
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          kind?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      brochures: {
+        Row: {
+          channel: string | null
+          created_at: string
+          id: string
+          property_id: string | null
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          channel?: string | null
+          created_at?: string
+          id?: string
+          property_id?: string | null
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          channel?: string | null
+          created_at?: string
+          id?: string
+          property_id?: string | null
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       wishlists: {
         Row: {
           created_at: string
