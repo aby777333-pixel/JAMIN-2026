@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, View } from 'react-native';
 
+import { Logo } from '@/components/brand/Logo';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
@@ -36,6 +37,9 @@ export default function Verify() {
 
   return (
     <Screen scroll={false} contentClassName="justify-center gap-8">
+      <View className="items-center">
+        <Logo width={200} />
+      </View>
       <View className="gap-2">
         <Text variant="h1">{t('auth.otpTitle')}</Text>
         <Text variant="body" className="text-muted">

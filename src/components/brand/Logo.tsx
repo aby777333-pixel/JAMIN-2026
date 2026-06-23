@@ -4,7 +4,8 @@ import { View } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { TAGLINE } from '@/theme/tokens';
 
-const LOGO = require('@/assets/brand/jamin-logo.png');
+// Relative path (not the @/ alias) so the asset resolves reliably in release builds.
+const LOGO = require('../../../assets/brand/jamin-logo.png');
 
 /** Full JAMIN wordmark (the official logo image), optionally with the tagline. */
 export function Logo({
