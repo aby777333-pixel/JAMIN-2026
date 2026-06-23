@@ -1,0 +1,14 @@
+# JAMIN Properties — Netlify config for the one-page marketing site.
+# The site is the static folder web/. The Expo mobile app (src/, app.json) is NOT a
+# web build and is never built by Netlify. Setting base=web means Netlify runs inside
+# web/ (which has no package.json) so it skips dependency install and the RN build.
+[build]
+  base = "web"
+  publish = "."
+  command = "echo 'JAMIN landing — static site, no build step'"
+
+# Single-page site: serve existing files (logo.jpg, etc.), otherwise the page.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
