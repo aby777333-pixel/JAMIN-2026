@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -73,6 +74,17 @@ export default function Network() {
                 </Text>
               </View>
               <Button title="Share invite" variant="secondary" onPress={recruit} />
+            </Card>
+
+            <Card className="flex-row items-center gap-3">
+              <View className="h-11 w-11 items-center justify-center rounded-full bg-gold/15">
+                <Ionicons name="funnel" size={20} color={color.goldDeep} />
+              </View>
+              <View className="flex-1">
+                <Text variant="title">Referral Engine</Text>
+                <Text variant="caption">Funnel, campaigns & fraud signals</Text>
+              </View>
+              <Button title="Open" variant="outline" onPress={() => router.push('/referrals')} />
             </Card>
 
             {team.length > 0 ? (

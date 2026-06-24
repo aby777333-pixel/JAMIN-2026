@@ -126,6 +126,7 @@ export default function BrochurePreview() {
               name={profile?.full_name ?? 'JAMIN Partner'}
               phone={profile?.phone}
               referralCode={code}
+              photoUrl={profile?.photo_url}
               qrSize={58}
             />
           </View>

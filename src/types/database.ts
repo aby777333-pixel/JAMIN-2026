@@ -1003,9 +1003,16 @@ export type Database = {
         }
         Relationships: []
       }
+      campaigns: {
+        Row: { id: string; owner_id: string; name: string; slug: string; artifact_type: string; channel: string | null; active: boolean; created_at: string }
+        Insert: { id?: string; owner_id: string; name: string; slug: string; artifact_type?: string; channel?: string | null; active?: boolean; created_at?: string }
+        Update: { id?: string; owner_id?: string; name?: string; slug?: string; artifact_type?: string; channel?: string | null; active?: boolean; created_at?: string }
+        Relationships: []
+      }
       referral_events: {
         Row: {
           artifact_type: string
+          campaign_id: string | null
           channel: string | null
           created_at: string
           device: Json
@@ -1019,6 +1026,7 @@ export type Database = {
         }
         Insert: {
           artifact_type: string
+          campaign_id?: string | null
           channel?: string | null
           created_at?: string
           device?: Json
@@ -1032,6 +1040,7 @@ export type Database = {
         }
         Update: {
           artifact_type?: string
+          campaign_id?: string | null
           channel?: string | null
           created_at?: string
           device?: Json
@@ -1415,6 +1424,7 @@ export type Database = {
       close_sale: { Args: { p_booking: string }; Returns: number }
       submit_kyc: { Args: { p_data: Json }; Returns: undefined }
       team_summary: { Args: never; Returns: Json }
+      referral_funnel: { Args: { p_days?: number }; Returns: Json }
       can_see_thread: { Args: { t: string }; Returns: boolean }
       log_referral_click: {
         Args: { p_code: string; p_artifact?: string; p_channel?: string; p_device?: Json }

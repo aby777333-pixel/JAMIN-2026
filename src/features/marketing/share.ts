@@ -2,6 +2,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as Sharing from 'expo-sharing';
 import { Alert, Linking, Share } from 'react-native';
 
+import { deviceInfo } from '@/features/referral/device';
 import { supabase } from '@/lib/supabase';
 
 export type Channel =
@@ -17,10 +18,12 @@ export type Channel =
 
 export const BASE_URL = 'https://jaminproperties.co';
 
-export function referralUrl(referralCode: string, propertyId?: string) {
-  return propertyId
+export function referralUrl(referralCode: string, propertyId?: string, campaignSlug?: string) {
+  const base = propertyId
     ? `${BASE_URL}/p/${propertyId}?ref=${referralCode}`
     : `${BASE_URL}/r/${referralCode}`;
+  if (!campaignSlug) return base;
+  return base.includes('?') ? `${base}&c=${campaignSlug}` : `${base}?c=${campaignSlug}`;
 }
 
 /** Share a rendered PNG (brochure/ad/card) through the OS sheet → every channel. */
@@ -84,9 +87,11 @@ export async function logArtifactShare(opts: {
   artifact: 'card' | 'brochure' | 'ad' | 'link';
   referralCode: string;
   channel: Channel | string;
+  campaignId?: string;
 }) {
   const { data } = await supabase.auth.getUser();
   if (!data.user) return;
+  const device = await deviceInfo().catch(() => ({}));
   await supabase
     .from('referral_events')
     .insert({
@@ -95,6 +100,8 @@ export async function logArtifactShare(opts: {
       token: opts.referralCode,
       channel: String(opts.channel),
       stage: 'shared',
+      device,
+      campaign_id: opts.campaignId ?? null,
     })
     .then(
       () => {},

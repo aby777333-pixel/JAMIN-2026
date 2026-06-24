@@ -36,28 +36,38 @@
 
       // Pull the referral code from /r/<code> (Netlify rewrite keeps the URL) or ?ref=.
       var parts = location.pathname.split('/').filter(Boolean); // ['r','<code>']
-      var raw = (parts[1] || new URLSearchParams(location.search).get('ref') || '').trim();
+      var params = new URLSearchParams(location.search);
+      var raw = (parts[1] || params.get('ref') || '').trim();
       // Referral codes are short alphanumerics (Crockford base32). Reject anything else
       // so a malformed URL never dumps junk into the page.
       var code = /^[A-Za-z0-9]{3,16}$/.test(raw) ? raw : '';
+      // Optional campaign slug (?c=). Same conservative whitelist.
+      var rawC = (params.get('c') || '').trim();
+      var campaign = /^[A-Za-z0-9-]{1,40}$/.test(rawC) ? rawC : '';
 
       if (code) {
         document.getElementById('code').textContent = code.toUpperCase();
-        document.getElementById('go').setAttribute('href', '/?ref=' + encodeURIComponent(code));
+        var goHref = '/?ref=' + encodeURIComponent(code);
+        if (campaign) goHref += '&c=' + encodeURIComponent(campaign);
+        document.getElementById('go').setAttribute('href', goHref);
         // Cookie + localStorage so the app/landing can attribute the signup later.
         try {
           document.cookie = 'jamin_ref=' + encodeURIComponent(code) + ';path=/;max-age=2592000;samesite=lax';
           localStorage.setItem('jamin_ref', code);
+          if (campaign) localStorage.setItem('jamin_campaign', campaign);
         } catch (e) {}
         // Log the click (MOD 08 — referral tracking). Fire-and-forget; never blocks the page.
+        // The 5-arg overload (with p_campaign) ties the click to a campaign when present.
         try {
+          var body = {
+            p_code: code, p_artifact: 'link', p_channel: 'web',
+            p_device: { ua: navigator.userAgent, lang: navigator.language, platform: navigator.platform },
+          };
+          if (campaign) body.p_campaign = campaign;
           fetch(SUPABASE_URL + '/rest/v1/rpc/log_referral_click', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON },
-            body: JSON.stringify({
-              p_code: code, p_artifact: 'link', p_channel: 'web',
-              p_device: { ua: navigator.userAgent, lang: navigator.language, platform: navigator.platform },
-            }),
+            body: JSON.stringify(body),
           }).catch(function () {});
         } catch (e) {}
       } else {
