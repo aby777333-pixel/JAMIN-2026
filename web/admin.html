@@ -117,6 +117,7 @@
         <button class="nav-i" data-tab="approvals">✅ Approvals <span id="apprDot" class="dot hidden">0</span></button>
         <button class="nav-i" data-tab="payments">💳 Payments</button>
         <button class="nav-i" data-tab="chat">💬 Live chat</button>
+        <button class="nav-i" data-tab="features">🧩 Features</button>
         <button class="nav-i" data-tab="config">⚙️ System config</button>
         <div style="margin-top:14px;padding:10px 12px;font-size:11px;line-height:1.55;color:rgba(255,255,255,.6);background:rgba(255,255,255,.06);border-radius:10px">✓ Every change you save here is <b style="color:#7ee2a8">live in the phone app instantly</b> — no deploy needed.</div>
         <div class="who"><span id="whoEmail"></span><br /><button id="signOut" class="btn-o btn-sm" style="margin-top:8px">Sign out</button></div>
@@ -131,6 +132,7 @@
         <div id="tabApprovals" class="hidden"></div>
         <div id="tabPayments" class="hidden"></div>
         <div id="tabChat" class="hidden"></div>
+        <div id="tabFeatures" class="hidden"></div>
         <div id="tabConfig" class="hidden"></div>
       </main>
     </div>
@@ -202,7 +204,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'payments', 'chat', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'payments', 'chat', 'features', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -212,6 +214,7 @@
         if (tab === 'approvals') renderApprovals();
         if (tab === 'payments') renderPayments();
         if (tab === 'chat') renderChat();
+        if (tab === 'features') renderFeatures();
         if (tab === 'config') renderConfig();
       }
 
@@ -541,6 +544,70 @@
             this.textContent = '…';
             var r = await sb.from('system_config').update({ value: parseVal(tr.querySelector('.cfg_edit').value) }).eq('key', tr.dataset.k);
             this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+        });
+      }
+
+      // ─── Features (dynamic feature registry — add / edit / toggle / reorder) ───
+      async function renderFeatures() {
+        var el = $('tabFeatures');
+        el.innerHTML = '<div class="head"><h2>Features</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('app_features').select('id,key,name,description,category,icon,enabled,sort_order').order('sort_order');
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Features</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        var cats = ['core', 'buyer', 'partner', 'admin', 'ai'];
+        function catOpts(sel) { return cats.map(function (c) { return '<option value="' + c + '"' + (c === sel ? ' selected' : '') + '>' + c + '</option>'; }).join(''); }
+        el.innerHTML = '<div class="head"><h2>Features</h2></div>' +
+          '<div class="panel"><h3>Add a feature</h3><div class="row">' +
+            '<input id="ft_key" class="inp" style="max-width:160px" placeholder="key (e.g. live_chat)" />' +
+            '<input id="ft_name" class="inp" style="max-width:220px" placeholder="Name" />' +
+            '<select id="ft_cat" class="inp" style="max-width:130px">' + catOpts('core') + '</select>' +
+            '<input id="ft_icon" class="inp" style="max-width:140px" placeholder="ionicons icon" />' +
+            '<input id="ft_order" class="inp" type="number" style="max-width:90px" placeholder="order" />' +
+            '<button id="ft_add" class="btn btn-sm">Add</button></div>' +
+            '<div class="row" style="margin-top:6px"><input id="ft_desc" class="inp" style="max-width:560px" placeholder="Description" /></div>' +
+            '<div class="muted" style="margin-top:6px">Toggling a feature off hides it from the in-app catalog. Existing screens keep working regardless.</div></div>' +
+          (rows.length ? '<table><thead><tr><th>On</th><th>Name</th><th>Key</th><th>Category</th><th>Icon</th><th>Order</th><th></th></tr></thead><tbody>' +
+          rows.map(function (f) {
+            return '<tr data-id="' + f.id + '">' +
+              '<td><input type="checkbox" class="ft_en"' + (f.enabled ? ' checked' : '') + ' /></td>' +
+              '<td><input class="inp ft_name2" style="width:200px;height:36px" value="' + esc(f.name) + '" /></td>' +
+              '<td class="mono">' + esc(f.key) + '</td>' +
+              '<td><select class="inp ft_cat2" style="height:36px">' + catOpts(f.category) + '</select></td>' +
+              '<td><input class="inp ft_icon2" style="width:120px;height:36px" value="' + esc(f.icon) + '" /></td>' +
+              '<td><input class="inp ft_order2" type="number" style="width:70px;height:36px" value="' + (f.sort_order || 0) + '" /></td>' +
+              '<td><button class="btn btn-sm ft_save">Save</button> <button class="btn btn-sm ft_del" style="background:#fee;color:#c00">Del</button></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No features yet.</div>');
+        $('ft_add').onclick = async function () {
+          var key = $('ft_key').value.trim(); var name = $('ft_name').value.trim();
+          if (!key || !name) return alert('Key and name are required.');
+          var body = { key: key, name: name, category: $('ft_cat').value, icon: $('ft_icon').value.trim() || 'cube', description: $('ft_desc').value.trim() || null };
+          var ord = parseInt($('ft_order').value, 10); if (!isNaN(ord)) body.sort_order = ord;
+          var r = await sb.from('app_features').insert(body);
+          if (r.error) return alert(r.error.message); renderFeatures();
+        };
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          tr.querySelector('.ft_save').onclick = async function () {
+            this.textContent = '…';
+            var ord = parseInt(tr.querySelector('.ft_order2').value, 10);
+            var r = await sb.from('app_features').update({
+              name: tr.querySelector('.ft_name2').value.trim(),
+              category: tr.querySelector('.ft_cat2').value,
+              icon: tr.querySelector('.ft_icon2').value.trim() || 'cube',
+              enabled: tr.querySelector('.ft_en').checked,
+              sort_order: isNaN(ord) ? 100 : ord
+            }).eq('id', id);
+            this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+          tr.querySelector('.ft_en').onchange = async function () {
+            var r = await sb.from('app_features').update({ enabled: this.checked }).eq('id', id);
+            if (r.error) { alert(r.error.message); this.checked = !this.checked; }
+          };
+          tr.querySelector('.ft_del').onclick = async function () {
+            if (!confirm('Delete this feature?')) return;
+            var r = await sb.from('app_features').delete().eq('id', id);
+            if (r.error) return alert(r.error.message); renderFeatures();
           };
         });
       }

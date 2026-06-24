@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/Text';
 import { color } from '@/theme/tokens';
 
 const ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string; href: string }[] = [
+  { icon: 'apps', label: "What's included", sub: 'Explore all platform features', href: '/features' },
   { icon: 'notifications', label: 'Notifications', sub: 'Choose your alerts', href: '/settings/notifications' },
   { icon: 'lock-closed', label: 'Security & language', sub: 'App lock, language', href: '/settings/security' },
 ];

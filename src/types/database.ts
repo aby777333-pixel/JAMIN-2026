@@ -1009,6 +1009,12 @@ export type Database = {
         }
         Relationships: []
       }
+      app_features: {
+        Row: { id: string; key: string; name: string; description: string | null; category: string; icon: string; enabled: boolean; sort_order: number; config: Json; created_at: string; updated_at: string }
+        Insert: { id?: string; key: string; name: string; description?: string | null; category?: string; icon?: string; enabled?: boolean; sort_order?: number; config?: Json; created_at?: string; updated_at?: string }
+        Update: { id?: string; key?: string; name?: string; description?: string | null; category?: string; icon?: string; enabled?: boolean; sort_order?: number; config?: Json; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
       campaigns: {
         Row: { id: string; owner_id: string; name: string; slug: string; artifact_type: string; channel: string | null; active: boolean; created_at: string }
         Insert: { id?: string; owner_id: string; name: string; slug: string; artifact_type?: string; channel?: string | null; active?: boolean; created_at?: string }
