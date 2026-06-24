@@ -73,8 +73,11 @@ export default function PropertyDetail() {
     ] as const
   ).filter((t) => !!t.url) as { label: string; icon: keyof typeof Ionicons.glyphMap; url: string }[];
 
-  const TOUR_KEYS = ['featured', 'video_tour', 'video_url', 'video', 'virtual_tour', 'virtual_tour_url', 'tour_360', 'walkthrough', 'tour_3d', 'walkthrough_3d'];
-  const attrs = Object.entries(property.attrs ?? {}).filter(([k]) => !TOUR_KEYS.includes(k));
+  const customTitle = pick('title');
+  const description = pick('description');
+  // Keys with dedicated rendering — excluded from the generic key/value detail list.
+  const RESERVED_KEYS = ['featured', 'title', 'description', 'video_tour', 'video_url', 'video', 'virtual_tour', 'virtual_tour_url', 'tour_360', 'walkthrough', 'tour_3d', 'walkthrough_3d'];
+  const attrs = Object.entries(property.attrs ?? {}).filter(([k]) => !RESERVED_KEYS.includes(k));
   const lat = property.coordinates?.lat;
   const lng = property.coordinates?.lng;
   const hasCoords = lat != null && lng != null;
@@ -113,7 +116,10 @@ export default function PropertyDetail() {
             tone={property.status === 'available' ? 'available' : property.status === 'reserved' ? 'reserved' : 'sold'}
           />
         </View>
-        <Text variant="h1">{property.project?.name ?? 'Property'}</Text>
+        <Text variant="h1">{customTitle ?? property.project?.name ?? 'Property'}</Text>
+        {customTitle && property.project?.name ? (
+          <Text variant="caption">{property.project.name}</Text>
+        ) : null}
         {property.project?.location ? (
           <View className="flex-row items-center gap-1">
             <Ionicons name="location-outline" size={14} color={color.muted} />
@@ -122,6 +128,13 @@ export default function PropertyDetail() {
         ) : null}
         <MoneyText value={property.price} className="mt-1 text-[28px]" />
       </View>
+
+      {description ? (
+        <View className="gap-1">
+          <Text variant="label">About this property</Text>
+          <Text variant="body" className="text-ink">{description}</Text>
+        </View>
+      ) : null}
 
       <Card className="flex-row flex-wrap gap-y-3">
         <Detail label="Type" value={property.type?.name ?? '—'} />

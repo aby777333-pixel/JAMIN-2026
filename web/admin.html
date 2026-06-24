@@ -219,11 +219,44 @@
       }
 
       // ─── Properties ─────────────────────────────────────────────────────
+      // Reserved attrs keys (have dedicated fields / behaviour) — excluded from "custom fields".
+      var PROP_RESERVED = ['video_tour', 'virtual_tour', 'walkthrough', 'title', 'description', 'featured'];
+      function cfRow(k, v) {
+        return '<div class="row cf-row" style="margin-top:6px">' +
+          '<input class="inp cf_k" style="max-width:200px;height:38px" placeholder="Field name (e.g. Bedrooms)" value="' + esc(k || '') + '" />' +
+          '<input class="inp cf_v" style="max-width:240px;height:38px" placeholder="Value (e.g. 3 BHK)" value="' + esc(v || '') + '" />' +
+          '<button type="button" class="btn-d btn-sm cf_rm">×</button></div>';
+      }
+      function customRowsFor(attrs) {
+        if (!attrs || typeof attrs !== 'object') return '';
+        return Object.keys(attrs).filter(function (k) { return PROP_RESERVED.indexOf(k) === -1; })
+          .map(function (k) { return cfRow(k, attrs[k]); }).join('');
+      }
+      function wireAddField(btn, container) {
+        btn.onclick = function () {
+          var wrap = document.createElement('div'); wrap.innerHTML = cfRow('', '');
+          var row = wrap.firstChild; container.appendChild(row);
+          row.querySelector('.cf_rm').onclick = function () { row.remove(); };
+        };
+      }
+      function wireRemovers(scope) {
+        scope.querySelectorAll('.cf_rm').forEach(function (b) { b.onclick = function () { var r = b.closest('.cf-row'); if (r) r.remove(); }; });
+      }
+      function collectCustom(scope) {
+        var out = {};
+        scope.querySelectorAll('.cf-row').forEach(function (row) {
+          var k = row.querySelector('.cf_k').value.trim();
+          var v = row.querySelector('.cf_v').value.trim();
+          if (k && v && PROP_RESERVED.indexOf(k.toLowerCase()) === -1) out[k] = v;
+        });
+        return out;
+      }
+
       async function renderProperties() {
         var el = $('tabProperties');
         el.innerHTML = '<div class="head"><h2>Properties</h2></div><div class="muted">Loading…</div>';
         var q = await sb.from('properties')
-          .select('id,plot_code,price,status,media,project_id,plan_id,property_type_id, project:projects(name), type:property_types(name)')
+          .select('id,plot_code,price,status,media,attrs,coordinates,project_id,plan_id,property_type_id, project:projects(name), type:property_types(name)')
           .order('plot_code');
         var rows = q.data || [];
         var byStatus = { available: 0, reserved: 0, sold: 0 };
@@ -235,18 +268,22 @@
           '<div><label>Plan</label><select id="np_plan" class="inp"><option value="">—</option></select></div>' +
           '<div><label>Property type</label><select id="np_type" class="inp">' + opt(state.types, null, function (x) { return esc(x.name) + ' (' + x.code_prefix + ')'; }) + '</select></div>' +
           '<div><label>Price (₹)</label><input id="np_price" class="inp" inputmode="numeric" placeholder="1500000" /></div>' +
+          '<div><label>Title / name (optional)</label><input id="np_title" class="inp" placeholder="e.g. Premium Corner Plot" /></div>' +
+          '<div style="grid-column:1/-1"><label>Description (optional)</label><textarea id="np_desc" class="inp" style="height:auto;min-height:72px;padding:10px" placeholder="Describe this property — highlights, surroundings, connectivity…"></textarea></div>' +
           '<div><label>Latitude (optional)</label><input id="np_lat" class="inp" inputmode="decimal" placeholder="12.9716" /></div>' +
           '<div><label>Longitude (optional)</label><input id="np_lng" class="inp" inputmode="decimal" placeholder="77.5946" /></div>' +
           '<div><label>Video tour URL (optional)</label><input id="np_video" class="inp" placeholder="https://youtu.be/…" /></div>' +
           '<div><label>Virtual tour URL (optional)</label><input id="np_virtual" class="inp" placeholder="360° / Matterport link" /></div>' +
           '<div><label>3D walkthrough URL (optional)</label><input id="np_3d" class="inp" placeholder="https://…" /></div>' +
-          '</div><button id="np_add" class="btn" style="margin-top:14px">+ Add property</button> <span id="np_msg" class="muted"></span></div>';
+          '<div style="grid-column:1/-1"><label>Custom fields — name them however you like (shown on the listing)</label><div id="np_custom"></div><button type="button" id="np_addfield" class="btn-o btn-sm" style="margin-top:6px">+ Add field</button></div>' +
+          '</div><button id="np_add" class="btn" style="margin-top:14px">+ Add property</button> <span id="np_msg" class="muted">Add images after creating, from the table below.</span></div>';
 
         var table = '<table><thead><tr><th>Plot</th><th>Project</th><th>Type</th><th>Price</th><th>Status</th><th>Images</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (r) {
             var imgs = Array.isArray(r.media) ? r.media : [];
+            var title = (r.attrs && r.attrs.title) ? r.attrs.title : '';
             return '<tr data-id="' + r.id + '">' +
-              '<td class="mono">' + esc(r.plot_code) + '</td>' +
+              '<td class="mono">' + esc(r.plot_code) + (title ? '<div class="muted" style="font-size:11px">' + esc(title) + '</div>' : '') + '</td>' +
               '<td>' + esc(r.project ? r.project.name : '') + '</td>' +
               '<td>' + esc(r.type ? r.type.name : '') + '</td>' +
               '<td><input class="inp btn-sm pp_price" style="width:120px;height:36px" value="' + Number(r.price) + '" /></td>' +
@@ -255,8 +292,17 @@
               '</select></td>' +
               '<td><div class="thumbs">' + imgs.map(function (m) { return '<img src="' + esc(m.url || m) + '" />'; }).join('') +
                 '<label class="btn-o btn-sm" style="display:inline-block">+<input type="file" accept="image/*" class="pp_file hidden" multiple /></label></div></td>' +
-              '<td class="row"><button class="btn btn-sm pp_save">Save</button><button class="btn-d btn-sm pp_del">Delete</button></td>' +
-              '</tr>';
+              '<td class="row"><button class="btn-o btn-sm pp_det">Details</button><button class="btn btn-sm pp_save">Save</button><button class="btn-d btn-sm pp_del">Delete</button></td>' +
+              '</tr>' +
+              '<tr class="det" data-for="' + r.id + '" style="display:none"><td colspan="7"><div class="panel" style="margin:0">' +
+                '<div class="grid2">' +
+                  '<div><label>Title / name</label><input class="inp de_title" value="' + esc((r.attrs && r.attrs.title) || '') + '" /></div>' +
+                  '<div style="grid-column:1/-1"><label>Description</label><textarea class="inp de_desc" style="height:auto;min-height:72px;padding:10px">' + esc((r.attrs && r.attrs.description) || '') + '</textarea></div>' +
+                '</div>' +
+                '<label style="display:block;margin-top:8px">Custom fields</label><div class="de_custom">' + customRowsFor(r.attrs) + '</div>' +
+                '<button type="button" class="btn-o btn-sm de_addfield" style="margin-top:6px">+ Add field</button> ' +
+                '<button type="button" class="btn btn-sm de_save" style="margin-top:6px">Save details</button> <span class="muted de_msg"></span>' +
+              '</div></td></tr>';
           }).join('') + '</tbody></table>';
 
         el.innerHTML =
@@ -275,6 +321,7 @@
           $('np_plan').innerHTML = '<option value="">—</option>' + opt(plans, null, function (x) { return esc(x.name); });
         }
         if ($('np_project')) { $('np_project').onchange = fillPlans; fillPlans(); }
+        if ($('np_addfield')) wireAddField($('np_addfield'), $('np_custom'));
 
         if ($('np_add')) $('np_add').onclick = async function () {
           var price = parseFloat($('np_price').value || '0');
@@ -282,7 +329,9 @@
           if ($('np_plan').value) body.plan_id = $('np_plan').value;
           var lat = parseFloat($('np_lat').value), lng = parseFloat($('np_lng').value);
           if (!isNaN(lat) && !isNaN(lng)) body.coordinates = { lat: lat, lng: lng };
-          var attrs = {};
+          var attrs = collectCustom($('np_custom'));
+          if ($('np_title').value.trim()) attrs.title = $('np_title').value.trim();
+          if ($('np_desc').value.trim()) attrs.description = $('np_desc').value.trim();
           if ($('np_video').value.trim()) attrs.video_tour = $('np_video').value.trim();
           if ($('np_virtual').value.trim()) attrs.virtual_tour = $('np_virtual').value.trim();
           if ($('np_3d').value.trim()) attrs.walkthrough = $('np_3d').value.trim();
@@ -295,6 +344,7 @@
 
         el.querySelectorAll('tr[data-id]').forEach(function (tr) {
           var id = tr.dataset.id;
+          var rec = rows.find(function (x) { return x.id === id; }) || {};
           tr.querySelector('.pp_save').onclick = async function () {
             var price = parseFloat(tr.querySelector('.pp_price').value || '0');
             var status = tr.querySelector('.pp_status').value;
@@ -303,6 +353,28 @@
             this.textContent = r.error ? 'Err' : 'Saved';
             if (r.error) alert(r.error.message);
           };
+          var detRow = el.querySelector('tr.det[data-for="' + id + '"]');
+          tr.querySelector('.pp_det').onclick = function () {
+            if (detRow) detRow.style.display = detRow.style.display === 'none' ? 'table-row' : 'none';
+          };
+          if (detRow) {
+            var custom = detRow.querySelector('.de_custom');
+            wireRemovers(custom);
+            wireAddField(detRow.querySelector('.de_addfield'), custom);
+            detRow.querySelector('.de_save').onclick = async function () {
+              var msg = detRow.querySelector('.de_msg'); msg.textContent = 'Saving…';
+              var attrs = collectCustom(custom);
+              // preserve behaviour/tour keys already on the record
+              ['video_tour', 'virtual_tour', 'walkthrough', 'featured'].forEach(function (k) {
+                if (rec.attrs && rec.attrs[k] != null) attrs[k] = rec.attrs[k];
+              });
+              var t = detRow.querySelector('.de_title').value.trim(); if (t) attrs.title = t;
+              var d = detRow.querySelector('.de_desc').value.trim(); if (d) attrs.description = d;
+              var r = await sb.from('properties').update({ attrs: attrs }).eq('id', id);
+              msg.textContent = r.error ? ('Error: ' + r.error.message) : 'Saved ✓';
+              if (!r.error) rec.attrs = attrs;
+            };
+          }
           tr.querySelector('.pp_del').onclick = async function () {
             if (!confirm('Delete this property?')) return;
             var r = await sb.from('properties').delete().eq('id', id);

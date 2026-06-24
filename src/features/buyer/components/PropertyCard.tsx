@@ -28,6 +28,7 @@ export function PropertyCard({
   onToggleSave: () => void;
 }) {
   const img = firstImage(item.media);
+  const customTitle = typeof item.attrs?.title === 'string' ? (item.attrs.title as string) : null;
   return (
     <Pressable
       onPress={() => router.push(`/property/${item.id}`)}
@@ -64,7 +65,7 @@ export function PropertyCard({
           <Text variant="caption">{item.type?.name ?? ''}</Text>
         </View>
         <Text variant="title" numberOfLines={1}>
-          {item.project?.name ?? 'Property'}
+          {customTitle ?? item.project?.name ?? 'Property'}
         </Text>
         {item.project?.location ? (
           <Text variant="caption" numberOfLines={1}>
