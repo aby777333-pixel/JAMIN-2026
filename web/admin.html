@@ -143,6 +143,15 @@
       var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXduamdheXBtdWFmdm5maHh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMDI2ODAsImV4cCI6MjA5Nzc3ODY4MH0.2tfyC3Z8Kzib8FdLjnE-z8m830PZUd9vfcWtDXIqp3E';
       var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
+      // Surface any uncaught error so nothing fails silently.
+      function showErr(t) {
+        var b = document.getElementById('errbar');
+        if (!b) { b = document.createElement('div'); b.id = 'errbar'; b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#c00;color:#fff;padding:10px 14px;font-size:13px;z-index:9999;cursor:pointer'; b.onclick = function () { b.style.display = 'none'; }; document.body.appendChild(b); }
+        b.textContent = t + '  (tap to dismiss)'; b.style.display = 'block';
+      }
+      window.addEventListener('error', function (e) { showErr('Script error: ' + (e.message || '')); });
+      window.addEventListener('unhandledrejection', function (e) { showErr('Error: ' + ((e.reason && e.reason.message) || e.reason || '')); });
+
       var $ = function (id) { return document.getElementById(id); };
       var state = { user: null, projects: [], plans: [], types: [], roles: [], territories: [] };
       var chatThread = null, chatChannel = null;
@@ -341,6 +350,9 @@
         if ($('np_addfield')) wireAddField($('np_addfield'), $('np_custom'));
 
         if ($('np_add')) $('np_add').onclick = async function () {
+          var btn = this, msg = $('np_msg');
+          if (!$('np_project').value) { msg.style.color = '#c00'; msg.textContent = 'Pick a project first.'; return; }
+          if (!$('np_type').value) { msg.style.color = '#c00'; msg.textContent = 'Pick a property type first.'; return; }
           var price = parseFloat($('np_price').value || '0');
           var body = { project_id: $('np_project').value, property_type_id: $('np_type').value, price: isNaN(price) ? 0 : price, status: 'available' };
           if ($('np_plan').value) body.plan_id = $('np_plan').value;
@@ -353,10 +365,16 @@
           if ($('np_virtual').value.trim()) attrs.virtual_tour = $('np_virtual').value.trim();
           if ($('np_3d').value.trim()) attrs.walkthrough = $('np_3d').value.trim();
           if (Object.keys(attrs).length) body.attrs = attrs;
-          $('np_msg').textContent = 'Adding…';
-          var r = await sb.from('properties').insert(body);
-          if (r.error) { $('np_msg').textContent = 'Error: ' + r.error.message; return; }
-          renderProperties();
+          msg.style.color = ''; msg.textContent = 'Adding…'; btn.disabled = true;
+          try {
+            var r = await sb.from('properties').insert(body).select('plot_code').single();
+            if (r.error) { btn.disabled = false; msg.style.color = '#c00'; msg.textContent = 'Error: ' + r.error.message; return; }
+            alert('Added property ' + (r.data ? r.data.plot_code : '') + ' ✓');
+            renderProperties();
+          } catch (e) {
+            btn.disabled = false; msg.style.color = '#c00';
+            msg.textContent = 'Error: ' + (e && e.message ? e.message : e);
+          }
         };
 
         el.querySelectorAll('tr[data-id]').forEach(function (tr) {
