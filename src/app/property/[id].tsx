@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/Text';
 import { CommissionPreview } from '@/features/commission/components/CommissionPreview';
 import { EmiCalculator } from '@/features/buyer/components/EmiCalculator';
 import { EnquirySheet } from '@/features/buyer/components/EnquirySheet';
+import { NearbyAmenities } from '@/features/buyer/components/NearbyAmenities';
 import { PropertyGallery } from '@/features/buyer/components/PropertyGallery';
 import { RoiCalculator } from '@/features/buyer/components/RoiCalculator';
 import { SiteVisitSheet } from '@/features/buyer/components/SiteVisitSheet';
@@ -174,6 +175,8 @@ export default function PropertyDetail() {
           </View>
         </View>
       ) : null}
+
+      {hasCoords ? <NearbyAmenities lat={lat as number} lng={lng as number} /> : null}
 
       <EmiCalculator price={property.price} />
       <RoiCalculator price={property.price} />
