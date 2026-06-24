@@ -70,6 +70,16 @@ export async function getProjects() {
   return data ?? [];
 }
 
+export async function getProjectById(id: string) {
+  const { data, error } = await supabase
+    .from('projects')
+    .select('id, name, code, location, status')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ?? null;
+}
+
 export interface ProjectSummary {
   id: string;
   name: string;

@@ -38,6 +38,14 @@ export function useProjectsWithCounts() {
   });
 }
 
+export function useProjectById(id: string | undefined) {
+  return useQuery({
+    queryKey: ['project', id],
+    queryFn: () => api.getProjectById(id as string),
+    enabled: !!id,
+  });
+}
+
 export function usePropertyTypes() {
   return useQuery({
     queryKey: ['property_types'],

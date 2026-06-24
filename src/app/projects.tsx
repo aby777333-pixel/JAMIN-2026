@@ -45,10 +45,7 @@ export default function ProjectsScreen() {
 
 function ProjectRow({ project }: { project: ProjectSummary }) {
   return (
-    <Pressable
-      onPress={() =>
-        router.push({ pathname: '/(tabs)/properties', params: { projectId: project.id } })
-      }>
+    <Pressable onPress={() => router.push(`/project/${project.id}`)}>
       <Card className="flex-row items-center gap-3">
         <View className="h-12 w-12 items-center justify-center rounded-2xl bg-red/10">
           <Ionicons name="business" size={22} color={color.red} />
