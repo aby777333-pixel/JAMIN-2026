@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, View } from 'react-native';
+import { Alert, FlatList, Pressable, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -11,6 +11,8 @@ import { Screen } from '@/components/ui/Screen';
 import { StatCard } from '@/components/ui/StatCard';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
+import { PropertyCard } from '@/features/buyer/components/PropertyCard';
+import { useFeaturedProperties, useToggleWishlist, useWishlistIds } from '@/features/buyer/hooks';
 import { useLeads } from '@/features/leads/hooks';
 import { useUnreadCount } from '@/features/notifications/api';
 import { shareReferral } from '@/features/share/referral';
@@ -35,6 +37,9 @@ export default function Home() {
   const { data: openLeads = [] } = useLeads();
   const activeLeads = openLeads.filter((l) => l.status !== 'won' && l.status !== 'lost').length;
   const { data: unread = 0 } = useUnreadCount();
+  const { data: featured = [] } = useFeaturedProperties(8);
+  const { data: savedIds } = useWishlistIds();
+  const toggleSave = useToggleWishlist();
 
   async function copyReferral() {
     if (!profile?.referral_code) return;
@@ -104,6 +109,35 @@ export default function Home() {
             <StatusPill status={profile.kyc_status} />
           </Card>
         </Pressable>
+      ) : null}
+
+      {featured.length > 0 ? (
+        <View className="gap-2">
+          <View className="flex-row items-center justify-between">
+            <Text variant="label">Featured properties</Text>
+            <Pressable onPress={() => router.push('/(tabs)/properties')} hitSlop={8}>
+              <Text className="font-semibold text-[13px] text-red">See all</Text>
+            </Pressable>
+          </View>
+          <FlatList
+            horizontal
+            data={featured}
+            keyExtractor={(p) => p.id}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 12, paddingRight: 4 }}
+            renderItem={({ item }) => (
+              <View style={{ width: 250 }}>
+                <PropertyCard
+                  item={item}
+                  saved={savedIds?.has(item.id) ?? false}
+                  onToggleSave={() =>
+                    toggleSave.mutate({ propertyId: item.id, saved: savedIds?.has(item.id) ?? false })
+                  }
+                />
+              </View>
+            )}
+          />
+        </View>
       ) : null}
 
       {isPartner ? (

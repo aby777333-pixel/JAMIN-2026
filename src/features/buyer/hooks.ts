@@ -22,6 +22,14 @@ export function useProjects() {
   return useQuery({ queryKey: ['projects'], queryFn: api.getProjects, staleTime: 5 * 60_000 });
 }
 
+export function useFeaturedProperties(limit = 8) {
+  return useQuery({
+    queryKey: ['featured-properties', limit],
+    queryFn: () => api.getFeaturedProperties(limit),
+    staleTime: 60_000,
+  });
+}
+
 export function usePropertyTypes() {
   return useQuery({
     queryKey: ['property_types'],

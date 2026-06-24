@@ -48,6 +48,18 @@ export async function getProperty(id: string): Promise<PropertyDetail | null> {
   return (data as unknown as PropertyDetail) ?? null;
 }
 
+/** Newest available listings for the Home "Featured" rail — showcases admin uploads. */
+export async function getFeaturedProperties(limit = 8): Promise<PropertyListItem[]> {
+  const { data, error } = await supabase
+    .from('properties')
+    .select(LIST_SELECT)
+    .eq('status', 'available')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []) as unknown as PropertyListItem[];
+}
+
 export async function getProjects() {
   const { data, error } = await supabase
     .from('projects')
