@@ -451,41 +451,124 @@
       async function renderCatalog() {
         await loadLookups();
         var el = $('tabCatalog');
+        el.innerHTML = '<div class="head"><h2>Catalog</h2></div><div class="muted">Loading…</div>';
+        // Counts so deletes are safe (projects cascade to properties; types are FK-protected).
+        var propRes = await sb.from('properties').select('project_id,property_type_id');
+        var props = propRes.data || [];
+        var projCount = {}, typeCount = {};
+        props.forEach(function (p) {
+          if (p.project_id) projCount[p.project_id] = (projCount[p.project_id] || 0) + 1;
+          if (p.property_type_id) typeCount[p.property_type_id] = (typeCount[p.property_type_id] || 0) + 1;
+        });
+
+        var projTable = state.projects.length ? '<table style="margin-top:10px"><thead><tr><th>Code</th><th>Name</th><th>Location</th><th>Properties</th><th></th></tr></thead><tbody>' +
+          state.projects.map(function (p) {
+            return '<tr data-pid="' + p.id + '">' +
+              '<td><input class="inp pj_code" style="width:100px;height:34px" value="' + esc(p.code || '') + '" /></td>' +
+              '<td><input class="inp pj_name" style="width:180px;height:34px" value="' + esc(p.name) + '" /></td>' +
+              '<td><input class="inp pj_loc" style="width:160px;height:34px" value="' + esc(p.location || '') + '" /></td>' +
+              '<td class="mono">' + (projCount[p.id] || 0) + '</td>' +
+              '<td class="row"><button class="btn btn-sm pj_save">Save</button><button class="btn-d btn-sm pj_del">Delete</button></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted" style="margin-top:8px">No projects yet.</div>';
+
+        var planTable = state.plans.length ? '<table style="margin-top:10px"><thead><tr><th>Plan</th><th>Project</th><th></th></tr></thead><tbody>' +
+          state.plans.map(function (p) {
+            var sel = state.projects.map(function (pr) { return '<option value="' + pr.id + '"' + (pr.id === p.project_id ? ' selected' : '') + '>' + esc(pr.name) + '</option>'; }).join('');
+            return '<tr data-plid="' + p.id + '">' +
+              '<td><input class="inp pl_name" style="width:180px;height:34px" value="' + esc(p.name) + '" /></td>' +
+              '<td><select class="inp pl_proj" style="height:34px">' + sel + '</select></td>' +
+              '<td class="row"><button class="btn btn-sm pl_save">Save</button><button class="btn-d btn-sm pl_del">Delete</button></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted" style="margin-top:8px">No plans yet.</div>';
+
+        var typeTable = state.types.length ? '<table style="margin-top:10px"><thead><tr><th>Name</th><th>Slug</th><th>Prefix</th><th>Properties</th><th></th></tr></thead><tbody>' +
+          state.types.map(function (t) {
+            return '<tr data-tid="' + t.id + '">' +
+              '<td><input class="inp ty_name" style="width:160px;height:34px" value="' + esc(t.name) + '" /></td>' +
+              '<td><input class="inp ty_slug" style="width:120px;height:34px" value="' + esc(t.slug) + '" /></td>' +
+              '<td><input class="inp ty_pre" style="width:70px;height:34px" value="' + esc(t.code_prefix) + '" /></td>' +
+              '<td class="mono">' + (typeCount[t.id] || 0) + '</td>' +
+              '<td class="row"><button class="btn btn-sm ty_save">Save</button><button class="btn-d btn-sm ty_del">Delete</button></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted" style="margin-top:8px">No types yet.</div>';
+
         el.innerHTML =
           '<div class="head"><h2>Catalog</h2></div>' +
-          // projects
           '<div class="panel"><h3>Projects</h3>' +
             '<div class="row"><input id="c_pcode" class="inp" style="max-width:120px" placeholder="Code (JP-C)" />' +
             '<input id="c_pname" class="inp" style="max-width:220px" placeholder="Name" />' +
             '<input id="c_ploc" class="inp" style="max-width:200px" placeholder="Location" />' +
-            '<button id="c_padd" class="btn btn-sm">Add</button></div>' +
-            '<div class="muted" style="margin-top:10px">' + state.projects.map(function (p) { return esc(p.code) + ' · ' + esc(p.name) + (p.location ? ' (' + esc(p.location) + ')' : ''); }).join('<br>') + '</div></div>' +
-          // plans
+            '<button id="c_padd" class="btn btn-sm">Add project</button></div>' + projTable + '</div>' +
           '<div class="panel"><h3>Plans</h3>' +
             '<div class="row"><select id="c_plproj" class="inp" style="max-width:220px">' + opt(state.projects, null, function (x) { return esc(x.name); }) + '</select>' +
-            '<input id="c_plname" class="inp" style="max-width:200px" placeholder="Plan name" />' +
-            '<button id="c_pladd" class="btn btn-sm">Add</button></div>' +
-            '<div class="muted" style="margin-top:10px">' + state.plans.map(function (p) { var pr = state.projects.find(function (x) { return x.id === p.project_id; }); return esc(p.name) + (pr ? ' — ' + esc(pr.name) : ''); }).join('<br>') + '</div></div>' +
-          // types
+            '<input id="c_plname" class="inp" style="max-width:200px" placeholder="Plan name (e.g. Plan A)" />' +
+            '<button id="c_pladd" class="btn btn-sm">Add plan</button></div>' + planTable + '</div>' +
           '<div class="panel"><h3>Property types</h3>' +
             '<div class="row"><input id="c_tname" class="inp" style="max-width:180px" placeholder="Name (Penthouse)" />' +
             '<input id="c_tslug" class="inp" style="max-width:140px" placeholder="slug" />' +
             '<input id="c_tpre" class="inp" style="max-width:90px" placeholder="PH" />' +
-            '<button id="c_tadd" class="btn btn-sm">Add</button></div>' +
-            '<div class="muted" style="margin-top:10px">' + state.types.map(function (t) { return esc(t.name) + ' (' + esc(t.code_prefix) + ')'; }).join('<br>') + '</div></div>';
+            '<button id="c_tadd" class="btn btn-sm">Add type</button></div>' + typeTable + '</div>';
 
         $('c_padd').onclick = async function () {
-          var r = await sb.from('projects').insert({ code: $('c_pcode').value.trim(), name: $('c_pname').value.trim(), location: $('c_ploc').value.trim() || null });
+          if (!$('c_pname').value.trim()) return alert('Project name is required.');
+          var r = await sb.from('projects').insert({ code: $('c_pcode').value.trim() || null, name: $('c_pname').value.trim(), location: $('c_ploc').value.trim() || null });
           if (r.error) return alert(r.error.message); renderCatalog();
         };
         $('c_pladd').onclick = async function () {
+          if (!$('c_plproj').value || !$('c_plname').value.trim()) return alert('Pick a project and enter a plan name.');
           var r = await sb.from('plans').insert({ project_id: $('c_plproj').value, name: $('c_plname').value.trim() });
           if (r.error) return alert(r.error.message); renderCatalog();
         };
         $('c_tadd').onclick = async function () {
+          if (!$('c_tname').value.trim() || !$('c_tpre').value.trim()) return alert('Type name and prefix are required.');
           var r = await sb.from('property_types').insert({ name: $('c_tname').value.trim(), slug: $('c_tslug').value.trim().toLowerCase(), code_prefix: $('c_tpre').value.trim().toUpperCase() });
           if (r.error) return alert(r.error.message); renderCatalog();
         };
+
+        // Projects: edit + guarded delete (cascade would remove properties).
+        el.querySelectorAll('tr[data-pid]').forEach(function (tr) {
+          var id = tr.dataset.pid;
+          tr.querySelector('.pj_save').onclick = async function () {
+            this.textContent = '…';
+            var r = await sb.from('projects').update({ code: tr.querySelector('.pj_code').value.trim() || null, name: tr.querySelector('.pj_name').value.trim(), location: tr.querySelector('.pj_loc').value.trim() || null }).eq('id', id);
+            this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+          tr.querySelector('.pj_del').onclick = async function () {
+            var n = projCount[id] || 0;
+            if (n > 0) return alert('This project has ' + n + ' propert' + (n === 1 ? 'y' : 'ies') + '. Delete or move those first — deleting the project would remove them too.');
+            if (!confirm('Delete this project?')) return;
+            var r = await sb.from('projects').delete().eq('id', id);
+            if (r.error) return alert(r.error.message); renderCatalog();
+          };
+        });
+        // Plans: edit + delete (safe — properties.plan_id is set null).
+        el.querySelectorAll('tr[data-plid]').forEach(function (tr) {
+          var id = tr.dataset.plid;
+          tr.querySelector('.pl_save').onclick = async function () {
+            this.textContent = '…';
+            var r = await sb.from('plans').update({ name: tr.querySelector('.pl_name').value.trim(), project_id: tr.querySelector('.pl_proj').value }).eq('id', id);
+            this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+          tr.querySelector('.pl_del').onclick = async function () {
+            if (!confirm('Delete this plan? Properties on it keep their other details.')) return;
+            var r = await sb.from('plans').delete().eq('id', id);
+            if (r.error) return alert(r.error.message); renderCatalog();
+          };
+        });
+        // Property types: edit + delete (DB blocks delete if any property uses it).
+        el.querySelectorAll('tr[data-tid]').forEach(function (tr) {
+          var id = tr.dataset.tid;
+          tr.querySelector('.ty_save').onclick = async function () {
+            this.textContent = '…';
+            var r = await sb.from('property_types').update({ name: tr.querySelector('.ty_name').value.trim(), slug: tr.querySelector('.ty_slug').value.trim().toLowerCase(), code_prefix: tr.querySelector('.ty_pre').value.trim().toUpperCase() }).eq('id', id);
+            this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+          tr.querySelector('.ty_del').onclick = async function () {
+            var n = typeCount[id] || 0;
+            if (n > 0) return alert('This type is used by ' + n + ' propert' + (n === 1 ? 'y' : 'ies') + '. Reassign or delete those first.');
+            if (!confirm('Delete this property type?')) return;
+            var r = await sb.from('property_types').delete().eq('id', id);
+            if (r.error) return alert(r.error.message); renderCatalog();
+          };
+        });
       }
 
       // ─── Users & roles ──────────────────────────────────────────────────
