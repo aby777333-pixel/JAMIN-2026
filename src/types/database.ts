@@ -56,6 +56,7 @@ export type Database = {
       badges: {
         Row: {
           active: boolean
+          bonus: number
           created_at: string
           criteria: Json
           description: string | null
@@ -67,6 +68,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          bonus?: number
           created_at?: string
           criteria?: Json
           description?: string | null
@@ -78,6 +80,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          bonus?: number
           created_at?: string
           criteria?: Json
           description?: string | null
@@ -93,18 +96,21 @@ export type Database = {
         Row: {
           awarded_at: string
           badge_id: string
+          bonus_claimed_at: string | null
           id: string
           user_id: string
         }
         Insert: {
           awarded_at?: string
           badge_id: string
+          bonus_claimed_at?: string | null
           id?: string
           user_id: string
         }
         Update: {
           awarded_at?: string
           badge_id?: string
+          bonus_claimed_at?: string | null
           id?: string
           user_id?: string
         }
@@ -1425,6 +1431,7 @@ export type Database = {
       submit_kyc: { Args: { p_data: Json }; Returns: undefined }
       team_summary: { Args: never; Returns: Json }
       team_member_stats: { Args: { p_member: string }; Returns: Json }
+      claim_badge_bonus: { Args: { p_badge: string }; Returns: number }
       referral_funnel: { Args: { p_days?: number }; Returns: Json }
       can_see_thread: { Args: { t: string }; Returns: boolean }
       log_referral_click: {

@@ -1,14 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Alert, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { useBadges, useLeaderboard, useMyBadges, type LeaderMetric } from '@/features/gamification/api';
+import {
+  useBadges,
+  useClaimBadgeBonus,
+  useLeaderboard,
+  useMyBadges,
+  type LeaderMetric,
+} from '@/features/gamification/api';
+import { formatINR } from '@/lib/money';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
 
@@ -28,9 +36,22 @@ const METRICS: { key: LeaderMetric; label: string }[] = [
 export default function Rewards() {
   const meId = useAuth((s) => s.profile?.id);
   const { data: badges = [] } = useBadges();
-  const { data: mine } = useMyBadges();
+  const { data: mine = [] } = useMyBadges();
+  const claim = useClaimBadgeBonus();
   const [metric, setMetric] = useState<LeaderMetric>('earnings');
   const { data: board = [], isLoading } = useLeaderboard(metric);
+
+  const earnedSet = new Set(mine.map((m) => m.badge_id));
+  const claimedSet = new Set(mine.filter((m) => m.bonus_claimed_at).map((m) => m.badge_id));
+
+  async function onClaim(badgeId: string) {
+    try {
+      const amt = await claim.mutateAsync(badgeId);
+      Alert.alert('Bonus claimed', `${formatINR(amt)} added to your wallet.`);
+    } catch (e) {
+      Alert.alert('Could not claim', e instanceof Error ? e.message : 'Please try again.');
+    }
+  }
 
   return (
     <Screen contentClassName="pb-10 gap-4">
@@ -39,7 +60,8 @@ export default function Rewards() {
       <Text variant="label">Your badges</Text>
       <View className="flex-row flex-wrap gap-3">
         {badges.map((b) => {
-          const earned = mine?.has(b.id) ?? false;
+          const earned = earnedSet.has(b.id);
+          const claimed = claimedSet.has(b.id);
           const tint = TIER_COLOR[b.tier] ?? color.gold;
           return (
             <Card key={b.id} className={`w-[47%] flex-grow items-center gap-1 ${earned ? '' : 'opacity-50'}`}>
@@ -52,8 +74,26 @@ export default function Rewards() {
                 {b.name}
               </Text>
               <Text variant="caption" className="text-center">
-                {earned ? 'Unlocked' : b.description}
+                {earned ? (b.bonus > 0 ? `Bonus ${formatINR(b.bonus)}` : 'Unlocked') : b.description}
               </Text>
+              {earned && b.bonus > 0 ? (
+                claimed ? (
+                  <View className="mt-1 flex-row items-center gap-1">
+                    <Ionicons name="checkmark-circle" size={14} color={color.gold} />
+                    <Text variant="caption" className="text-gold-deep">
+                      Bonus claimed
+                    </Text>
+                  </View>
+                ) : (
+                  <Button
+                    title={`Claim ${formatINR(b.bonus)}`}
+                    variant="secondary"
+                    className="mt-1"
+                    loading={claim.isPending && claim.variables === b.id}
+                    onPress={() => onClaim(b.id)}
+                  />
+                )
+              ) : null}
             </Card>
           );
         })}
