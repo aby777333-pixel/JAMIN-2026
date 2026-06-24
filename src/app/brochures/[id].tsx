@@ -1,5 +1,8 @@
+import * as FileSystem from 'expo-file-system';
+import * as Print from 'expo-print';
 import { useLocalSearchParams } from 'expo-router';
 import * as MediaLibrary from 'expo-media-library';
+import * as Sharing from 'expo-sharing';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
@@ -84,6 +87,33 @@ export default function BrochurePreview() {
     setBusy(false);
   }
 
+  // PDF = the exact rendered poster (real QR + photo) embedded in a one-page document.
+  async function onPdf() {
+    setBusy(true);
+    const uri = await render();
+    if (uri) {
+      try {
+        const b64 = await (FileSystem as unknown as {
+          readAsStringAsync: (u: string, o: { encoding: string }) => Promise<string>;
+        }).readAsStringAsync(uri, { encoding: 'base64' });
+        const html =
+          `<html><head><meta name="viewport" content="width=device-width,initial-scale=1"/></head>` +
+          `<body style="margin:0;padding:0;"><img src="data:image/png;base64,${b64}" ` +
+          `style="width:100%;display:block;"/></body></html>`;
+        const { uri: pdfUri } = await Print.printToFileAsync({ html });
+        await logArtifactShare({ artifact: 'brochure', referralCode: code, channel: 'pdf' });
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(pdfUri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf' });
+        } else {
+          Alert.alert('PDF ready', 'Saved to the app cache.');
+        }
+      } catch (e) {
+        Alert.alert('PDF failed', e instanceof Error ? e.message : String(e));
+      }
+    }
+    setBusy(false);
+  }
+
   return (
     <Screen contentClassName="pb-10 gap-4">
       <BackHeader title={tpl.name} />
@@ -135,7 +165,10 @@ export default function BrochurePreview() {
 
       <View className="gap-3">
         <Button title="Share brochure" loading={busy} onPress={onShareImage} />
-        <Button title="Save to gallery" variant="outline" disabled={busy} onPress={onSave} />
+        <View className="flex-row gap-3">
+          <Button title="Save image" variant="outline" disabled={busy} onPress={onSave} className="flex-1" />
+          <Button title="Download PDF" variant="outline" disabled={busy} onPress={onPdf} className="flex-1" />
+        </View>
       </View>
 
       <View className="gap-2">
