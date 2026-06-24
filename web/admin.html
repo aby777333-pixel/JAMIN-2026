@@ -251,6 +251,20 @@
         });
         return out;
       }
+      function photoThumb(url) {
+        return '<span class="ph" data-url="' + esc(url) + '" style="position:relative;display:inline-block">' +
+          '<img src="' + esc(url) + '" style="height:58px;width:58px;object-fit:cover;border-radius:8px;border:1px solid #e6e7e2" />' +
+          '<button type="button" class="ph_rm" title="Remove photo" style="position:absolute;top:-6px;right:-6px;background:#c00;color:#fff;border:none;border-radius:999px;width:18px;height:18px;line-height:16px;font-size:12px;cursor:pointer">×</button></span>';
+      }
+      function photoThumbs(media) {
+        var arr = Array.isArray(media) ? media : [];
+        if (!arr.length) return '<span class="muted" style="font-size:12px">No photos yet — add some below.</span>';
+        return arr.map(function (m) { return photoThumb(m.url || m); }).join('');
+      }
+      function mediaPath(url) {
+        var i = url.indexOf('/property-media/');
+        return i === -1 ? null : decodeURIComponent(url.slice(i + '/property-media/'.length));
+      }
 
       async function renderProperties() {
         var el = $('tabProperties');
@@ -299,7 +313,10 @@
                   '<div><label>Title / name</label><input class="inp de_title" value="' + esc((r.attrs && r.attrs.title) || '') + '" /></div>' +
                   '<div style="grid-column:1/-1"><label>Description</label><textarea class="inp de_desc" style="height:auto;min-height:72px;padding:10px">' + esc((r.attrs && r.attrs.description) || '') + '</textarea></div>' +
                 '</div>' +
-                '<label style="display:block;margin-top:8px">Custom fields</label><div class="de_custom">' + customRowsFor(r.attrs) + '</div>' +
+                '<label style="display:block;margin-top:10px">Photos</label>' +
+                '<div class="de_photos" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;align-items:center">' + photoThumbs(r.media) + '</div>' +
+                '<label class="btn-o btn-sm" style="display:inline-block;margin-top:6px">+ Add photos<input type="file" accept="image/*" class="de_file hidden" multiple /></label>' +
+                '<label style="display:block;margin-top:10px">Custom fields</label><div class="de_custom">' + customRowsFor(r.attrs) + '</div>' +
                 '<button type="button" class="btn-o btn-sm de_addfield" style="margin-top:6px">+ Add field</button> ' +
                 '<button type="button" class="btn btn-sm de_save" style="margin-top:6px">Save details</button> <span class="muted de_msg"></span>' +
               '</div></td></tr>';
@@ -361,6 +378,35 @@
             var custom = detRow.querySelector('.de_custom');
             wireRemovers(custom);
             wireAddField(detRow.querySelector('.de_addfield'), custom);
+            // Photo management — upload + per-photo delete, keeping the editor open.
+            var photosEl = detRow.querySelector('.de_photos');
+            function bindPhotoRemovers() {
+              photosEl.querySelectorAll('.ph_rm').forEach(function (b) {
+                b.onclick = async function () {
+                  var span = b.closest('.ph'); var url = span.dataset.url;
+                  var media = (Array.isArray(rec.media) ? rec.media : []).filter(function (m) { return (m.url || m) !== url; });
+                  var path = mediaPath(url);
+                  if (path) { try { await sb.storage.from('property-media').remove([path]); } catch (e) {} }
+                  var r = await sb.from('properties').update({ media: media }).eq('id', id);
+                  if (r.error) { alert(r.error.message); return; }
+                  rec.media = media; photosEl.innerHTML = photoThumbs(media); bindPhotoRemovers();
+                };
+              });
+            }
+            bindPhotoRemovers();
+            detRow.querySelector('.de_file').onchange = async function () {
+              var files = Array.from(this.files || []); if (!files.length) return;
+              var media = Array.isArray(rec.media) ? rec.media.slice() : [];
+              for (var f of files) {
+                var path = id + '/' + Date.now() + '_' + f.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                var up = await sb.storage.from('property-media').upload(path, f, { contentType: f.type, upsert: false });
+                if (up.error) { alert('Upload failed: ' + up.error.message); continue; }
+                media.push({ url: sb.storage.from('property-media').getPublicUrl(path).data.publicUrl });
+              }
+              var r = await sb.from('properties').update({ media: media }).eq('id', id);
+              if (r.error) { alert(r.error.message); return; }
+              rec.media = media; photosEl.innerHTML = photoThumbs(media); bindPhotoRemovers(); this.value = '';
+            };
             detRow.querySelector('.de_save').onclick = async function () {
               var msg = detRow.querySelector('.de_msg'); msg.textContent = 'Saving…';
               var attrs = collectCustom(custom);
