@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatCard } from '@/components/ui/StatCard';
 import { Text } from '@/components/ui/Text';
-import { useDownline, useTeamSummary } from '@/features/team/hooks';
+import { useDownline, useTeamSummary, useTerritoryName } from '@/features/team/hooks';
 import type { TeamMember } from '@/features/team/api';
 import { formatINR } from '@/lib/money';
 import { useAuth } from '@/stores/auth';
@@ -19,6 +19,7 @@ export default function Network() {
   const profile = useAuth((s) => s.profile);
   const { data: team = [], isLoading, refetch, isRefetching } = useDownline();
   const { data: summary } = useTeamSummary();
+  const { data: territory } = useTerritoryName(profile?.territory_id);
 
   const direct = team.filter((m) => m.parent_id === profile?.id).length;
   const sorted = [...team].sort((a, b) => (a.role?.level ?? 99) - (b.role?.level ?? 99));
@@ -34,7 +35,15 @@ export default function Network() {
         refreshing={isRefetching}
         ListHeaderComponent={
           <View className="gap-3 pb-1 pt-2">
-            <Text variant="h1">Network</Text>
+            <View className="flex-row items-center justify-between">
+              <Text variant="h1">Network</Text>
+              {territory ? (
+                <View className="flex-row items-center gap-1 rounded-full bg-gold/15 px-3 py-1.5">
+                  <Ionicons name="map" size={13} color={color.goldDeep} />
+                  <Text className="text-[12px] font-semibold text-gold-deep">{territory}</Text>
+                </View>
+              ) : null}
+            </View>
             <View className="flex-row gap-3">
               <StatCard label="Team size" icon="people">
                 <Text className="font-mono-bold text-[22px] text-ink">{team.length}</Text>
@@ -82,6 +91,17 @@ export default function Network() {
                 <Text variant="caption">Funnel, campaigns & fraud signals</Text>
               </View>
               <Button title="Open" variant="outline" onPress={() => router.push('/referrals')} />
+            </Card>
+
+            <Card className="flex-row items-center gap-3">
+              <View className="h-11 w-11 items-center justify-center rounded-full bg-red/10">
+                <Ionicons name="gift" size={20} color={color.red} />
+              </View>
+              <View className="flex-1">
+                <Text variant="title">Incentives & bonuses</Text>
+                <Text variant="caption">Bonus structures & claimable rewards</Text>
+              </View>
+              <Button title="Open" variant="outline" onPress={() => router.push('/incentives')} />
             </Card>
 
             {team.length > 0 ? (

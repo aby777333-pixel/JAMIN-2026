@@ -59,3 +59,15 @@ export async function getMemberStats(memberId: string): Promise<MemberStats | nu
   if (error) throw error;
   return (data as unknown as MemberStats) ?? null;
 }
+
+/** Resolve a territory name for display (§6 Territory Management — assigned by admin). */
+export async function getTerritoryName(territoryId: string | null): Promise<string | null> {
+  if (!territoryId) return null;
+  const { data, error } = await supabase
+    .from('territories')
+    .select('name')
+    .eq('id', territoryId)
+    .maybeSingle();
+  if (error) throw error;
+  return ((data?.name as string) ?? null) || null;
+}

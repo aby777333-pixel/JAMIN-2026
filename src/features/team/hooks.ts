@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { getDownline, getMemberStats, getTeamSummary } from './api';
+import { getDownline, getMemberStats, getTeamSummary, getTerritoryName } from './api';
 
 export function useDownline() {
   return useQuery({ queryKey: ['downline'], queryFn: getDownline });
@@ -15,5 +15,13 @@ export function useMemberStats(memberId: string | undefined) {
     queryKey: ['member-stats', memberId],
     queryFn: () => getMemberStats(memberId as string),
     enabled: !!memberId,
+  });
+}
+
+export function useTerritoryName(territoryId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['territory', territoryId],
+    queryFn: () => getTerritoryName(territoryId ?? null),
+    enabled: territoryId != null,
   });
 }
