@@ -38,3 +38,24 @@ export async function getTeamSummary(): Promise<TeamSummary> {
     (data as unknown as TeamSummary) ?? { team_count: 0, team_sales: 0, team_revenue: 0 }
   );
 }
+
+export interface MemberStats {
+  id: string;
+  full_name: string | null;
+  referral_code: string;
+  joined_at: string;
+  role: string | null;
+  territory: string | null;
+  direct: number;
+  team: number;
+  sales: number;
+  earnings: number;
+  team_revenue: number;
+}
+
+/** Drill-down metrics for one downline member (§6 Team Monitoring). Subtree-guarded server-side. */
+export async function getMemberStats(memberId: string): Promise<MemberStats | null> {
+  const { data, error } = await supabase.rpc('team_member_stats', { p_member: memberId });
+  if (error) throw error;
+  return (data as unknown as MemberStats) ?? null;
+}

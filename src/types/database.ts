@@ -1424,6 +1424,7 @@ export type Database = {
       close_sale: { Args: { p_booking: string }; Returns: number }
       submit_kyc: { Args: { p_data: Json }; Returns: undefined }
       team_summary: { Args: never; Returns: Json }
+      team_member_stats: { Args: { p_member: string }; Returns: Json }
       referral_funnel: { Args: { p_days?: number }; Returns: Json }
       can_see_thread: { Args: { t: string }; Returns: boolean }
       log_referral_click: {

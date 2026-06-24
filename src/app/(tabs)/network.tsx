@@ -1,15 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { ActivityIndicator, FlatList, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatCard } from '@/components/ui/StatCard';
 import { Text } from '@/components/ui/Text';
-import { shareReferral } from '@/features/share/referral';
 import { useDownline, useTeamSummary } from '@/features/team/hooks';
 import type { TeamMember } from '@/features/team/api';
 import { formatINR } from '@/lib/money';
@@ -24,11 +22,6 @@ export default function Network() {
 
   const direct = team.filter((m) => m.parent_id === profile?.id).length;
   const sorted = [...team].sort((a, b) => (a.role?.level ?? 99) - (b.role?.level ?? 99));
-
-  async function recruit() {
-    if (!profile?.referral_code) return;
-    await shareReferral({ referralCode: profile.referral_code, channel: 'recruit' });
-  }
 
   return (
     <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
@@ -73,7 +66,11 @@ export default function Network() {
                   {profile?.referral_code ?? '—'}
                 </Text>
               </View>
-              <Button title="Share invite" variant="secondary" onPress={recruit} />
+              <Button
+                title="Recruit & invite"
+                variant="secondary"
+                onPress={() => router.push('/recruit')}
+              />
             </Card>
 
             <Card className="flex-row items-center gap-3">
@@ -121,17 +118,19 @@ function TeamMemberRow({ member }: { member: TeamMember }) {
     .join('')
     .toUpperCase();
   return (
-    <Card className="flex-row items-center gap-3">
-      <View className="h-11 w-11 items-center justify-center rounded-full bg-red/10">
-        <Text className="font-bold text-red">{initials}</Text>
-      </View>
-      <View className="flex-1">
-        <Text variant="title" numberOfLines={1}>
-          {member.full_name ?? 'New member'}
-        </Text>
-        <Text variant="caption">Ref {member.referral_code}</Text>
-      </View>
-      <Badge label={member.role?.name ?? 'Member'} />
-    </Card>
+    <Pressable onPress={() => router.push(`/team/${member.id}`)}>
+      <Card className="flex-row items-center gap-3">
+        <View className="h-11 w-11 items-center justify-center rounded-full bg-red/10">
+          <Text className="font-bold text-red">{initials}</Text>
+        </View>
+        <View className="flex-1">
+          <Text variant="title" numberOfLines={1}>
+            {member.full_name ?? 'New member'}
+          </Text>
+          <Text variant="caption">Ref {member.referral_code}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={color.muted} />
+      </Card>
+    </Pressable>
   );
 }
