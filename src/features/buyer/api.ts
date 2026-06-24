@@ -70,6 +70,36 @@ export async function getProjects() {
   return data ?? [];
 }
 
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  code: string | null;
+  location: string | null;
+  available: number;
+}
+
+/** Active projects (admin-uploaded) with a live count of available plots each. */
+export async function getProjectsWithCounts(): Promise<ProjectSummary[]> {
+  const [projectsRes, propsRes] = await Promise.all([
+    supabase.from('projects').select('id, name, code, location').eq('status', 'active').order('name'),
+    supabase.from('properties').select('project_id').eq('status', 'available'),
+  ]);
+  if (projectsRes.error) throw projectsRes.error;
+  if (propsRes.error) throw propsRes.error;
+  const counts: Record<string, number> = {};
+  for (const row of propsRes.data ?? []) {
+    const k = (row as { project_id: string | null }).project_id;
+    if (k) counts[k] = (counts[k] ?? 0) + 1;
+  }
+  return (projectsRes.data ?? []).map((p) => ({
+    id: p.id as string,
+    name: p.name as string,
+    code: (p.code as string) ?? null,
+    location: (p.location as string) ?? null,
+    available: counts[p.id as string] ?? 0,
+  }));
+}
+
 export async function getPropertyTypes() {
   const { data, error } = await supabase
     .from('property_types')

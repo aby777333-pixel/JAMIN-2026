@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,7 +23,12 @@ import { color } from '@/theme/tokens';
 export default function Properties() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const [filters, setFilters] = useState<PropertyFilters>({ status: 'available' });
+  const { projectId } = useLocalSearchParams<{ projectId?: string }>();
+  const [filters, setFilters] = useState<PropertyFilters>({ status: 'available', projectId });
+  // Apply a project filter when arriving from the Projects browse screen.
+  useEffect(() => {
+    if (projectId) setFilters((f) => ({ ...f, projectId }));
+  }, [projectId]);
 
   const { data: types = [] } = usePropertyTypes();
   const { data: projects = [] } = useProjects();
@@ -47,6 +52,13 @@ export default function Properties() {
             <View className="flex-row items-center justify-between">
               <Text variant="h1">{t('tabs.properties')}</Text>
               <View className="flex-row items-center gap-2">
+                <Pressable
+                  onPress={() => router.push('/projects')}
+                  className="flex-row items-center gap-1 rounded-full border border-line bg-surface px-3 py-2"
+                >
+                  <Ionicons name="business" size={15} color={color.ink} />
+                  <Text className="text-[13px] font-semibold text-ink">Projects</Text>
+                </Pressable>
                 <Pressable
                   onPress={() => router.push('/map')}
                   className="flex-row items-center gap-1 rounded-full border border-line bg-surface px-3 py-2"

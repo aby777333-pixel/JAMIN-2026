@@ -81,6 +81,7 @@ export default function RootLayout() {
             <Stack.Screen name="brochures/index" />
             <Stack.Screen name="brochures/[id]" />
             <Stack.Screen name="compare" />
+            <Stack.Screen name="projects" />
             <Stack.Screen name="map" />
             <Stack.Screen name="chat" />
             <Stack.Screen name="payments" />

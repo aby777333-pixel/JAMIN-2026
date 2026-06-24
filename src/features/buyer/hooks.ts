@@ -30,6 +30,14 @@ export function useFeaturedProperties(limit = 8) {
   });
 }
 
+export function useProjectsWithCounts() {
+  return useQuery({
+    queryKey: ['projects-with-counts'],
+    queryFn: api.getProjectsWithCounts,
+    staleTime: 60_000,
+  });
+}
+
 export function usePropertyTypes() {
   return useQuery({
     queryKey: ['property_types'],
