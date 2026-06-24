@@ -41,3 +41,30 @@ export async function completeProfile(input: {
   });
   if (error) throw error;
 }
+
+/**
+ * Self-service profile edit (name / phone / designation / photo). These columns are
+ * NOT protected by the guard_profile_columns trigger, so a direct RLS-scoped update
+ * is fine — role/hierarchy/kyc stay locked. Drives the Business Card + brochures.
+ */
+export async function updateMyProfile(input: {
+  fullName?: string;
+  phone?: string;
+  designation?: string;
+  photoUrl?: string;
+}) {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) throw new Error('Not signed in');
+  const patch: {
+    full_name?: string | null;
+    phone?: string | null;
+    designation?: string | null;
+    photo_url?: string | null;
+  } = {};
+  if (input.fullName !== undefined) patch.full_name = input.fullName.trim() || null;
+  if (input.phone !== undefined) patch.phone = input.phone.trim() || null;
+  if (input.designation !== undefined) patch.designation = input.designation.trim() || null;
+  if (input.photoUrl !== undefined) patch.photo_url = input.photoUrl.trim() || null;
+  const { error } = await supabase.from('profiles').update(patch).eq('id', auth.user.id);
+  if (error) throw error;
+}

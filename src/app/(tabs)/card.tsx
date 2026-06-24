@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useRef } from 'react';
 import { Share, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
@@ -62,42 +63,49 @@ export default function CardScreen() {
         <View className="p-5">
           <Text className="font-medium text-[11px] uppercase tracking-[3px] text-gold">{BRAND}</Text>
 
-          <View className="mt-4 flex-row items-start justify-between">
-            <View className="flex-1 pr-4">
-              <Text className="font-bold text-[22px] text-white">
+          <View className="mt-4 flex-row items-start justify-between gap-3">
+            <View className="min-w-0 flex-1">
+              <Text className="font-bold text-[22px] text-white" numberOfLines={1}>
                 {profile?.full_name ?? 'Member'}
               </Text>
-              <Text className="mt-0.5 text-[13px] text-white/70">
+              <Text className="mt-0.5 text-[13px] text-white/70" numberOfLines={1}>
                 {profile?.designation ?? 'JAMIN Partner'}
               </Text>
 
               <View className="mt-4 gap-1">
                 {profile?.phone ? (
-                  <Text className="font-mono text-[13px] text-white/90">{profile.phone}</Text>
+                  <Text className="font-mono text-[13px] text-white/90" numberOfLines={1}>{profile.phone}</Text>
                 ) : null}
                 {profile?.email ? (
-                  <Text className="text-[13px] text-white/90">{profile.email}</Text>
+                  <Text className="text-[13px] text-white/90" numberOfLines={1}>{profile.email}</Text>
                 ) : null}
               </View>
             </View>
 
             <View className="items-center rounded-2xl bg-white p-2">
-              <QRCode value={referralUrl} size={96} color={color.charcoal} backgroundColor="#FFFFFF" />
+              <QRCode value={referralUrl} size={92} color={color.charcoal} backgroundColor="#FFFFFF" />
               <Text className="mt-1 font-mono-bold text-[11px] text-ink">{code}</Text>
             </View>
           </View>
 
-          <View className="mt-5 flex-row items-center justify-between border-t border-white/10 pt-3">
-            <Text className="font-medium text-[10px] uppercase tracking-[2px] text-gold">
+          <View className="mt-5 flex-row items-center justify-between gap-2 border-t border-white/10 pt-3">
+            <Text className="min-w-0 flex-1 font-medium text-[10px] uppercase tracking-[1.5px] text-gold" numberOfLines={1}>
               {TAGLINE}
             </Text>
-            <Text className="text-[10px] text-white/50">jaminproperties.co</Text>
+            <Text className="text-[10px] text-white/50" numberOfLines={1}>jaminproperties.co</Text>
           </View>
         </View>
       </View>
 
+      {!profile?.full_name || !profile?.phone ? (
+        <Text variant="caption" className="text-center text-gold-deep">
+          Add your name & phone so they appear on your card — tap “Edit my details”.
+        </Text>
+      ) : null}
+
       <View className="gap-3">
         <Button title="Share my card" onPress={onShare} />
+        <Button title="Edit my details" variant="secondary" onPress={() => router.push('/profile')} />
         <Button title="Save contact (vCard)" variant="outline" onPress={onVCard} />
       </View>
 

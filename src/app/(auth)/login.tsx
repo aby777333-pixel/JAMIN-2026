@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, KeyboardAvoidingView, Platform, View } from 'react-native';
 
+import { FieldsBackdrop } from '@/components/brand/FieldsBackdrop';
 import { Logo } from '@/components/brand/Logo';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -41,6 +42,7 @@ export default function Login() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 justify-between">
+        <FieldsBackdrop />
         <View className="flex-1 justify-center gap-8">
           <View className="items-center gap-3">
             <Logo width={260} showTagline />
