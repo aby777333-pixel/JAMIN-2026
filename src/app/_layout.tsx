@@ -96,6 +96,7 @@ export default function RootLayout() {
             <Stack.Screen name="profile" />
             <Stack.Screen name="support" />
             <Stack.Screen name="media" />
+            <Stack.Screen name="submissions" />
             <Stack.Screen name="features" />
             <Stack.Screen name="admin" />
             <Stack.Screen name="onboarding" options={{ presentation: 'modal' }} />

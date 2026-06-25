@@ -25,6 +25,7 @@ export default function EditProfile() {
   const [designation, setDesignation] = useState(profile?.designation ?? '');
   const [photoUrl, setPhotoUrl] = useState(profile?.photo_url ?? '');
   const [saving, setSaving] = useState(false);
+  const isPartner = !!profile?.role_slug && profile.role_slug !== 'buyer';
 
   async function onSave() {
     setSaving(true);
@@ -71,6 +72,21 @@ export default function EditProfile() {
               <Ionicons name="chevron-forward" size={18} color={color.muted} />
             </Card>
           </Pressable>
+
+          {isPartner ? (
+            <Pressable onPress={() => router.push('/submissions')}>
+              <Card className="flex-row items-center gap-3">
+                <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
+                  <Ionicons name="cloud-upload" size={18} color={color.red} />
+                </View>
+                <View className="flex-1">
+                  <Text variant="title">My photo submissions</Text>
+                  <Text variant="caption">Photos you suggested for properties + review status</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={color.muted} />
+              </Card>
+            </Pressable>
+          ) : null}
         </View>
       </KeyboardAvoidingView>
     </Screen>

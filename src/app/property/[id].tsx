@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, View } from 'react-native';
@@ -23,6 +24,7 @@ import {
   useToggleWishlist,
   useWishlistIds,
 } from '@/features/buyer/hooks';
+import { useSubmitPhotos } from '@/features/submissions/hooks';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
 
@@ -34,9 +36,28 @@ export default function PropertyDetail() {
   const isPartner = !!role && role !== 'buyer';
   const toggle = useToggleWishlist();
   const reserve = useReserveProperty();
+  const submitPhotos = useSubmitPhotos();
 
   const [enquiry, setEnquiry] = useState(false);
   const [visit, setVisit] = useState(false);
+
+  async function onSuggestPhoto() {
+    const res = await ImagePicker.launchImageLibraryAsync({
+      quality: 0.85,
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+    });
+    if (res.canceled || !property) return;
+    try {
+      const n = await submitPhotos.mutateAsync({
+        propertyId: property.id,
+        assets: res.assets.map((a) => ({ uri: a.uri, name: a.fileName, mimeType: a.mimeType })),
+      });
+      Alert.alert('Submitted', `${n} photo${n === 1 ? '' : 's'} sent for admin review.`);
+    } catch (e) {
+      Alert.alert('Could not submit', e instanceof Error ? e.message : String(e));
+    }
+  }
 
   if (isLoading) {
     return (
@@ -160,6 +181,21 @@ export default function PropertyDetail() {
             property_type_id: property.property_type_id,
           }}
         />
+      ) : null}
+
+      {isPartner ? (
+        <Pressable onPress={onSuggestPhoto} disabled={submitPhotos.isPending}>
+          <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
+            <Ionicons name="cloud-upload" size={20} color={color.goldDeep} />
+            <View className="flex-1">
+              <Text variant="title" className="text-[14px]">
+                {submitPhotos.isPending ? 'Uploading…' : 'Suggest a photo'}
+              </Text>
+              <Text variant="caption">Add photos for this plot — an admin reviews before they go live.</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={color.muted} />
+          </Card>
+        </Pressable>
       ) : null}
 
       {tours.length > 0 || hasCoords ? (

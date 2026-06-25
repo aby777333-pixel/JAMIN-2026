@@ -115,6 +115,7 @@
         <button class="nav-i" data-tab="marketing">🎨 Marketing</button>
         <button class="nav-i" data-tab="territories">🗺️ Territories</button>
         <button class="nav-i" data-tab="approvals">✅ Approvals <span id="apprDot" class="dot hidden">0</span></button>
+        <button class="nav-i" data-tab="submissions">🖼️ Photo submissions <span id="subDot" class="dot hidden">0</span></button>
         <button class="nav-i" data-tab="payments">💳 Payments</button>
         <button class="nav-i" data-tab="chat">💬 Live chat</button>
         <button class="nav-i" data-tab="features">🧩 Features</button>
@@ -132,6 +133,7 @@
         <div id="tabMarketing" class="hidden"></div>
         <div id="tabTerritories" class="hidden"></div>
         <div id="tabApprovals" class="hidden"></div>
+        <div id="tabSubmissions" class="hidden"></div>
         <div id="tabPayments" class="hidden"></div>
         <div id="tabChat" class="hidden"></div>
         <div id="tabFeatures" class="hidden"></div>
@@ -197,6 +199,7 @@
         await loadLookups();
         switchTab('properties');
         refreshApprovalsBadge();
+        refreshSubmissionsBadge();
       }
       function show(which) { $('loginView').classList.toggle('hidden', which !== 'login'); $('appView').classList.toggle('hidden', which !== 'app'); }
 
@@ -217,7 +220,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'payments', 'chat', 'features', 'content', 'announcements', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'payments', 'chat', 'features', 'content', 'announcements', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -225,6 +228,7 @@
         if (tab === 'marketing') renderMarketing();
         if (tab === 'territories') renderTerritories();
         if (tab === 'approvals') renderApprovals();
+        if (tab === 'submissions') renderSubmissions();
         if (tab === 'payments') renderPayments();
         if (tab === 'chat') renderChat();
         if (tab === 'features') renderFeatures();
@@ -730,6 +734,49 @@
         var p = await sb.from('profiles').select('id', { count: 'exact', head: true }).eq('kyc_status', 'pending');
         var n = (c.count || 0) + (p.count || 0);
         var dot = $('apprDot'); dot.textContent = n; dot.classList.toggle('hidden', n === 0);
+      }
+
+      // ─── Photo submissions (partner contributions → approve/reject) ─────
+      async function renderSubmissions() {
+        var el = $('tabSubmissions');
+        el.innerHTML = '<div class="head"><h2>Photo submissions</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('property_media_submissions')
+          .select('id,url,path,status,created_at, property:properties(plot_code), submitter:profiles!submitted_by(full_name)')
+          .eq('status', 'pending').order('created_at');
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Photo submissions</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>Photo submissions — pending</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">Photos suggested by partners. Approving adds the photo to the property (live in the app); rejecting discards it.</div>' +
+          (rows.length ? '<table><thead><tr><th>Photo</th><th>Property</th><th>Submitted by</th><th>When</th><th>Actions</th></tr></thead><tbody>' +
+          rows.map(function (s) {
+            return '<tr data-id="' + s.id + '" data-path="' + esc(s.path) + '">' +
+              '<td><a href="' + esc(s.url) + '" target="_blank" rel="noopener"><img src="' + esc(s.url) + '" style="height:54px;width:54px;object-fit:cover;border-radius:8px;border:1px solid #e6e7e2" /></a></td>' +
+              '<td class="mono">' + esc(s.property ? s.property.plot_code : '—') + '</td>' +
+              '<td>' + esc(s.submitter ? s.submitter.full_name : '—') + '</td>' +
+              '<td class="muted">' + new Date(s.created_at).toLocaleDateString() + '</td>' +
+              '<td class="row"><button class="btn-g btn-sm sub_ok">Approve</button><button class="btn-d btn-sm sub_no">Reject</button></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No pending submissions.</div>');
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id, path = tr.dataset.path;
+          tr.querySelector('.sub_ok').onclick = async function () {
+            this.textContent = '…';
+            var r = await sb.rpc('approve_photo_submission', { p_id: id });
+            if (r.error) { this.textContent = 'Err'; return alert(r.error.message); }
+            renderSubmissions(); refreshSubmissionsBadge();
+          };
+          tr.querySelector('.sub_no').onclick = async function () {
+            if (!confirm('Reject and delete this photo?')) return;
+            var r = await sb.from('property_media_submissions').update({ status: 'rejected', reviewed_by: state.user.id, reviewed_at: new Date().toISOString() }).eq('id', id);
+            if (r.error) return alert(r.error.message);
+            try { await sb.storage.from('property-submissions').remove([path]); } catch (e) {}
+            renderSubmissions(); refreshSubmissionsBadge();
+          };
+        });
+      }
+      async function refreshSubmissionsBadge() {
+        var c = await sb.from('property_media_submissions').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+        var dot = $('subDot'); if (!dot) return;
+        var n = c.count || 0; dot.textContent = n; dot.classList.toggle('hidden', n === 0);
       }
 
       // ─── CRM / Leads ────────────────────────────────────────────────────

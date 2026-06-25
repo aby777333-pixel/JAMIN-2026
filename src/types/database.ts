@@ -1153,6 +1153,12 @@ export type Database = {
         }
         Relationships: []
       }
+      property_media_submissions: {
+        Row: { id: string; property_id: string; submitted_by: string; url: string; path: string; name: string | null; status: string; reviewed_by: string | null; reviewed_at: string | null; created_at: string }
+        Insert: { id?: string; property_id: string; submitted_by?: string; url: string; path: string; name?: string | null; status?: string; reviewed_by?: string | null; reviewed_at?: string | null; created_at?: string }
+        Update: { id?: string; property_id?: string; submitted_by?: string; url?: string; path?: string; name?: string | null; status?: string; reviewed_by?: string | null; reviewed_at?: string | null; created_at?: string }
+        Relationships: []
+      }
       system_config: {
         Row: {
           key: string
