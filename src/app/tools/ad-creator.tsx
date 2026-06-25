@@ -1,17 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import * as MediaLibrary from 'expo-media-library';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, Linking, Pressable, ScrollView, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
 import { AgentStamp } from '@/components/brand/AgentStamp';
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
@@ -151,6 +153,20 @@ export default function AdCreator() {
     setBusy(false);
   }
 
+  async function openExternal(url: string) {
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert('Could not open', 'No app available to open this link.');
+    }
+  }
+
+  async function copyCoords() {
+    if (capture?.lat == null || capture?.lng == null) return;
+    await Clipboard.setStringAsync(`${capture.lat.toFixed(6)}, ${capture.lng.toFixed(6)}`);
+    Alert.alert('Copied', 'Coordinates copied to your clipboard.');
+  }
+
   // ── Camera step ───────────────────────────────────────────────────────────
   if (!capture) {
     if (!perm) {
@@ -242,6 +258,86 @@ export default function AdCreator() {
             </View>
           </View>
         </View>
+
+        {/* Location & contact — interactive, lives OUTSIDE frameRef so the exported ad is unchanged */}
+        <Card className="mt-4 gap-3">
+          <Text variant="label">Location & contact</Text>
+
+          {capture.lat != null && capture.lng != null ? (
+            <>
+              <Pressable
+                onPress={copyCoords}
+                className="flex-row items-center justify-between rounded-xl border border-line bg-paper px-3 py-2.5">
+                <View className="flex-1 flex-row items-center gap-2">
+                  <Ionicons name="location" size={16} color={color.red} />
+                  <View className="flex-1">
+                    <Text className="font-mono text-[13px] text-ink">
+                      {capture.lat.toFixed(6)}, {capture.lng.toFixed(6)}
+                    </Text>
+                    {capture.place ? <Text variant="caption">{capture.place}</Text> : null}
+                  </View>
+                </View>
+                <Ionicons name="copy-outline" size={16} color={color.muted} />
+              </Pressable>
+
+              <View className="flex-row flex-wrap gap-2">
+                <Pressable
+                  onPress={() =>
+                    openExternal(
+                      `https://earth.google.com/web/@${capture.lat},${capture.lng},100a,1000d,30y,0h,0t,0r`,
+                    )
+                  }
+                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                  <Ionicons name="earth" size={16} color={color.red} />
+                  <Text className="text-[13px] font-semibold text-ink">Earth view</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() =>
+                    openExternal(
+                      `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${capture.lat},${capture.lng}`,
+                    )
+                  }
+                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                  <Ionicons name="walk" size={16} color={color.red} />
+                  <Text className="text-[13px] font-semibold text-ink">Street view</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() =>
+                    openExternal(`https://www.google.com/maps/search/?api=1&query=${capture.lat},${capture.lng}`)
+                  }
+                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                  <Ionicons name="map" size={16} color={color.red} />
+                  <Text className="text-[13px] font-semibold text-ink">Open in Maps</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() =>
+                    openExternal(`https://www.google.com/maps/dir/?api=1&destination=${capture.lat},${capture.lng}`)
+                  }
+                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                  <Ionicons name="navigate" size={16} color={color.red} />
+                  <Text className="text-[13px] font-semibold text-ink">Directions</Text>
+                </Pressable>
+              </View>
+            </>
+          ) : (
+            <Text variant="caption">
+              Location wasn’t captured for this photo. Retake with location enabled to add coordinates, Earth &
+              Street view.
+            </Text>
+          )}
+
+          {profile?.phone ? (
+            <Pressable
+              onPress={() => openExternal(`tel:${profile.phone}`)}
+              className="flex-row items-center gap-2 rounded-xl border border-line bg-paper px-3 py-2.5">
+              <Ionicons name="call" size={16} color={color.red} />
+              <Text className="font-mono text-[14px] text-red">{profile.phone}</Text>
+              <Text variant="caption" className="ml-auto">
+                Tap to call
+              </Text>
+            </Pressable>
+          ) : null}
+        </Card>
 
         <Text variant="label" className="mb-2 mt-4">
           Format
