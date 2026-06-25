@@ -230,6 +230,46 @@
       // ─── Properties ─────────────────────────────────────────────────────
       // Reserved attrs keys (have dedicated fields / behaviour) — excluded from "custom fields".
       var PROP_RESERVED = ['video_tour', 'virtual_tour', 'walkthrough', 'title', 'description', 'featured'];
+      // Land-area units used across India (incl. South-Indian: cents, grounds, ankanam, guntha).
+      var AREA_UNITS = ['sq ft', 'sq yards (gaj)', 'sq meters', 'acres', 'cents', 'grounds', 'ankanam', 'guntha', 'bigha', 'kanal', 'marla', 'katha', 'hectare'];
+      var FACINGS = ['East', 'West', 'North', 'South', 'North-East', 'North-West', 'South-East', 'South-West'];
+      // Guided spec fields → each saved as a human-labelled attrs entry (key = label), so the
+      // app renders it automatically and it stays editable as a custom field afterwards.
+      var PROP_SPECS = [
+        { key: 'Built-up area', ph: 'e.g. 1800 sq ft' },
+        { key: 'Carpet area', ph: 'e.g. 1500 sq ft' },
+        { key: 'Dimensions', ph: 'e.g. 30 × 40 ft' },
+        { key: 'Bedrooms', ph: 'e.g. 3 BHK' },
+        { key: 'Bathrooms', ph: 'e.g. 2' },
+        { key: 'Floors', ph: 'e.g. G+2' },
+        { key: 'Road width', ph: 'e.g. 40 ft' },
+        { key: 'Approval', ph: 'e.g. DTCP / RERA / CMDA' },
+      ];
+      function specInputsHTML() {
+        var areaUnits = AREA_UNITS.map(function (u) { return '<option value="' + esc(u) + '">' + esc(u) + '</option>'; }).join('');
+        var facings = '<option value="">—</option>' + FACINGS.map(function (f) { return '<option value="' + esc(f) + '">' + esc(f) + '</option>'; }).join('');
+        var texts = PROP_SPECS.map(function (s) {
+          return '<div><label>' + esc(s.key) + '</label><input class="inp ns_spec" data-key="' + esc(s.key) + '" placeholder="' + esc(s.ph || '') + '" /></div>';
+        }).join('');
+        return '<div style="grid-column:1/-1"><label>Plot area</label><div class="row">' +
+            '<input id="ns_area" class="inp" inputmode="decimal" style="max-width:160px" placeholder="e.g. 2400" />' +
+            '<select id="ns_area_unit" class="inp" style="max-width:180px">' + areaUnits + '</select>' +
+          '</div></div>' +
+          '<div><label>Facing</label><select id="ns_facing" class="inp">' + facings + '</select></div>' +
+          '<div><label>Corner plot</label><select id="ns_corner" class="inp"><option value="">—</option><option>Yes</option><option>No</option></select></div>' +
+          texts;
+      }
+      function collectSpecs() {
+        var out = {};
+        var area = $('ns_area') ? $('ns_area').value.trim() : '';
+        if (area) out['Plot area'] = area + (($('ns_area_unit') && $('ns_area_unit').value) ? ' ' + $('ns_area_unit').value : '');
+        var facing = $('ns_facing') ? $('ns_facing').value : ''; if (facing) out['Facing'] = facing;
+        var corner = $('ns_corner') ? $('ns_corner').value : ''; if (corner) out['Corner plot'] = corner;
+        document.querySelectorAll('#tabProperties .ns_spec').forEach(function (i) {
+          var v = i.value.trim(); if (v) out[i.dataset.key] = v;
+        });
+        return out;
+      }
       function cfRow(k, v) {
         return '<div class="row cf-row" style="margin-top:6px">' +
           '<input class="inp cf_k" style="max-width:200px;height:38px" placeholder="Field name (e.g. Bedrooms)" value="' + esc(k || '') + '" />' +
@@ -293,6 +333,8 @@
           '<div><label>Price (₹)</label><input id="np_price" class="inp" inputmode="numeric" placeholder="1500000" /></div>' +
           '<div><label>Title / name (optional)</label><input id="np_title" class="inp" placeholder="e.g. Premium Corner Plot" /></div>' +
           '<div style="grid-column:1/-1"><label>Description (optional)</label><textarea id="np_desc" class="inp" style="height:auto;min-height:72px;padding:10px" placeholder="Describe this property — highlights, surroundings, connectivity…"></textarea></div>' +
+          '<div style="grid-column:1/-1;border-top:1px solid var(--line);margin-top:4px;padding-top:10px"><b style="font-size:13px">Property specifications (optional)</b><div class="muted" style="font-size:12px">Shown as details on the listing. Use Plot area for the headline size; add anything else as a custom field below.</div></div>' +
+          specInputsHTML() +
           '<div><label>Latitude (optional)</label><input id="np_lat" class="inp" inputmode="decimal" placeholder="12.9716" /></div>' +
           '<div><label>Longitude (optional)</label><input id="np_lng" class="inp" inputmode="decimal" placeholder="77.5946" /></div>' +
           '<div><label>Video tour URL (optional)</label><input id="np_video" class="inp" placeholder="https://youtu.be/…" /></div>' +
@@ -353,14 +395,26 @@
 
         if ($('np_add')) $('np_add').onclick = async function () {
           var btn = this, msg = $('np_msg');
-          if (!$('np_project').value) { msg.style.color = '#c00'; msg.textContent = 'Pick a project first.'; return; }
-          if (!$('np_type').value) { msg.style.color = '#c00'; msg.textContent = 'Pick a property type first.'; return; }
+          // Loud, un-missable validation — scroll to + focus the offending field.
+          function need(id, label) {
+            var f = $(id);
+            if (!f || !f.value) {
+              if (f) { try { f.scrollIntoView({ behavior: 'smooth', block: 'center' }); f.focus(); } catch (e) {} }
+              msg.style.color = '#c00'; msg.textContent = 'Please pick a ' + label + ' first.';
+              alert('Please pick a ' + label + ' before adding the property.');
+              return false;
+            }
+            return true;
+          }
+          if (!need('np_project', 'project')) return;
+          if (!need('np_type', 'property type')) return;
           var price = parseFloat($('np_price').value || '0');
           var body = { project_id: $('np_project').value, property_type_id: $('np_type').value, price: isNaN(price) ? 0 : price, status: 'available' };
           if ($('np_plan').value) body.plan_id = $('np_plan').value;
           var lat = parseFloat($('np_lat').value), lng = parseFloat($('np_lng').value);
           if (!isNaN(lat) && !isNaN(lng)) body.coordinates = { lat: lat, lng: lng };
-          var attrs = collectCustom($('np_custom'));
+          // specs first, then custom fields (custom wins on key clash)
+          var attrs = Object.assign({}, collectSpecs(), collectCustom($('np_custom')));
           if ($('np_title').value.trim()) attrs.title = $('np_title').value.trim();
           if ($('np_desc').value.trim()) attrs.description = $('np_desc').value.trim();
           if ($('np_video').value.trim()) attrs.video_tour = $('np_video').value.trim();
@@ -370,12 +424,13 @@
           msg.style.color = ''; msg.textContent = 'Adding…'; btn.disabled = true;
           try {
             var r = await sb.from('properties').insert(body).select('plot_code').single();
-            if (r.error) { btn.disabled = false; msg.style.color = '#c00'; msg.textContent = 'Error: ' + r.error.message; return; }
+            if (r.error) { btn.disabled = false; msg.style.color = '#c00'; msg.textContent = 'Error: ' + r.error.message; alert('Could not add property:\n\n' + r.error.message + (r.error.hint ? '\n\n' + r.error.hint : '')); return; }
             alert('Added property ' + (r.data ? r.data.plot_code : '') + ' ✓');
             renderProperties();
           } catch (e) {
             btn.disabled = false; msg.style.color = '#c00';
-            msg.textContent = 'Error: ' + (e && e.message ? e.message : e);
+            var em = (e && e.message ? e.message : String(e));
+            msg.textContent = 'Error: ' + em; alert('Could not add property:\n\n' + em);
           }
         };
 
