@@ -27,6 +27,11 @@ export default function Support() {
     email ? { icon: 'mail', label: 'Email', value: email, url: `mailto:${email}` } : null,
   ].filter(Boolean) as Row[];
 
+  const legal: Row[] = [
+    get('legal.terms_url') ? { icon: 'document-text', label: 'Terms & Conditions', value: 'View', url: get('legal.terms_url') } : null,
+    get('legal.privacy_url') ? { icon: 'shield-checkmark', label: 'Privacy Policy', value: 'View', url: get('legal.privacy_url') } : null,
+  ].filter(Boolean) as Row[];
+
   const socials: Row[] = [
     get('social.website') ? { icon: 'globe', label: 'Website', value: get('social.website'), url: get('social.website') } : null,
     get('social.facebook') ? { icon: 'logo-facebook', label: 'Facebook', value: 'Facebook', url: get('social.facebook') } : null,
@@ -69,7 +74,16 @@ export default function Support() {
         </View>
       ) : null}
 
-      {contacts.length === 0 && socials.length === 0 && !about ? (
+      {legal.length > 0 ? (
+        <View className="gap-2">
+          <Text variant="label">Legal</Text>
+          {legal.map((r) => (
+            <LinkRow key={r.label} {...r} />
+          ))}
+        </View>
+      ) : null}
+
+      {contacts.length === 0 && socials.length === 0 && legal.length === 0 && !about ? (
         <Card>
           <Text variant="body" className="text-muted">
             Support details will appear here soon.

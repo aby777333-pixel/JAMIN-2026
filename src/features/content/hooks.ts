@@ -19,6 +19,10 @@ export const CONTENT_DEFAULTS: Record<string, string> = {
   'calc.emi_years': '10',
   'calc.roi_appreciation': '8',
   'calc.roi_years': '5',
+  'legal.privacy_url': 'https://jaminproperties.co/privacy',
+  'kyc.intro': 'Verify your identity to unlock payouts',
+  'kyc.pending_msg': "Your documents are under review. We'll notify you once approved.",
+  'kyc.verified_msg': "You're verified. Nothing more to do here.",
 };
 
 export function useAppContent() {

@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
+import { useContent } from '@/features/content/hooks';
 import { DynamicForm } from '@/features/forms/DynamicForm';
 import { useFormDef } from '@/features/forms/api';
 import type { FormValues } from '@/features/forms/types';
@@ -18,6 +19,7 @@ export default function Kyc() {
   const profile = useAuth((s) => s.profile);
   const refreshProfile = useAuth((s) => s.refreshProfile);
   const { data: form, isLoading } = useFormDef('kyc');
+  const { get } = useContent();
   const [busy, setBusy] = useState(false);
 
   const verified = profile?.kyc_status === 'verified';
@@ -55,13 +57,13 @@ export default function Kyc() {
       {verified ? (
         <Card>
           <Text variant="body" className="text-muted">
-            You're verified. Nothing more to do here.
+            {get('kyc.verified_msg')}
           </Text>
         </Card>
       ) : pending ? (
         <Card>
           <Text variant="body" className="text-muted">
-            Your documents are under review. We'll notify you once approved.
+            {get('kyc.pending_msg')}
           </Text>
         </Card>
       ) : isLoading ? (

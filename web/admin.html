@@ -879,7 +879,7 @@
       async function renderAnnouncements() {
         var el = $('tabAnnouncements');
         el.innerHTML = '<div class="head"><h2>Announcements</h2></div><div class="muted">Loading…</div>';
-        var q = await sb.from('announcements').select('id,title,body,cta_label,cta_url,audience,active,sort_order').order('sort_order');
+        var q = await sb.from('announcements').select('id,title,body,image_url,cta_label,cta_url,audience,active,sort_order').order('sort_order');
         if (q.error) { el.innerHTML = '<div class="head"><h2>Announcements</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
         var rows = q.data || [];
         var AUD = ['all', 'buyer', 'partner'];
@@ -893,20 +893,22 @@
             '<div><label>CTA link (optional)</label><input id="an_curl" class="inp" placeholder="/(tabs)/properties or https://…" /></div>' +
             '<div><label>Audience</label><select id="an_aud" class="inp">' + audSel('all') + '</select></div>' +
             '<div><label>Sort order</label><input id="an_sort" class="inp" type="number" value="100" /></div>' +
+            '<div style="grid-column:1/-1"><label>Image URL (optional)</label><input id="an_img" class="inp" placeholder="https://… — banner image shown above the text in the app" /></div>' +
           '</div><button id="an_add" class="btn" style="margin-top:12px">+ Add announcement</button></div>' +
-          (rows.length ? '<table><thead><tr><th>Title</th><th>Audience</th><th>CTA</th><th>Order</th><th>Active</th><th>Actions</th></tr></thead><tbody>' +
+          (rows.length ? '<table><thead><tr><th>Title</th><th>Audience</th><th>CTA</th><th>Image</th><th>Order</th><th>Active</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (a) {
             return '<tr data-id="' + a.id + '">' +
-              '<td><input class="inp an_t" style="width:220px;height:34px" value="' + esc(a.title) + '" /></td>' +
+              '<td><input class="inp an_t" style="width:200px;height:34px" value="' + esc(a.title) + '" /></td>' +
               '<td><select class="inp an_a" style="height:34px">' + audSel(a.audience) + '</select></td>' +
               '<td class="muted">' + esc(a.cta_label || '—') + '</td>' +
-              '<td><input class="inp an_o" type="number" style="width:70px;height:34px" value="' + (a.sort_order || 100) + '" /></td>' +
+              '<td>' + (a.image_url ? '<img src="' + esc(a.image_url) + '" style="height:30px;width:48px;object-fit:cover;border-radius:5px;display:block;margin-bottom:3px" />' : '') + '<input class="inp an_img2" style="width:150px;height:30px" value="' + esc(a.image_url || '') + '" placeholder="image URL" /></td>' +
+              '<td><input class="inp an_o" type="number" style="width:64px;height:34px" value="' + (a.sort_order || 100) + '" /></td>' +
               '<td><span class="pill ' + (a.active ? 'available' : 'sold') + '">' + (a.active ? 'on' : 'off') + '</span></td>' +
               '<td class="row"><button class="btn btn-sm an_save">Save</button><button class="btn-o btn-sm an_tog">' + (a.active ? 'Disable' : 'Enable') + '</button><button class="btn-d btn-sm an_del">Delete</button></td></tr>';
           }).join('') + '</tbody></table>' : '<div class="muted">No announcements yet — add one above.</div>');
         $('an_add').onclick = async function () {
           var title = $('an_title').value.trim(); if (!title) return alert('Title is required.');
-          var body = { title: title, body: $('an_body').value.trim() || null, cta_label: $('an_clabel').value.trim() || null, cta_url: $('an_curl').value.trim() || null, audience: $('an_aud').value, active: true };
+          var body = { title: title, body: $('an_body').value.trim() || null, image_url: $('an_img').value.trim() || null, cta_label: $('an_clabel').value.trim() || null, cta_url: $('an_curl').value.trim() || null, audience: $('an_aud').value, active: true };
           var so = parseInt($('an_sort').value, 10); if (!isNaN(so)) body.sort_order = so;
           var r = await sb.from('announcements').insert(body);
           if (r.error) return alert(r.error.message); renderAnnouncements();
@@ -916,7 +918,7 @@
           tr.querySelector('.an_save').onclick = async function () {
             this.textContent = '…';
             var o = parseInt(tr.querySelector('.an_o').value, 10);
-            var r = await sb.from('announcements').update({ title: tr.querySelector('.an_t').value.trim(), audience: tr.querySelector('.an_a').value, sort_order: isNaN(o) ? 100 : o }).eq('id', id);
+            var r = await sb.from('announcements').update({ title: tr.querySelector('.an_t').value.trim(), audience: tr.querySelector('.an_a').value, image_url: tr.querySelector('.an_img2').value.trim() || null, sort_order: isNaN(o) ? 100 : o }).eq('id', id);
             this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
           };
           tr.querySelector('.an_tog').onclick = async function () {

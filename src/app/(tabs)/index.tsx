@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Alert, FlatList, Linking, Pressable, View } from 'react-native';
+import { Alert, FlatList, Image, Linking, Pressable, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -116,7 +116,7 @@ export default function Home() {
               <Text variant="title" className="text-[14px]">
                 Complete your KYC
               </Text>
-              <Text variant="caption">Verify your identity to unlock payouts</Text>
+              <Text variant="caption">{get('kyc.intro')}</Text>
             </View>
             <StatusPill status={profile.kyc_status} />
           </Card>
@@ -128,6 +128,13 @@ export default function Home() {
           {visibleAnn.map((a) => (
             <Pressable key={a.id} disabled={!a.cta_url} onPress={() => openCta(a.cta_url)}>
               <Card className="gap-1 border-gold/30 bg-gold/5">
+                {a.image_url ? (
+                  <Image
+                    source={{ uri: a.image_url }}
+                    style={{ width: '100%', height: 130, borderRadius: 10, marginBottom: 4 }}
+                    resizeMode="cover"
+                  />
+                ) : null}
                 <Text variant="title" className="text-[15px]">
                   {a.title}
                 </Text>
