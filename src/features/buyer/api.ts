@@ -48,16 +48,34 @@ export async function getProperty(id: string): Promise<PropertyDetail | null> {
   return (data as unknown as PropertyDetail) ?? null;
 }
 
-/** Newest available listings for the Home "Featured" rail — showcases admin uploads. */
+/**
+ * Listings for the Home "Featured" rail. Admin-curated first (attrs.featured = true,
+ * toggled from the web console), newest-first; topped up with the newest available
+ * listings so the rail stays populated. With nothing flagged this is identical to the
+ * previous "newest available" behaviour — no regression.
+ */
 export async function getFeaturedProperties(limit = 8): Promise<PropertyListItem[]> {
-  const { data, error } = await supabase
+  const { data: pinned, error: pinnedErr } = await supabase
+    .from('properties')
+    .select(LIST_SELECT)
+    .eq('status', 'available')
+    .eq('attrs->>featured', 'true')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (pinnedErr) throw pinnedErr;
+  const featured = (pinned ?? []) as unknown as PropertyListItem[];
+  if (featured.length >= limit) return featured;
+
+  const { data: recent, error: recentErr } = await supabase
     .from('properties')
     .select(LIST_SELECT)
     .eq('status', 'available')
     .order('created_at', { ascending: false })
     .limit(limit);
-  if (error) throw error;
-  return (data ?? []) as unknown as PropertyListItem[];
+  if (recentErr) throw recentErr;
+  const seen = new Set(featured.map((p) => p.id));
+  const fill = ((recent ?? []) as unknown as PropertyListItem[]).filter((p) => !seen.has(p.id));
+  return [...featured, ...fill].slice(0, limit);
 }
 
 export async function getProjects() {

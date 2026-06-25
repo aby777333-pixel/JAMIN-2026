@@ -301,10 +301,11 @@
           '<div style="grid-column:1/-1"><label>Custom fields — name them however you like (shown on the listing)</label><div id="np_custom"></div><button type="button" id="np_addfield" class="btn-o btn-sm" style="margin-top:6px">+ Add field</button></div>' +
           '</div><button id="np_add" class="btn" style="margin-top:14px">+ Add property</button> <span id="np_msg" class="muted">Add images after creating, from the table below.</span></div>';
 
-        var table = '<table><thead><tr><th>Plot</th><th>Project</th><th>Type</th><th>Price</th><th>Status</th><th>Images</th><th>Actions</th></tr></thead><tbody>' +
+        var table = '<table><thead><tr><th>Plot</th><th>Project</th><th>Type</th><th>Price</th><th>Status</th><th title="Featured in the app home rail">★</th><th>Images</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (r) {
             var imgs = Array.isArray(r.media) ? r.media : [];
             var title = (r.attrs && r.attrs.title) ? r.attrs.title : '';
+            var isFeat = !!(r.attrs && r.attrs.featured);
             return '<tr data-id="' + r.id + '">' +
               '<td class="mono">' + esc(r.plot_code) + (title ? '<div class="muted" style="font-size:11px">' + esc(title) + '</div>' : '') + '</td>' +
               '<td>' + esc(r.project ? r.project.name : '') + '</td>' +
@@ -313,11 +314,12 @@
               '<td><select class="inp pp_status" style="width:130px;height:36px">' +
                 ['available', 'reserved', 'sold'].map(function (s) { return '<option value="' + s + '"' + (s === r.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') +
               '</select></td>' +
+              '<td style="text-align:center"><button class="btn-o btn-sm pp_feat"' + (isFeat ? ' style="background:var(--gold);border-color:var(--gold)"' : '') + ' title="' + (isFeat ? 'Featured — tap to remove from the home rail' : 'Tap to feature in the app home rail') + '">' + (isFeat ? '★' : '☆') + '</button></td>' +
               '<td><div class="thumbs">' + imgs.map(function (m) { return '<img src="' + esc(m.url || m) + '" />'; }).join('') +
                 '<label class="btn-o btn-sm" style="display:inline-block">+<input type="file" accept="image/*" class="pp_file hidden" multiple /></label></div></td>' +
               '<td class="row"><button class="btn-o btn-sm pp_det">Details</button><button class="btn btn-sm pp_save">Save</button><button class="btn-d btn-sm pp_del">Delete</button></td>' +
               '</tr>' +
-              '<tr class="det" data-for="' + r.id + '" style="display:none"><td colspan="7"><div class="panel" style="margin:0">' +
+              '<tr class="det" data-for="' + r.id + '" style="display:none"><td colspan="8"><div class="panel" style="margin:0">' +
                 '<div class="grid2">' +
                   '<div><label>Title / name</label><input class="inp de_title" value="' + esc((r.attrs && r.attrs.title) || '') + '" /></div>' +
                   '<div style="grid-column:1/-1"><label>Description</label><textarea class="inp de_desc" style="height:auto;min-height:72px;padding:10px">' + esc((r.attrs && r.attrs.description) || '') + '</textarea></div>' +
@@ -380,6 +382,21 @@
         el.querySelectorAll('tr[data-id]').forEach(function (tr) {
           var id = tr.dataset.id;
           var rec = rows.find(function (x) { return x.id === id; }) || {};
+          // Featured toggle — curates the app's Home "Featured" rail via attrs.featured.
+          var featBtn = tr.querySelector('.pp_feat');
+          if (featBtn) featBtn.onclick = async function () {
+            var attrs = Object.assign({}, rec.attrs || {});
+            var now = !attrs.featured;
+            if (now) attrs.featured = true; else delete attrs.featured;
+            this.disabled = true;
+            var r = await sb.from('properties').update({ attrs: attrs }).eq('id', id);
+            this.disabled = false;
+            if (r.error) { alert(r.error.message); return; }
+            rec.attrs = attrs;
+            this.textContent = now ? '★' : '☆';
+            this.style.cssText = now ? 'background:var(--gold);border-color:var(--gold)' : '';
+            this.title = now ? 'Featured — tap to remove from the home rail' : 'Tap to feature in the app home rail';
+          };
           tr.querySelector('.pp_save').onclick = async function () {
             var price = parseFloat(tr.querySelector('.pp_price').value || '0');
             var status = tr.querySelector('.pp_status').value;
