@@ -767,9 +767,13 @@
             '<button id="mk_add" class="btn btn-sm">Add</button></div></div>' +
           (rows.length ? '<table><thead><tr><th>Name</th><th>Kind</th><th>Default</th><th>Active</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (b) {
-            return '<tr data-id="' + b.id + '"><td>' + esc(b.name) + '</td><td><span class="pill neutral">' + esc(b.kind) + '</span></td>' +
-              '<td>' + (b.is_default ? '★' : '') + '</td><td><span class="pill ' + (b.active ? 'available' : 'sold') + '">' + (b.active ? 'active' : 'off') + '</span></td>' +
-              '<td><button class="btn-o btn-sm mk_tog">' + (b.active ? 'Disable' : 'Enable') + '</button></td></tr>';
+            var kindSel = KINDS.map(function (k) { return '<option value="' + k + '"' + (k === b.kind ? ' selected' : '') + '>' + k + '</option>'; }).join('');
+            return '<tr data-id="' + b.id + '">' +
+              '<td><input class="inp mk_name2" style="width:200px;height:34px" value="' + esc(b.name) + '" /></td>' +
+              '<td><select class="inp mk_kind2" style="height:34px">' + kindSel + '</select></td>' +
+              '<td><button class="btn-o btn-sm mk_def"' + (b.is_default ? ' style="background:var(--gold);border-color:var(--gold)"' : '') + '>' + (b.is_default ? '★ Default' : 'Set default') + '</button></td>' +
+              '<td><span class="pill ' + (b.active ? 'available' : 'sold') + '">' + (b.active ? 'active' : 'off') + '</span></td>' +
+              '<td class="row"><button class="btn btn-sm mk_save">Save</button><button class="btn-o btn-sm mk_tog">' + (b.active ? 'Disable' : 'Enable') + '</button><button class="btn-d btn-sm mk_del">Delete</button></td></tr>';
           }).join('') + '</tbody></table>' : '<div class="muted">No templates.</div>');
         $('mk_add').onclick = async function () {
           var name = $('mk_name').value.trim(); if (!name) return;
@@ -777,9 +781,27 @@
           if (r.error) return alert(r.error.message); renderMarketing();
         };
         el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          tr.querySelector('.mk_save').onclick = async function () {
+            this.textContent = '…';
+            var r = await sb.from('brochure_templates').update({ name: tr.querySelector('.mk_name2').value.trim(), kind: tr.querySelector('.mk_kind2').value }).eq('id', id);
+            this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+          tr.querySelector('.mk_def').onclick = async function () {
+            // single default — clear the flag everywhere else, then set it here
+            var c = await sb.from('brochure_templates').update({ is_default: false }).neq('id', id);
+            if (c.error) return alert(c.error.message);
+            var r = await sb.from('brochure_templates').update({ is_default: true }).eq('id', id);
+            if (r.error) return alert(r.error.message); renderMarketing();
+          };
           tr.querySelector('.mk_tog').onclick = async function () {
             var cur = this.textContent === 'Disable';
-            var r = await sb.from('brochure_templates').update({ active: !cur }).eq('id', tr.dataset.id);
+            var r = await sb.from('brochure_templates').update({ active: !cur }).eq('id', id);
+            if (r.error) return alert(r.error.message); renderMarketing();
+          };
+          tr.querySelector('.mk_del').onclick = async function () {
+            if (!confirm('Delete this template?')) return;
+            var r = await sb.from('brochure_templates').delete().eq('id', id);
             if (r.error) return alert(r.error.message); renderMarketing();
           };
         });
@@ -962,7 +984,8 @@
         tl.innerHTML = '<div class="muted" style="margin-bottom:6px">Conversations</div>' +
           (rows.length ? rows.map(function (t) {
             return '<div class="chatThreadItem" data-id="' + t.id + '" style="padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer;background:' + (t.id === chatThread ? 'var(--paper)' : '#fff') + '">' +
-              '<b>' + esc(t.buyer ? t.buyer.full_name : 'Member') + '</b><br><span class="muted" style="font-size:11px">' + new Date(t.last_message_at).toLocaleString() + '</span></div>';
+              '<b>' + esc(t.buyer ? t.buyer.full_name : 'Member') + '</b>' + (t.status === 'resolved' ? ' <span class="pill paid" style="font-size:9px">resolved</span>' : '') +
+              '<br><span class="muted" style="font-size:11px">' + new Date(t.last_message_at).toLocaleString() + '</span></div>';
           }).join('') : '<div class="muted">No conversations yet.</div>');
         tl.querySelectorAll('.chatThreadItem').forEach(function (d) {
           d.onclick = function () { chatThread = d.dataset.id; loadThreads(); loadMessages(chatThread); };
@@ -970,9 +993,16 @@
       }
       async function loadMessages(tid) {
         var mp = $('msgPane'); if (!mp) return;
+        var th = await sb.from('chat_threads').select('status, buyer:profiles!buyer_id(full_name)').eq('id', tid).maybeSingle();
+        var tStatus = (th.data && th.data.status) || 'open';
+        var tName = (th.data && th.data.buyer && th.data.buyer.full_name) || 'Member';
         var q = await sb.from('messages').select('id,sender_id,body,created_at').eq('thread_id', tid).order('created_at');
         var rows = q.data || [];
-        mp.innerHTML = '<div style="border:1px solid var(--line);border-radius:12px;height:440px;display:flex;flex-direction:column;overflow:hidden">' +
+        mp.innerHTML = '<div class="row" style="justify-content:space-between;margin-bottom:8px">' +
+            '<div><b>' + esc(tName) + '</b> <span class="pill ' + (tStatus === 'resolved' ? 'paid' : 'requested') + '">' + esc(tStatus) + '</span></div>' +
+            '<button id="chatResolve" class="btn-o btn-sm">' + (tStatus === 'resolved' ? 'Reopen' : 'Mark resolved') + '</button>' +
+          '</div>' +
+          '<div style="border:1px solid var(--line);border-radius:12px;height:440px;display:flex;flex-direction:column;overflow:hidden">' +
           '<div id="msgScroll" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px">' +
           rows.map(function (m) {
             var mine = m.sender_id === state.user.id;
@@ -983,6 +1013,14 @@
         var sc = $('msgScroll'); if (sc) sc.scrollTop = sc.scrollHeight;
         $('chatSend').onclick = sendChat;
         $('chatInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') sendChat(); });
+        $('chatResolve').onclick = async function () {
+          var ns = tStatus === 'resolved' ? 'open' : 'resolved';
+          this.disabled = true;
+          var r = await sb.from('chat_threads').update({ status: ns }).eq('id', tid);
+          this.disabled = false;
+          if (r.error) { alert(r.error.message); return; }
+          loadThreads(); loadMessages(tid);
+        };
       }
       async function sendChat() {
         var inp = $('chatInput'); var body = (inp.value || '').trim(); if (!body || !chatThread) return;
