@@ -1009,6 +1009,18 @@ export type Database = {
         }
         Relationships: []
       }
+      announcements: {
+        Row: { id: string; title: string; body: string | null; image_url: string | null; cta_label: string | null; cta_url: string | null; audience: string; active: boolean; sort_order: number; created_at: string }
+        Insert: { id?: string; title: string; body?: string | null; image_url?: string | null; cta_label?: string | null; cta_url?: string | null; audience?: string; active?: boolean; sort_order?: number; created_at?: string }
+        Update: { id?: string; title?: string; body?: string | null; image_url?: string | null; cta_label?: string | null; cta_url?: string | null; audience?: string; active?: boolean; sort_order?: number; created_at?: string }
+        Relationships: []
+      }
+      app_content: {
+        Row: { key: string; grp: string; label: string; kind: string; value: string | null; sort_order: number; updated_at: string }
+        Insert: { key: string; grp?: string; label: string; kind?: string; value?: string | null; sort_order?: number; updated_at?: string }
+        Update: { key?: string; grp?: string; label?: string; kind?: string; value?: string | null; sort_order?: number; updated_at?: string }
+        Relationships: []
+      }
       app_features: {
         Row: { id: string; key: string; name: string; description: string | null; category: string; icon: string; enabled: boolean; sort_order: number; config: Json; created_at: string; updated_at: string }
         Insert: { id?: string; key: string; name: string; description?: string | null; category?: string; icon?: string; enabled?: boolean; sort_order?: number; config?: Json; created_at?: string; updated_at?: string }

@@ -1,16 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Text } from '@/components/ui/Text';
+import { useContent } from '@/features/content/hooks';
 import { money, roiPercent, round2 } from '@/lib/money';
 
-/** ROI Calculator (§5.04) — projected appreciation, exact decimal math. */
+/** ROI Calculator (§5.04) — projected appreciation, exact decimal math. Defaults are admin-editable. */
 export function RoiCalculator({ price }: { price: number }) {
+  const { get } = useContent();
   const [appr, setAppr] = useState('8');
   const [years, setYears] = useState('5');
+  const touched = useRef(false);
+  const dAppr = get('calc.roi_appreciation');
+  const dYears = get('calc.roi_years');
+  useEffect(() => {
+    if (touched.current) return;
+    setAppr(dAppr);
+    setYears(dYears);
+  }, [dAppr, dYears]);
+  const onEdit = (set: (v: string) => void) => (v: string) => {
+    touched.current = true;
+    set(v);
+  };
 
   const yrs = Math.max(0, Math.round(toNum(years)));
   const future = round2(money(price).times(money(1).plus(money(toNum(appr)).dividedBy(100)).pow(yrs)));
@@ -21,10 +35,10 @@ export function RoiCalculator({ price }: { price: number }) {
       <Text variant="title">ROI Calculator</Text>
       <View className="flex-row gap-3">
         <View className="flex-1">
-          <Input label="Appreciation %/yr" value={appr} onChangeText={setAppr} keyboardType="numeric" />
+          <Input label="Appreciation %/yr" value={appr} onChangeText={onEdit(setAppr)} keyboardType="numeric" />
         </View>
         <View className="flex-1">
-          <Input label="Hold (years)" value={years} onChangeText={setYears} keyboardType="numeric" />
+          <Input label="Hold (years)" value={years} onChangeText={onEdit(setYears)} keyboardType="numeric" />
         </View>
       </View>
 

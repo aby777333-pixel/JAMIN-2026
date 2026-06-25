@@ -13,6 +13,7 @@ const ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string;
   { icon: 'apps', label: "What's included", sub: 'Explore all platform features', href: '/features' },
   { icon: 'notifications', label: 'Notifications', sub: 'Choose your alerts', href: '/settings/notifications' },
   { icon: 'lock-closed', label: 'Security & language', sub: 'App lock, language', href: '/settings/security' },
+  { icon: 'help-buoy', label: 'Help & Support', sub: 'Contact, social links, about', href: '/support' },
 ];
 
 export default function Settings() {

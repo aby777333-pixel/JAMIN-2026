@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Alert, FlatList, Pressable, View } from 'react-native';
+import { Alert, FlatList, Linking, Pressable, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -13,6 +13,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
 import { PropertyCard } from '@/features/buyer/components/PropertyCard';
 import { useFeaturedProperties, useToggleWishlist, useWishlistIds } from '@/features/buyer/hooks';
+import { useAnnouncements, useContent } from '@/features/content/hooks';
 import { useLeads } from '@/features/leads/hooks';
 import { useUnreadCount } from '@/features/notifications/api';
 import { shareReferral } from '@/features/share/referral';
@@ -40,6 +41,17 @@ export default function Home() {
   const { data: featured = [] } = useFeaturedProperties(8);
   const { data: savedIds } = useWishlistIds();
   const toggleSave = useToggleWishlist();
+  const { get } = useContent();
+  const { data: announcements = [] } = useAnnouncements();
+  const visibleAnn = announcements.filter(
+    (a) => a.audience === 'all' || a.audience === (isPartner ? 'partner' : 'buyer'),
+  );
+
+  function openCta(url: string | null) {
+    if (!url) return;
+    if (/^(https?:|mailto:|tel:|whatsapp:)/.test(url)) Linking.openURL(url);
+    else router.push(url as never);
+  }
 
   async function copyReferral() {
     if (!profile?.referral_code) return;
@@ -111,6 +123,24 @@ export default function Home() {
         </Pressable>
       ) : null}
 
+      {visibleAnn.length > 0 ? (
+        <View className="gap-2">
+          {visibleAnn.map((a) => (
+            <Pressable key={a.id} disabled={!a.cta_url} onPress={() => openCta(a.cta_url)}>
+              <Card className="gap-1 border-gold/30 bg-gold/5">
+                <Text variant="title" className="text-[15px]">
+                  {a.title}
+                </Text>
+                {a.body ? <Text variant="caption">{a.body}</Text> : null}
+                {a.cta_label && a.cta_url ? (
+                  <Text className="mt-1 font-semibold text-[13px] text-red">{a.cta_label} →</Text>
+                ) : null}
+              </Card>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+
       {featured.length > 0 ? (
         <View className="gap-2">
           <View className="flex-row items-center justify-between">
@@ -176,9 +206,9 @@ export default function Home() {
         </>
       ) : (
         <Card>
-          <Text variant="title">Find your next property</Text>
+          <Text variant="title">{get('home.buyer_card_title')}</Text>
           <Text variant="body" className="mt-1 text-muted">
-            Browse dynamic inventory, calculate EMI & ROI, and enquire or book a visit.
+            {get('home.buyer_card_body')}
           </Text>
           <View className="mt-3 gap-2">
             <Button title="Browse properties" onPress={() => router.push('/(tabs)/properties')} />

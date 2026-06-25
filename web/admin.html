@@ -118,6 +118,8 @@
         <button class="nav-i" data-tab="payments">💳 Payments</button>
         <button class="nav-i" data-tab="chat">💬 Live chat</button>
         <button class="nav-i" data-tab="features">🧩 Features</button>
+        <button class="nav-i" data-tab="content">📝 App Content</button>
+        <button class="nav-i" data-tab="announcements">📣 Announcements</button>
         <button class="nav-i" data-tab="config">⚙️ System config</button>
         <div style="margin-top:14px;padding:10px 12px;font-size:11px;line-height:1.55;color:rgba(255,255,255,.6);background:rgba(255,255,255,.06);border-radius:10px">✓ Every change you save here is <b style="color:#7ee2a8">live in the phone app instantly</b> — no deploy needed.</div>
         <div class="who"><span id="whoEmail"></span><br /><button id="signOut" class="btn-o btn-sm" style="margin-top:8px">Sign out</button></div>
@@ -133,6 +135,8 @@
         <div id="tabPayments" class="hidden"></div>
         <div id="tabChat" class="hidden"></div>
         <div id="tabFeatures" class="hidden"></div>
+        <div id="tabContent" class="hidden"></div>
+        <div id="tabAnnouncements" class="hidden"></div>
         <div id="tabConfig" class="hidden"></div>
       </main>
     </div>
@@ -213,7 +217,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'payments', 'chat', 'features', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'payments', 'chat', 'features', 'content', 'announcements', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -224,6 +228,8 @@
         if (tab === 'payments') renderPayments();
         if (tab === 'chat') renderChat();
         if (tab === 'features') renderFeatures();
+        if (tab === 'content') renderAppContent();
+        if (tab === 'announcements') renderAnnouncements();
         if (tab === 'config') renderConfig();
       }
 
@@ -825,6 +831,105 @@
           var r = await sb.from('territories').insert(body);
           if (r.error) return alert(r.error.message); renderTerritories();
         };
+      }
+
+      // ─── App Content (admin-editable strings/config the app reads live) ──
+      async function renderAppContent() {
+        var el = $('tabContent');
+        el.innerHTML = '<div class="head"><h2>App Content</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('app_content').select('key,grp,label,kind,value,sort_order').order('grp').order('sort_order');
+        if (q.error) { el.innerHTML = '<div class="head"><h2>App Content</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        var groups = {};
+        rows.forEach(function (r) { (groups[r.grp] = groups[r.grp] || []).push(r); });
+        var html = '<div class="head"><h2>App Content</h2></div>' +
+          '<div class="muted" style="margin-bottom:12px">Text, links and defaults the phone app shows. Saved changes appear in the app live — no deploy needed.</div>';
+        Object.keys(groups).forEach(function (g) {
+          html += '<div class="panel"><h3>' + esc(g) + '</h3>';
+          groups[g].forEach(function (r) {
+            var v = r.value == null ? '' : r.value;
+            var field;
+            if (r.kind === 'textarea') field = '<textarea class="inp ac_val" data-key="' + esc(r.key) + '" data-orig="' + esc(v) + '" style="height:auto;min-height:64px;padding:10px">' + esc(v) + '</textarea>';
+            else if (r.kind === 'boolean') field = '<select class="inp ac_val" data-key="' + esc(r.key) + '" data-orig="' + esc(v) + '"><option value="true"' + (v === 'true' ? ' selected' : '') + '>On</option><option value="false"' + (v !== 'true' ? ' selected' : '') + '>Off</option></select>';
+            else field = '<input class="inp ac_val" data-key="' + esc(r.key) + '" data-orig="' + esc(v) + '" value="' + esc(v) + '"' + (r.kind === 'number' ? ' inputmode="decimal"' : '') + (r.kind === 'url' ? ' inputmode="url"' : '') + ' />';
+            html += '<div style="margin-bottom:10px"><label>' + esc(r.label) + ' <span class="muted" style="font-weight:400">(' + esc(r.key) + ')</span></label>' + field + '</div>';
+          });
+          html += '<button class="btn btn-sm ac_save">Save ' + esc(g) + '</button> <span class="muted ac_msg"></span></div>';
+        });
+        el.innerHTML = html;
+        el.querySelectorAll('.ac_save').forEach(function (btn) {
+          btn.onclick = async function () {
+            var panel = btn.closest('.panel'); var msg = panel.querySelector('.ac_msg');
+            var fields = Array.prototype.slice.call(panel.querySelectorAll('.ac_val'));
+            var changed = fields.filter(function (f) { return f.value !== f.dataset.orig; });
+            if (!changed.length) { msg.style.color = ''; msg.textContent = 'No changes.'; return; }
+            msg.style.color = ''; msg.textContent = 'Saving…'; btn.disabled = true;
+            var ok = 0;
+            for (var f of changed) {
+              var r = await sb.from('app_content').update({ value: f.value, updated_at: new Date().toISOString() }).eq('key', f.dataset.key);
+              if (r.error) { msg.style.color = '#c00'; msg.textContent = 'Error: ' + r.error.message; btn.disabled = false; return; }
+              f.dataset.orig = f.value; ok++;
+            }
+            btn.disabled = false; msg.textContent = 'Saved ' + ok + ' field' + (ok === 1 ? '' : 's') + ' ✓';
+          };
+        });
+      }
+
+      // ─── Announcements (Home banners) ───────────────────────────────────
+      async function renderAnnouncements() {
+        var el = $('tabAnnouncements');
+        el.innerHTML = '<div class="head"><h2>Announcements</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('announcements').select('id,title,body,cta_label,cta_url,audience,active,sort_order').order('sort_order');
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Announcements</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        var AUD = ['all', 'buyer', 'partner'];
+        function audSel(sel) { return AUD.map(function (a) { return '<option value="' + a + '"' + (a === sel ? ' selected' : '') + '>' + a + '</option>'; }).join(''); }
+        el.innerHTML = '<div class="head"><h2>Announcements</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">Banners on the app Home screen. Active ones appear instantly; audience targets buyers, partners or everyone. CTA link can be an in-app path (e.g. /(tabs)/properties) or a URL.</div>' +
+          '<div class="panel"><h3>New announcement</h3><div class="grid2">' +
+            '<div style="grid-column:1/-1"><label>Title</label><input id="an_title" class="inp" placeholder="e.g. Monsoon offer — 5% off booking" /></div>' +
+            '<div style="grid-column:1/-1"><label>Body (optional)</label><textarea id="an_body" class="inp" style="height:auto;min-height:60px;padding:10px"></textarea></div>' +
+            '<div><label>CTA label (optional)</label><input id="an_clabel" class="inp" placeholder="e.g. Browse plots" /></div>' +
+            '<div><label>CTA link (optional)</label><input id="an_curl" class="inp" placeholder="/(tabs)/properties or https://…" /></div>' +
+            '<div><label>Audience</label><select id="an_aud" class="inp">' + audSel('all') + '</select></div>' +
+            '<div><label>Sort order</label><input id="an_sort" class="inp" type="number" value="100" /></div>' +
+          '</div><button id="an_add" class="btn" style="margin-top:12px">+ Add announcement</button></div>' +
+          (rows.length ? '<table><thead><tr><th>Title</th><th>Audience</th><th>CTA</th><th>Order</th><th>Active</th><th>Actions</th></tr></thead><tbody>' +
+          rows.map(function (a) {
+            return '<tr data-id="' + a.id + '">' +
+              '<td><input class="inp an_t" style="width:220px;height:34px" value="' + esc(a.title) + '" /></td>' +
+              '<td><select class="inp an_a" style="height:34px">' + audSel(a.audience) + '</select></td>' +
+              '<td class="muted">' + esc(a.cta_label || '—') + '</td>' +
+              '<td><input class="inp an_o" type="number" style="width:70px;height:34px" value="' + (a.sort_order || 100) + '" /></td>' +
+              '<td><span class="pill ' + (a.active ? 'available' : 'sold') + '">' + (a.active ? 'on' : 'off') + '</span></td>' +
+              '<td class="row"><button class="btn btn-sm an_save">Save</button><button class="btn-o btn-sm an_tog">' + (a.active ? 'Disable' : 'Enable') + '</button><button class="btn-d btn-sm an_del">Delete</button></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No announcements yet — add one above.</div>');
+        $('an_add').onclick = async function () {
+          var title = $('an_title').value.trim(); if (!title) return alert('Title is required.');
+          var body = { title: title, body: $('an_body').value.trim() || null, cta_label: $('an_clabel').value.trim() || null, cta_url: $('an_curl').value.trim() || null, audience: $('an_aud').value, active: true };
+          var so = parseInt($('an_sort').value, 10); if (!isNaN(so)) body.sort_order = so;
+          var r = await sb.from('announcements').insert(body);
+          if (r.error) return alert(r.error.message); renderAnnouncements();
+        };
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          tr.querySelector('.an_save').onclick = async function () {
+            this.textContent = '…';
+            var o = parseInt(tr.querySelector('.an_o').value, 10);
+            var r = await sb.from('announcements').update({ title: tr.querySelector('.an_t').value.trim(), audience: tr.querySelector('.an_a').value, sort_order: isNaN(o) ? 100 : o }).eq('id', id);
+            this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+          tr.querySelector('.an_tog').onclick = async function () {
+            var cur = this.textContent === 'Disable';
+            var r = await sb.from('announcements').update({ active: !cur }).eq('id', id);
+            if (r.error) return alert(r.error.message); renderAnnouncements();
+          };
+          tr.querySelector('.an_del').onclick = async function () {
+            if (!confirm('Delete this announcement?')) return;
+            var r = await sb.from('announcements').delete().eq('id', id);
+            if (r.error) return alert(r.error.message); renderAnnouncements();
+          };
+        });
       }
 
       // ─── System configuration (key/value) ───────────────────────────────

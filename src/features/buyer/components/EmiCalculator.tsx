@@ -1,17 +1,34 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Text } from '@/components/ui/Text';
+import { useContent } from '@/features/content/hooks';
 import { emi, money, round2 } from '@/lib/money';
 
-/** EMI Calculator (§5.04) — all math via decimal.js (no float drift). */
+/** EMI Calculator (§5.04) — all math via decimal.js (no float drift). Defaults are admin-editable. */
 export function EmiCalculator({ price }: { price: number }) {
+  const { get } = useContent();
   const [downPct, setDownPct] = useState('20');
   const [rate, setRate] = useState('9');
   const [years, setYears] = useState('10');
+  // Apply admin defaults once content loads; never override a value the user has typed.
+  const touched = useRef(false);
+  const dDown = get('calc.emi_down_pct');
+  const dRate = get('calc.emi_rate');
+  const dYears = get('calc.emi_years');
+  useEffect(() => {
+    if (touched.current) return;
+    setDownPct(dDown);
+    setRate(dRate);
+    setYears(dYears);
+  }, [dDown, dRate, dYears]);
+  const onEdit = (set: (v: string) => void) => (v: string) => {
+    touched.current = true;
+    set(v);
+  };
 
   const dp = clamp(downPct, 0, 90);
   const principal = round2(money(price).times(money(100).minus(dp)).dividedBy(100));
@@ -25,13 +42,13 @@ export function EmiCalculator({ price }: { price: number }) {
       <Text variant="title">EMI Calculator</Text>
       <View className="flex-row gap-3">
         <View className="flex-1">
-          <Input label="Down %" value={downPct} onChangeText={setDownPct} keyboardType="numeric" />
+          <Input label="Down %" value={downPct} onChangeText={onEdit(setDownPct)} keyboardType="numeric" />
         </View>
         <View className="flex-1">
-          <Input label="Rate %" value={rate} onChangeText={setRate} keyboardType="numeric" />
+          <Input label="Rate %" value={rate} onChangeText={onEdit(setRate)} keyboardType="numeric" />
         </View>
         <View className="flex-1">
-          <Input label="Years" value={years} onChangeText={setYears} keyboardType="numeric" />
+          <Input label="Years" value={years} onChangeText={onEdit(setYears)} keyboardType="numeric" />
         </View>
       </View>
 
