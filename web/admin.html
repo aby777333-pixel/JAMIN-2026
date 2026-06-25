@@ -368,7 +368,7 @@
                 ['available', 'reserved', 'sold'].map(function (s) { return '<option value="' + s + '"' + (s === r.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') +
               '</select></td>' +
               '<td style="text-align:center"><button class="btn-o btn-sm pp_feat"' + (isFeat ? ' style="background:var(--gold);border-color:var(--gold)"' : '') + ' title="' + (isFeat ? 'Featured — tap to remove from the home rail' : 'Tap to feature in the app home rail') + '">' + (isFeat ? '★' : '☆') + '</button></td>' +
-              '<td><div class="thumbs">' + imgs.map(function (m) { var u = m.url || m; return '<a href="' + esc(u) + '" download target="_blank" rel="noopener" title="Open / download"><img src="' + esc(u) + '" /></a>'; }).join('') +
+              '<td><div class="thumbs" style="align-items:center">' + (imgs.length ? '' : '<span class="pill" style="background:rgba(230,161,13,.16);color:#e6a10d">No photos</span>') + imgs.map(function (m) { var u = m.url || m; return '<a href="' + esc(u) + '" download target="_blank" rel="noopener" title="Open / download"><img src="' + esc(u) + '" /></a>'; }).join('') +
                 '<label class="btn-o btn-sm" style="display:inline-block" title="Upload photos for this plot">⬆ Upload<input type="file" accept="image/*" class="pp_file hidden" multiple /></label></div></td>' +
               '<td class="row"><button class="btn-o btn-sm pp_det">Details</button><button class="btn btn-sm pp_save">Save</button><button class="btn-d btn-sm pp_del">Delete</button></td>' +
               '</tr>' +
@@ -386,13 +386,16 @@
               '</div></td></tr>';
           }).join('') + '</tbody></table>';
 
+        var noPhotos = rows.filter(function (x) { return !(Array.isArray(x.media) && x.media.length); }).length;
         el.innerHTML =
           '<div class="head"><h2>Properties</h2></div>' +
+          '<div class="muted" style="margin:-6px 0 14px">Upload photos per plot in the table below — click <b>⬆ Upload</b> in the Images column, or <b>Details → + Add photos</b> for the full manager (thumbnails, download ⤓, remove ×).</div>' +
           '<div class="stat-row">' +
             '<div class="stat"><div class="n">' + rows.length + '</div><div class="l">Total</div></div>' +
             '<div class="stat"><div class="n">' + (byStatus.available || 0) + '</div><div class="l">Available</div></div>' +
             '<div class="stat"><div class="n">' + (byStatus.reserved || 0) + '</div><div class="l">Reserved</div></div>' +
             '<div class="stat"><div class="n">' + (byStatus.sold || 0) + '</div><div class="l">Sold</div></div>' +
+            '<div class="stat"><div class="n"' + (noPhotos ? ' style="color:#e6a10d"' : '') + '>' + noPhotos + '</div><div class="l">No photos</div></div>' +
           '</div>' + addForm + (rows.length ? table : '<div class="muted">No properties yet — add one above.</div>');
 
         // plan dropdown depends on project
