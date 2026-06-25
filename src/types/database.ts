@@ -1200,6 +1200,12 @@ export type Database = {
           },
         ]
       }
+      user_media: {
+        Row: { id: string; user_id: string; url: string; path: string; name: string | null; created_at: string }
+        Insert: { id?: string; user_id?: string; url: string; path: string; name?: string | null; created_at?: string }
+        Update: { id?: string; user_id?: string; url?: string; path?: string; name?: string | null; created_at?: string }
+        Relationships: []
+      }
       wallets: {
         Row: {
           balance: number

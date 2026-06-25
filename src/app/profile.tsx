@@ -1,14 +1,17 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { updateMyProfile } from '@/features/auth/api';
 import { useAuth } from '@/stores/auth';
+import { color } from '@/theme/tokens';
 
 /**
  * Edit profile (§6) — the fields shown on the Digital Business Card and brochures:
@@ -55,6 +58,19 @@ export default function EditProfile() {
           />
           <Button title="Save profile" loading={saving} onPress={onSave} />
           <Text variant="caption">This is what appears on your Digital Business Card and shared brochures.</Text>
+
+          <Pressable onPress={() => router.push('/media')} className="mt-2">
+            <Card className="flex-row items-center gap-3">
+              <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
+                <Ionicons name="images" size={18} color={color.red} />
+              </View>
+              <View className="flex-1">
+                <Text variant="title">My Images</Text>
+                <Text variant="caption">Upload, download & delete your property images</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={color.muted} />
+            </Card>
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </Screen>
