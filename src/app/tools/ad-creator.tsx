@@ -7,7 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import * as MediaLibrary from 'expo-media-library';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, Linking, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, Linking, Platform, Pressable, ScrollView, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
 import { AgentStamp } from '@/components/brand/AgentStamp';
@@ -129,14 +129,22 @@ export default function AdCreator() {
     setBusy(true);
     const uri = await persist();
     if (uri) {
-      try {
-        const { status } = await MediaLibrary.requestPermissionsAsync();
-        if (status === 'granted') {
-          await MediaLibrary.saveToLibraryAsync(uri);
-          Alert.alert('Saved', 'Ad saved to your gallery.');
+      // Web has no media library; fall back to the share/download sheet so the user can still save.
+      if (Platform.OS === 'web') {
+        await shareImageFile(uri, 'Live from site — JAMIN Properties');
+      } else {
+        try {
+          const perm = await MediaLibrary.requestPermissionsAsync();
+          if (perm.granted) {
+            await MediaLibrary.saveToLibraryAsync(uri);
+            Alert.alert('Saved', 'Ad saved to your gallery.');
+          } else {
+            // Permission denied — share instead so saving is never a dead end.
+            await shareImageFile(uri, 'Live from site — JAMIN Properties');
+          }
+        } catch {
+          await shareImageFile(uri, 'Live from site — JAMIN Properties');
         }
-      } catch {
-        Alert.alert('Could not save', 'Gallery permission denied.');
       }
     }
     setBusy(false);

@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert, FlatList, Image, Linking, Pressable, View } from 'react-native';
 
+import { SkylineBackdrop } from '@/components/brand/SkylineBackdrop';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { MoneyText } from '@/components/ui/MoneyText';
@@ -60,13 +61,18 @@ export default function Home() {
   }
 
   return (
-    <Screen contentClassName="pt-4 gap-4">
-      <View className="flex-row items-start justify-between">
-        <View>
+    <Screen contentClassName="pt-4 gap-4" backdrop={<SkylineBackdrop opacity={0.05} />}>
+      <View className="flex-row items-start justify-between gap-3">
+        <View className="min-w-0 flex-1">
           <Text variant="label">{t('home.greeting')}</Text>
-          <Text variant="h1">{profile?.full_name ?? 'Member'}</Text>
+          <Text variant="h1" numberOfLines={1}>
+            {profile?.full_name ?? 'Member'}
+          </Text>
+          <View className="mt-1.5 self-start rounded-full bg-red/10 px-3 py-1">
+            <Text className="font-semibold text-[12px] text-red">{roleLabel(profile?.role_slug)}</Text>
+          </View>
         </View>
-        <View className="flex-row items-center gap-3">
+        <View className="shrink-0 flex-row items-center gap-3 pt-1">
           <Pressable onPress={() => router.push('/chat')} hitSlop={8}>
             <Ionicons name="chatbubbles-outline" size={23} color={color.ink} />
           </Pressable>
@@ -81,9 +87,6 @@ export default function Home() {
           <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
             <Ionicons name="settings-outline" size={22} color={color.muted} />
           </Pressable>
-          <View className="rounded-full bg-red/10 px-3 py-1.5">
-            <Text className="font-semibold text-[12px] text-red">{roleLabel(profile?.role_slug)}</Text>
-          </View>
         </View>
       </View>
 
@@ -206,6 +209,7 @@ export default function Home() {
             <QuickLink icon="wallet" label="Wallet" onPress={() => router.push('/(tabs)/wallet')} />
             <QuickLink icon="receipt" label="Bookings" onPress={() => router.push('/payments')} />
             <QuickLink icon="qr-code" label="My Card" onPress={() => router.push('/(tabs)/card')} />
+            <QuickLink icon="clipboard" label="Forms" onPress={() => router.push('/forms')} />
             {profile?.role_is_admin ? (
               <QuickLink icon="shield-checkmark" label="Admin" onPress={() => router.push('/admin')} />
             ) : null}
@@ -223,6 +227,11 @@ export default function Home() {
               title="My bookings & payments"
               variant="secondary"
               onPress={() => router.push('/payments')}
+            />
+            <Button
+              title="Become a partner"
+              variant="outline"
+              onPress={() => router.push('/forms')}
             />
           </View>
         </Card>

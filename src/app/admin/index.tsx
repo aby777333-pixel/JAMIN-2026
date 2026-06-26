@@ -44,6 +44,7 @@ export default function AdminDashboard() {
       </Text>
       <View className="gap-3">
         <Tile icon="construct" title="Form Builder" sub="Edit any form — unlimited fields" onPress={() => router.push('/admin/forms')} />
+        <Tile icon="file-tray-full" title="Submissions" sub="Applications & enquiries to review" onPress={() => router.push('/admin/submissions')} />
         <Tile icon="people-circle" title="Users & roles" sub="Promote, verify KYC" onPress={() => router.push('/admin/users')} />
         <Tile icon="checkmark-circle" title="Approvals" sub="Payouts & close sales" onPress={() => router.push('/admin/approvals')} />
         <Tile icon="cash" title="Commission rules" sub="Toggle & inspect" onPress={() => router.push('/admin/rules')} />

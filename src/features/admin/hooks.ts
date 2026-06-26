@@ -7,6 +7,8 @@ export const useAdminStats = () => useQuery({ queryKey: ['admin', 'stats'], quer
 export const useUsers = () => useQuery({ queryKey: ['admin', 'users'], queryFn: api.listUsers });
 export const useRolesList = () => useQuery({ queryKey: ['admin', 'roles'], queryFn: api.getRoles, staleTime: 5 * 60_000 });
 export const useForms = () => useQuery({ queryKey: ['admin', 'forms'], queryFn: api.listForms });
+export const useSubmissions = () =>
+  useQuery({ queryKey: ['admin', 'submissions'], queryFn: api.listSubmissions });
 export const useRules = () => useQuery({ queryKey: ['admin', 'rules'], queryFn: api.listRules });
 export const usePendingWithdrawals = () =>
   useQuery({ queryKey: ['admin', 'withdrawals'], queryFn: api.listPendingWithdrawals });
@@ -41,6 +43,20 @@ export function useSaveFormFields() {
       void qc.invalidateQueries({ queryKey: ['admin', 'forms'] });
       void qc.invalidateQueries({ queryKey: ['form_def'] });
     },
+  });
+}
+
+export function useSetSubmissionStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      status,
+    }: {
+      id: string;
+      status: 'reviewed' | 'approved' | 'rejected' | 'submitted';
+    }) => api.setSubmissionStatus(id, status),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'submissions'] }),
   });
 }
 

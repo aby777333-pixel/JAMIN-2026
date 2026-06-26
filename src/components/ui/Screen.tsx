@@ -15,12 +15,15 @@ export function Screen({
   className,
   contentClassName,
   edges = true,
+  backdrop,
 }: {
   children: ReactNode;
   scroll?: boolean;
   className?: string;
   contentClassName?: string;
   edges?: boolean;
+  /** Optional decorative layer rendered behind the content (e.g. a brand backdrop). */
+  backdrop?: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const pad = edges ? { paddingTop: insets.top, paddingBottom: insets.bottom } : undefined;
@@ -28,6 +31,7 @@ export function Screen({
   if (scroll) {
     return (
       <View className={cn('flex-1 bg-paper', className)} style={pad}>
+        {backdrop}
         <ScrollView
           contentContainerClassName={cn('px-5 pb-8 grow', contentClassName)}
           keyboardShouldPersistTaps="handled"
@@ -39,6 +43,7 @@ export function Screen({
   }
   return (
     <View className={cn('flex-1 bg-paper px-5', className)} style={pad}>
+      {backdrop}
       <View className={cn('flex-1', contentClassName)}>{children}</View>
     </View>
   );

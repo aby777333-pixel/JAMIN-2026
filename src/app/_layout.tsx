@@ -88,6 +88,8 @@ export default function RootLayout() {
             <Stack.Screen name="payments" />
             <Stack.Screen name="webview" />
             <Stack.Screen name="kyc" />
+            <Stack.Screen name="forms/index" />
+            <Stack.Screen name="forms/[key]" />
             <Stack.Screen name="notifications" />
             <Stack.Screen name="rewards" />
             <Stack.Screen name="settings/index" />

@@ -90,6 +90,32 @@ export async function saveFormFields(id: string, fields: FormField[]) {
   if (error) throw error;
 }
 
+export interface AdminSubmission {
+  id: string;
+  form_key: string;
+  data: Record<string, unknown>;
+  status: string;
+  created_at: string;
+  user: { full_name: string | null } | null;
+}
+
+export async function listSubmissions(): Promise<AdminSubmission[]> {
+  const { data, error } = await supabase
+    .from('form_submissions')
+    .select('id, form_key, data, status, created_at, user:profiles(full_name)')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as AdminSubmission[];
+}
+
+export async function setSubmissionStatus(
+  id: string,
+  status: 'reviewed' | 'approved' | 'rejected' | 'submitted',
+) {
+  const { error } = await supabase.from('form_submissions').update({ status }).eq('id', id);
+  if (error) throw error;
+}
+
 export interface AdminRule {
   id: string;
   name: string;
