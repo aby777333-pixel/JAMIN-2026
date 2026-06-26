@@ -1206,6 +1206,20 @@ export type Database = {
           },
         ]
       }
+      shared_ads: {
+        Row: { id: string; slug: string; owner_id: string; image_url: string; caption: string | null; place: string | null; lat: number | null; lng: number | null; agent_name: string | null; agent_phone: string | null; agent_referral: string | null; captured_at: string | null; created_at: string }
+        Insert: { id?: string; slug: string; owner_id: string; image_url: string; caption?: string | null; place?: string | null; lat?: number | null; lng?: number | null; agent_name?: string | null; agent_phone?: string | null; agent_referral?: string | null; captured_at?: string | null; created_at?: string }
+        Update: { id?: string; slug?: string; owner_id?: string; image_url?: string; caption?: string | null; place?: string | null; lat?: number | null; lng?: number | null; agent_name?: string | null; agent_phone?: string | null; agent_referral?: string | null; captured_at?: string | null; created_at?: string }
+        Relationships: [
+          {
+            foreignKeyName: "shared_ads_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_media: {
         Row: { id: string; user_id: string; url: string; path: string; name: string | null; created_at: string }
         Insert: { id?: string; user_id?: string; url: string; path: string; name?: string | null; created_at?: string }

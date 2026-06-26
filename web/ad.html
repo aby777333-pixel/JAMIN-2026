@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JAMIN Properties — Live property</title>
+    <link rel="icon" href="/logo.jpg" />
+    <meta property="og:title" content="JAMIN Properties — Real property, captured live" />
+    <meta property="og:description" content="View this property's live photo, location and contact." />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root { --red:#fd0001; --gold:#fbbc15; --gold-deep:#c8911e; --ink:#1a1a1a; --muted:#74746e; --paper:#f7f7f5; --line:#e6e7e2; --charcoal:#1a1a1a; }
+      * { box-sizing:border-box; }
+      body { margin:0; font-family:Inter,-apple-system,"Segoe UI",sans-serif; background:var(--paper); color:var(--ink); }
+      .wrap { max-width:480px; margin:0 auto; padding:16px 14px 40px; }
+      .state { text-align:center; padding:64px 20px; color:var(--muted); }
+      .state img { height:40px; margin-bottom:14px; }
+      /* Ad card */
+      .adcard { position:relative; border-radius:20px; overflow:hidden; background:#000; box-shadow:0 10px 30px rgba(0,0,0,.12); }
+      .hero { display:block; width:100%; height:auto; max-height:62vh; object-fit:cover; }
+      .brandbar { position:absolute; top:12px; left:12px; right:12px; display:flex; justify-content:space-between; align-items:center; }
+      .brand { background:var(--red); color:#fff; font-weight:800; font-size:13px; letter-spacing:.5px; padding:6px 12px; border-radius:10px; }
+      .onsite { background:rgba(0,0,0,.55); color:#fff; font-size:12px; font-weight:600; padding:6px 10px; border-radius:10px; }
+      .onsite b { color:var(--gold); }
+      .meta { position:absolute; left:0; right:0; bottom:0; padding:16px 14px 14px; background:linear-gradient(to top, rgba(0,0,0,.82), rgba(0,0,0,.0)); color:#fff; }
+      .title { display:flex; align-items:center; gap:8px; font-weight:700; font-size:15px; letter-spacing:.5px; text-transform:uppercase; }
+      .dot { width:9px; height:9px; border-radius:50%; background:var(--red); display:inline-block; }
+      .sub { color:rgba(255,255,255,.85); font-size:13px; margin-top:5px; }
+      /* Panels */
+      .panel { background:#fff; border:1px solid var(--line); border-radius:16px; padding:14px; margin-top:14px; }
+      .panel h3 { margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); }
+      .coord { display:flex; align-items:center; justify-content:space-between; gap:8px; border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:var(--paper); }
+      .coord .c { font-family:monospace; font-size:13px; }
+      .coord .p { color:var(--muted); font-size:12px; margin-top:2px; }
+      .coord button { border:none; background:transparent; color:var(--muted); font-size:13px; cursor:pointer; }
+      .btns { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+      .chip { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); background:#fff; border-radius:999px; padding:9px 14px; font-size:13px; font-weight:600; color:var(--ink); text-decoration:none; }
+      .chip:active { background:var(--paper); }
+      .call { display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:12px; padding:11px 12px; margin-top:10px; text-decoration:none; }
+      .call .num { font-family:monospace; font-weight:700; color:var(--red); font-size:15px; }
+      .call .t { margin-left:auto; color:var(--muted); font-size:12px; }
+      /* Actions */
+      .big { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; border:none; border-radius:13px; padding:14px; font-size:15px; font-weight:700; text-decoration:none; margin-top:10px; cursor:pointer; }
+      .big.primary { background:var(--red); color:#fff; }
+      .big.wa { background:#25d366; color:#fff; }
+      .big.o { background:#fff; color:var(--ink); border:1px solid var(--line); }
+      /* Sender card */
+      .sender { display:flex; align-items:center; gap:14px; background:var(--charcoal); color:#fff; border-radius:16px; padding:16px; margin-top:14px; }
+      .sender .who b { font-size:16px; }
+      .sender .who .ph { font-family:monospace; color:rgba(255,255,255,.85); font-size:14px; margin-top:3px; }
+      .sender .who .ref { font-size:11px; letter-spacing:1px; color:var(--gold); margin-top:6px; text-transform:uppercase; }
+      .sender .qr { margin-left:auto; background:#fff; padding:6px; border-radius:10px; }
+      .sender .qr img { display:block; width:96px; height:96px; }
+      .tag { text-align:center; font-size:11px; font-weight:700; letter-spacing:2.5px; color:var(--gold-deep); margin:18px 0 4px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap" id="root">
+      <div class="state">Loading…</div>
+    </div>
+
+    <script>
+      var SUPABASE_URL = 'https://oaqwnjgaypmuafvnfhxv.supabase.co';
+      var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXduamdheXBtdWFmdm5maHh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMDI2ODAsImV4cCI6MjA5Nzc3ODY4MH0.2tfyC3Z8Kzib8FdLjnE-z8m830PZUd9vfcWtDXIqp3E';
+      var SITE = location.origin;
+
+      function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]); }); }
+      function phoneDigits(p) { var d = (p || '').replace(/\D/g, ''); if (d.length === 10) d = '91' + d; return d; }
+
+      var parts = location.pathname.split('/').filter(Boolean); // ['ad','<slug>']
+      var params = new URLSearchParams(location.search);
+      var raw = (parts[1] || params.get('id') || '').trim();
+      var slug = /^[A-Za-z0-9]{4,24}$/.test(raw) ? raw : '';
+
+      function notFound(msg) {
+        document.getElementById('root').innerHTML =
+          '<div class="state"><img src="/logo.jpg" alt="JAMIN Properties" /><h2>' + esc(msg || 'Ad not found') + '</h2>' +
+          '<p>This ad may have expired or the link is incomplete.</p>' +
+          '<a class="big primary" href="/">Explore JAMIN Properties →</a></div>';
+      }
+
+      if (!slug) { notFound('Invalid link'); }
+      else {
+        fetch(SUPABASE_URL + '/rest/v1/shared_ads?slug=eq.' + encodeURIComponent(slug) + '&select=*&limit=1', {
+          headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON },
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (rows) {
+            if (!rows || !rows.length) { notFound(); return; }
+            render(rows[0]);
+          })
+          .catch(function () { notFound('Could not load this ad'); });
+      }
+
+      function render(ad) {
+        var hasGeo = ad.lat != null && ad.lng != null;
+        var digits = phoneDigits(ad.agent_phone);
+        var when = ad.captured_at ? new Date(ad.captured_at) : (ad.created_at ? new Date(ad.created_at) : null);
+        var whenStr = when ? when.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) + ' · ' +
+          when.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
+        var refUrl = ad.agent_referral ? SITE + '/r/' + encodeURIComponent(ad.agent_referral) : SITE;
+        var name = ad.agent_name || 'JAMIN Partner';
+
+        var geoBtns = hasGeo ? (
+          '<div class="btns">' +
+            '<a class="chip" target="_blank" rel="noopener" href="https://earth.google.com/web/@' + ad.lat + ',' + ad.lng + ',100a,1000d,30y,0h,0t,0r">🌐 Earth view</a>' +
+            '<a class="chip" target="_blank" rel="noopener" href="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + ad.lat + ',' + ad.lng + '">🚶 Street view</a>' +
+            '<a class="chip" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=' + ad.lat + ',' + ad.lng + '">🗺️ Open in Maps</a>' +
+            '<a class="chip" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + ad.lat + ',' + ad.lng + '">🧭 Directions</a>' +
+          '</div>') : '';
+
+        var coordRow = hasGeo ? (
+          '<div class="coord"><div><div class="c">' + Number(ad.lat).toFixed(6) + ', ' + Number(ad.lng).toFixed(6) + '</div>' +
+          (ad.place ? '<div class="p">' + esc(ad.place) + '</div>' : '') + '</div>' +
+          '<button id="copyCoord">Copy</button></div>') :
+          '<div class="p" style="color:var(--muted);font-size:13px">Location wasn’t captured for this photo.</div>';
+
+        var callRow = ad.agent_phone ? (
+          '<a class="call" href="tel:' + esc(ad.agent_phone) + '">📞 <span class="num">' + esc(ad.agent_phone) + '</span><span class="t">Tap to call</span></a>') : '';
+
+        var waText = encodeURIComponent('Hi ' + name + ', I saw the property you shared on JAMIN Properties' + (ad.place ? ' (' + ad.place + ')' : '') + '. Please share the details.');
+        var actions =
+          (digits ? '<a class="big wa" href="https://wa.me/' + digits + '?text=' + waText + '">💬 Chat / enquire on WhatsApp</a>' : '') +
+          (digits ? '<a class="big primary" href="tel:' + esc(ad.agent_phone) + '">📞 Call ' + esc(name) + '</a>' : '') +
+          '<button class="big o" id="saveContact">👤 Save contact</button>' +
+          '<a class="big o" href="' + esc(ad.image_url) + '" target="_blank" rel="noopener" download>⬇ Download / save ad</a>' +
+          '<a class="big o" href="/">🏠 Explore more properties</a>';
+
+        var qr = '<div class="qr"><img alt="QR" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0&data=' + encodeURIComponent(refUrl) + '" /></div>';
+        var sender =
+          '<div class="sender"><div class="who"><b>' + esc(name) + '</b>' +
+          (ad.agent_phone ? '<div class="ph">' + esc(ad.agent_phone) + '</div>' : '') +
+          (ad.agent_referral ? '<div class="ref">Ref ' + esc(ad.agent_referral) + '</div>' : '') +
+          '<div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:8px;letter-spacing:1px">SIGNATURE FOR FORTUNE</div></div>' + qr + '</div>';
+
+        document.getElementById('root').innerHTML =
+          '<div class="adcard">' +
+            '<img class="hero" src="' + esc(ad.image_url) + '" alt="Property" />' +
+            '<div class="brandbar"><span class="brand">JAMIN PROPERTIES</span><span class="onsite"><b>📍</b> Taken on site</span></div>' +
+            '<div class="meta"><div class="title"><span class="dot"></span> Real property · Captured live</div>' +
+            (whenStr || ad.place ? '<div class="sub">' + esc([whenStr, ad.place].filter(Boolean).join(' · ')) + '</div>' : '') + '</div>' +
+          '</div>' +
+          '<div class="panel"><h3>Location &amp; contact</h3>' + coordRow + geoBtns + callRow + '</div>' +
+          '<div class="panel"><h3>Get in touch</h3>' + actions + '</div>' +
+          sender +
+          '<div class="tag">JAMIN PROPERTIES</div>';
+
+        var copyBtn = document.getElementById('copyCoord');
+        if (copyBtn) copyBtn.onclick = function () {
+          var t = Number(ad.lat).toFixed(6) + ', ' + Number(ad.lng).toFixed(6);
+          if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { copyBtn.textContent = 'Copied ✓'; });
+        };
+        var sc = document.getElementById('saveContact');
+        if (sc) sc.onclick = function () {
+          var v = ['BEGIN:VCARD', 'VERSION:3.0', 'FN:' + name, 'ORG:JAMIN Properties'];
+          if (ad.agent_phone) v.push('TEL;TYPE=CELL:' + ad.agent_phone);
+          if (ad.agent_referral) v.push('NOTE:JAMIN referral ' + ad.agent_referral);
+          v.push('END:VCARD');
+          var blob = new Blob([v.join('\r\n')], { type: 'text/vcard' });
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = name.replace(/[^a-z0-9]+/gi, '_') + '.vcf';
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        };
+
+        // Attribute the view to the sharer (viral engine) — fire-and-forget.
+        if (ad.agent_referral) {
+          try {
+            fetch(SUPABASE_URL + '/rest/v1/rpc/log_referral_click', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON },
+              body: JSON.stringify({ p_code: ad.agent_referral, p_artifact: 'ad', p_channel: 'web', p_device: { ua: navigator.userAgent, lang: navigator.language } }),
+            }).catch(function () {});
+          } catch (e) {}
+        }
+      }
+    </script>
+  </body>
+</html>

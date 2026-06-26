@@ -13,6 +13,12 @@
   to = "/r.html"
   status = 200
 
+# Shared property ads (/ad/<slug>) → interactive ad landing page.
+[[redirects]]
+  from = "/ad/*"
+  to = "/ad.html"
+  status = 200
+
 # Single-page site: serve existing files (logo.jpg, etc.), otherwise the page.
 [[redirects]]
   from = "/*"

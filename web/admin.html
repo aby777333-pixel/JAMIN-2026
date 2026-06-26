@@ -117,6 +117,7 @@
         <button class="nav-i" data-tab="approvals">✅ Approvals <span id="apprDot" class="dot hidden">0</span></button>
         <button class="nav-i" data-tab="submissions">🖼️ Photo submissions <span id="subDot" class="dot hidden">0</span></button>
         <button class="nav-i" data-tab="formsubs">📨 Form submissions <span id="formSubDot" class="dot hidden">0</span></button>
+        <button class="nav-i" data-tab="sharedads">📢 Shared ads</button>
         <button class="nav-i" data-tab="payments">💳 Payments</button>
         <button class="nav-i" data-tab="chat">💬 Live chat</button>
         <button class="nav-i" data-tab="forms">📋 Form Builder</button>
@@ -137,6 +138,7 @@
         <div id="tabApprovals" class="hidden"></div>
         <div id="tabSubmissions" class="hidden"></div>
         <div id="tabFormsubs" class="hidden"></div>
+        <div id="tabSharedads" class="hidden"></div>
         <div id="tabPayments" class="hidden"></div>
         <div id="tabChat" class="hidden"></div>
         <div id="tabForms" class="hidden"></div>
@@ -225,7 +227,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -235,6 +237,7 @@
         if (tab === 'approvals') renderApprovals();
         if (tab === 'submissions') renderSubmissions();
         if (tab === 'formsubs') renderFormSubs();
+        if (tab === 'sharedads') renderSharedAds();
         if (tab === 'payments') renderPayments();
         if (tab === 'chat') renderChat();
         if (tab === 'forms') renderFormBuilder();
@@ -913,6 +916,36 @@
         var c = await sb.from('form_submissions').select('id', { count: 'exact', head: true }).eq('status', 'submitted');
         var dot = $('formSubDot'); if (!dot) return;
         var n = c.count || 0; dot.textContent = n; dot.classList.toggle('hidden', n === 0);
+      }
+
+      // ─── Shared ads (interactive ad landing pages partners send clients) ──
+      async function renderSharedAds() {
+        var el = $('tabSharedads');
+        el.innerHTML = '<div class="head"><h2>Shared ads</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('shared_ads').select('id,slug,image_url,place,agent_name,agent_phone,created_at').order('created_at', { ascending: false }).limit(300);
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Shared ads</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>Shared ads</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">Interactive ad pages partners have sent to clients. Each opens at <span class="mono">/ad/&lt;slug&gt;</span> with the photo, maps, tap-to-call, WhatsApp chat and the sender’s card. Deleting one disables its link.</div>' +
+          (rows.length ? '<table><thead><tr><th>Ad</th><th>Agent</th><th>Place</th><th>When</th><th>Link</th><th></th></tr></thead><tbody>' +
+          rows.map(function (s) {
+            var url = location.origin + '/ad/' + encodeURIComponent(s.slug);
+            return '<tr data-id="' + s.id + '">' +
+              '<td><a href="' + esc(s.image_url) + '" target="_blank" rel="noopener"><img src="' + esc(s.image_url) + '" style="height:54px;width:54px;object-fit:cover;border-radius:8px;border:1px solid #e6e7e2" /></a></td>' +
+              '<td>' + esc(s.agent_name || '—') + (s.agent_phone ? '<br><span class="muted mono">' + esc(s.agent_phone) + '</span>' : '') + '</td>' +
+              '<td>' + esc(s.place || '—') + '</td>' +
+              '<td class="muted">' + new Date(s.created_at).toLocaleDateString() + '</td>' +
+              '<td><a href="' + esc(url) + '" target="_blank" rel="noopener" class="mono">/ad/' + esc(s.slug) + '</a></td>' +
+              '<td><button class="btn btn-sm sa_del" style="background:#fee;color:#c00">Del</button></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No shared ads yet.</div>');
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          tr.querySelector('.sa_del').onclick = async function () {
+            if (!confirm('Delete this shared ad? The link will stop working.')) return;
+            var r = await sb.from('shared_ads').delete().eq('id', id);
+            if (r.error) return alert(r.error.message); renderSharedAds();
+          };
+        });
       }
 
       // ─── CRM / Leads ────────────────────────────────────────────────────

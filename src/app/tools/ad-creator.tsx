@@ -7,7 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import * as MediaLibrary from 'expo-media-library';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, Linking, Platform, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, Linking, Platform, Pressable, ScrollView, Share, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
 import { AgentStamp } from '@/components/brand/AgentStamp';
@@ -19,6 +19,7 @@ import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { enhancePhoto } from '@/features/ai/api';
 import { AD_FORMATS, type AdFormatKey } from '@/features/marketing/formats';
+import { publishAd } from '@/features/marketing/ad';
 import { logArtifactShare, shareImageFile } from '@/features/marketing/share';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/stores/auth';
@@ -152,13 +153,43 @@ export default function AdCreator() {
 
   async function onShare() {
     setBusy(true);
-    const uri = await persist();
-    if (uri) {
+    try {
+      const uri = await persist();
+      if (!uri) return;
       if (profile?.referral_code)
-        await logArtifactShare({ artifact: 'ad', referralCode: profile.referral_code, channel: 'image' });
+        await logArtifactShare({ artifact: 'ad', referralCode: profile.referral_code, channel: 'link' });
+
+      // Publish a rich, interactive ad page and share its LINK, so the recipient
+      // gets the full experience (photo + maps + tap-to-call + live chat + sender
+      // card + QR). Falls back to sharing the image on web or any publish error.
+      if (Platform.OS !== 'web' && profile?.id) {
+        try {
+          const { url } = await publishAd({
+            uri,
+            ownerId: profile.id,
+            place: capture?.place,
+            lat: capture?.lat,
+            lng: capture?.lng,
+            agentName: profile.full_name,
+            agentPhone: profile.phone,
+            agentReferral: profile.referral_code,
+            capturedAt: capture?.at.toISOString(),
+          });
+          const caption =
+            `🏡 Real property — captured live${capture?.place ? ` · ${capture.place}` : ''}\n` +
+            'JAMIN Properties · Signature for Fortune\n' +
+            'View photo, location & contact 👇\n' +
+            url;
+          await Share.share({ message: caption, url });
+          return;
+        } catch {
+          // fall through to image share on any publish/upload failure
+        }
+      }
       await shareImageFile(uri, 'Live from site — JAMIN Properties');
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   async function openExternal(url: string) {
