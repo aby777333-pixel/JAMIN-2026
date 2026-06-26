@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert, FlatList, Image, Linking, Pressable, View } from 'react-native';
 
-import { SkylineBackdrop } from '@/components/brand/SkylineBackdrop';
+import { CountrysideBackdrop } from '@/components/brand/CountrysideBackdrop';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { MoneyText } from '@/components/ui/MoneyText';
@@ -61,7 +61,7 @@ export default function Home() {
   }
 
   return (
-    <Screen contentClassName="pt-4 gap-4" backdrop={<SkylineBackdrop />}>
+    <Screen contentClassName="pt-4 gap-4" backdrop={<CountrysideBackdrop />}>
       <View className="flex-row items-start justify-between gap-3">
         <View className="min-w-0 flex-1">
           <Text variant="label">{t('home.greeting')}</Text>
@@ -90,24 +90,27 @@ export default function Home() {
         </View>
       </View>
 
-      <Card className="bg-charcoal">
-        <Text className="font-medium text-[12px] uppercase tracking-[2px] text-gold">
-          Your referral code
-        </Text>
-        <View className="mt-2 flex-row items-center justify-between">
-          <Text className="font-mono-bold text-[28px] text-white tracking-[2px]">
+      {/* Minimal referral code strip */}
+      <Card className="flex-row items-center justify-between gap-3 bg-charcoal">
+        <View className="flex-1">
+          <Text className="font-medium text-[10px] uppercase tracking-[2px] text-gold">
+            Referral code
+          </Text>
+          <Text
+            className="font-mono-bold text-[19px] text-white tracking-[1px]"
+            numberOfLines={1}>
             {profile?.referral_code ?? '—'}
           </Text>
-          <View className="flex-row gap-2">
-            <Pressable onPress={copyReferral} className="rounded-xl bg-white/10 px-3 py-2">
-              <Ionicons name="copy-outline" size={18} color="#FFFFFF" />
-            </Pressable>
-            <Pressable
-              onPress={() => profile?.referral_code && shareReferral({ referralCode: profile.referral_code })}
-              className="rounded-xl bg-white/10 px-3 py-2">
-              <Ionicons name="share-social-outline" size={18} color="#FFFFFF" />
-            </Pressable>
-          </View>
+        </View>
+        <View className="flex-row gap-2">
+          <Pressable onPress={copyReferral} className="rounded-xl bg-white/10 p-2.5">
+            <Ionicons name="copy-outline" size={16} color="#FFFFFF" />
+          </Pressable>
+          <Pressable
+            onPress={() => profile?.referral_code && shareReferral({ referralCode: profile.referral_code })}
+            className="rounded-xl bg-white/10 p-2.5">
+            <Ionicons name="share-social-outline" size={16} color="#FFFFFF" />
+          </Pressable>
         </View>
       </Card>
 
@@ -253,16 +256,17 @@ function QuickLink({
   icon: keyof typeof import('@expo/vector-icons').Ionicons.glyphMap;
   label: string;
   onPress: () => void;
-  /** Accent color for this tile's icon + soft icon background. */
+  /** Accent color — tints the whole tile (background + border + icon). */
   tint?: string;
 }) {
   return (
     <Pressable
       onPress={onPress}
-      className="w-[47%] flex-grow flex-row items-center gap-3 rounded-2xl border border-line bg-surface p-4">
+      className="w-[47%] flex-grow flex-row items-center gap-3 rounded-2xl border p-4"
+      style={{ backgroundColor: `${tint}14`, borderColor: `${tint}40` }}>
       <View
         className="h-10 w-10 items-center justify-center rounded-xl"
-        style={{ backgroundColor: `${tint}1A` }}>
+        style={{ backgroundColor: `${tint}2E` }}>
         <Ionicons name={icon} size={20} color={tint} />
       </View>
       <Text variant="title" className="text-[15px]">
