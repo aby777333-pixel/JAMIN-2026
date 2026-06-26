@@ -4,7 +4,8 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert, FlatList, Image, Linking, Pressable, View } from 'react-native';
 
-import { CountrysideBackdrop } from '@/components/brand/CountrysideBackdrop';
+import { BG } from '@/components/brand/backgrounds';
+import { ImageBackdrop } from '@/components/brand/ImageBackdrop';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { MoneyText } from '@/components/ui/MoneyText';
@@ -61,7 +62,7 @@ export default function Home() {
   }
 
   return (
-    <Screen contentClassName="pt-4 gap-4" backdrop={<CountrysideBackdrop />}>
+    <Screen contentClassName="pt-4 gap-4" backdrop={<ImageBackdrop source={BG.home} opacity={0.7} />}>
       <View className="flex-row items-start justify-between gap-3">
         <View className="min-w-0 flex-1">
           <Text variant="label">{t('home.greeting')}</Text>

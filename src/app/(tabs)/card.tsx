@@ -4,7 +4,8 @@ import { Share, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { captureRef } from 'react-native-view-shot';
 
-import { SeaMeadowBackdrop } from '@/components/brand/SeaMeadowBackdrop';
+import { BG } from '@/components/brand/backgrounds';
+import { ImageBackdrop } from '@/components/brand/ImageBackdrop';
 import { ShareChannels } from '@/components/share/ShareChannels';
 import { Button } from '@/components/ui/Button';
 import { Screen } from '@/components/ui/Screen';
@@ -51,7 +52,7 @@ export default function CardScreen() {
   }
 
   return (
-    <Screen contentClassName="pt-4 gap-5" backdrop={<SeaMeadowBackdrop />}>
+    <Screen contentClassName="pt-4 gap-5" backdrop={<ImageBackdrop source={BG.card} />}>
       <Text variant="h1">Your Card</Text>
 
       {/* Captured region = the shareable card */}

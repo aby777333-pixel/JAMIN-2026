@@ -3,6 +3,8 @@ import { router } from 'expo-router';
 import { ActivityIndicator, FlatList, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BG } from '@/components/brand/backgrounds';
+import { ImageBackdrop } from '@/components/brand/ImageBackdrop';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -26,6 +28,7 @@ export default function Network() {
 
   return (
     <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
+      <ImageBackdrop source={BG.network} />
       <FlatList
         data={sorted}
         keyExtractor={(m) => m.id}
