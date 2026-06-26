@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
-import { SkylineBackdrop } from '@/components/brand/SkylineBackdrop';
+import { FarmBackdrop } from '@/components/brand/FarmBackdrop';
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
@@ -21,7 +21,7 @@ export default function FormsHub() {
   const list = forms.filter((f) => !HANDLED.has(f.key));
 
   return (
-    <Screen contentClassName="pb-10 gap-3" backdrop={<SkylineBackdrop />}>
+    <Screen contentClassName="pb-10 gap-3" backdrop={<FarmBackdrop />}>
       <BackHeader title="Applications & Forms" />
       <Text variant="caption">
         Apply, submit and enquire. Every form here is live and reviewed by our team.
