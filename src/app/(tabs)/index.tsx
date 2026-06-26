@@ -243,9 +243,9 @@ export default function Home() {
               onPress={() => router.push('/payments')}
             />
             <Button
-              title="Become a partner"
+              title="Become a partner — earn with JAMIN"
               variant="outline"
-              onPress={() => router.push('/forms')}
+              onPress={() => router.push('/become-partner')}
             />
           </View>
         </Card>

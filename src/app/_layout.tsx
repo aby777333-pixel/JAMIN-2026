@@ -77,6 +77,7 @@ export default function RootLayout() {
             <Stack.Screen name="referrals" />
             <Stack.Screen name="incentives" />
             <Stack.Screen name="performance" />
+            <Stack.Screen name="become-partner" />
             <Stack.Screen name="tools/ad-creator" />
             <Stack.Screen name="tools/ai-studio" />
             <Stack.Screen name="tools/ai-assistant" />

@@ -1460,6 +1460,7 @@ export type Database = {
       auth_hierarchy_path: { Args: Record<PropertyKey, never>; Returns: unknown }
       auth_is_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
       auth_role_slug: { Args: Record<PropertyKey, never>; Returns: string }
+      become_partner: { Args: Record<PropertyKey, never>; Returns: string }
       complete_onboarding: {
         Args: { p_full_name: string; p_phone: string; p_referral_code?: string }
         Returns: undefined
