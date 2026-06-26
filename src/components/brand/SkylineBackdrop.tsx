@@ -11,7 +11,7 @@ import { color } from '@/theme/tokens';
  * text stays readable on top.
  */
 export function SkylineBackdrop({
-  opacity = 0.32,
+  opacity = 0.22,
   height = 300,
 }: {
   opacity?: number;
@@ -42,15 +42,15 @@ export function SkylineBackdrop({
         <Circle cx="328" cy="78" r="130" fill="url(#sun)" />
         <Circle cx="328" cy="78" r="36" fill={color.gold} />
 
-        {/* skyline silhouette */}
+        {/* cohesive skyline silhouette — charcoal with subtle goldDeep depth */}
         <Rect x="6" y="158" width="48" height="104" rx="3" fill={color.charcoal} />
-        <Rect x="60" y="120" width="40" height="142" rx="3" fill={color.goldDeep} />
-        <Rect x="106" y="176" width="42" height="86" rx="3" fill={color.charcoal} />
-        <Rect x="154" y="132" width="34" height="130" rx="3" fill={color.red} />
+        <Rect x="60" y="120" width="40" height="142" rx="3" fill={color.charcoal} />
+        <Rect x="106" y="176" width="42" height="86" rx="3" fill={color.goldDeep} />
+        <Rect x="154" y="132" width="34" height="130" rx="3" fill={color.charcoal} />
         <Rect x="194" y="186" width="50" height="76" rx="3" fill={color.charcoal} />
         <Rect x="250" y="150" width="36" height="112" rx="3" fill={color.goldDeep} />
         <Rect x="292" y="190" width="46" height="72" rx="3" fill={color.charcoal} />
-        <Rect x="344" y="162" width="40" height="100" rx="3" fill={color.red} />
+        <Rect x="344" y="162" width="40" height="100" rx="3" fill={color.charcoal} />
 
         {/* fade the whole scene into the page so content above stays readable */}
         <Rect x="0" y="150" width="400" height="150" fill="url(#fade)" />

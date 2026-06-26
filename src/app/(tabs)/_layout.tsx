@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { color } from '@/theme/tokens';
 import { useAuth } from '@/stores/auth';
@@ -12,6 +13,7 @@ import { useAuth } from '@/stores/auth';
  */
 export default function TabsLayout() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const role = useAuth((s) => s.profile?.role_slug);
   const isPartner = role != null && role !== 'buyer';
 
@@ -24,8 +26,10 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: color.surface,
           borderTopColor: color.line,
-          height: 64,
-          paddingBottom: 8,
+          // Edge-to-edge is on (app.json) so the Android system nav bar overlays
+          // the app — lift the tab bar above it with the bottom safe-area inset.
+          height: 64 + insets.bottom,
+          paddingBottom: 8 + insets.bottom,
           paddingTop: 6,
         },
         tabBarLabelStyle: { fontFamily: 'Inter_500Medium', fontSize: 11 },
