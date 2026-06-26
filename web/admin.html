@@ -116,8 +116,10 @@
         <button class="nav-i" data-tab="territories">🗺️ Territories</button>
         <button class="nav-i" data-tab="approvals">✅ Approvals <span id="apprDot" class="dot hidden">0</span></button>
         <button class="nav-i" data-tab="submissions">🖼️ Photo submissions <span id="subDot" class="dot hidden">0</span></button>
+        <button class="nav-i" data-tab="formsubs">📨 Form submissions <span id="formSubDot" class="dot hidden">0</span></button>
         <button class="nav-i" data-tab="payments">💳 Payments</button>
         <button class="nav-i" data-tab="chat">💬 Live chat</button>
+        <button class="nav-i" data-tab="forms">📋 Form Builder</button>
         <button class="nav-i" data-tab="features">🧩 Features</button>
         <button class="nav-i" data-tab="content">📝 App Content</button>
         <button class="nav-i" data-tab="announcements">📣 Announcements</button>
@@ -134,8 +136,10 @@
         <div id="tabTerritories" class="hidden"></div>
         <div id="tabApprovals" class="hidden"></div>
         <div id="tabSubmissions" class="hidden"></div>
+        <div id="tabFormsubs" class="hidden"></div>
         <div id="tabPayments" class="hidden"></div>
         <div id="tabChat" class="hidden"></div>
+        <div id="tabForms" class="hidden"></div>
         <div id="tabFeatures" class="hidden"></div>
         <div id="tabContent" class="hidden"></div>
         <div id="tabAnnouncements" class="hidden"></div>
@@ -200,6 +204,7 @@
         switchTab('properties');
         refreshApprovalsBadge();
         refreshSubmissionsBadge();
+        refreshFormSubsBadge();
       }
       function show(which) { $('loginView').classList.toggle('hidden', which !== 'login'); $('appView').classList.toggle('hidden', which !== 'app'); }
 
@@ -220,7 +225,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'payments', 'chat', 'features', 'content', 'announcements', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -229,8 +234,10 @@
         if (tab === 'territories') renderTerritories();
         if (tab === 'approvals') renderApprovals();
         if (tab === 'submissions') renderSubmissions();
+        if (tab === 'formsubs') renderFormSubs();
         if (tab === 'payments') renderPayments();
         if (tab === 'chat') renderChat();
+        if (tab === 'forms') renderFormBuilder();
         if (tab === 'features') renderFeatures();
         if (tab === 'content') renderAppContent();
         if (tab === 'announcements') renderAnnouncements();
@@ -779,6 +786,132 @@
       async function refreshSubmissionsBadge() {
         var c = await sb.from('property_media_submissions').select('id', { count: 'exact', head: true }).eq('status', 'pending');
         var dot = $('subDot'); if (!dot) return;
+        var n = c.count || 0; dot.textContent = n; dot.classList.toggle('hidden', n === 0);
+      }
+
+      // ─── Form Builder (form_definitions: activate + edit fields) ─────────
+      var FORM_FIELD_TYPES = ['text', 'textarea', 'number', 'tel', 'email', 'select', 'checkbox', 'date'];
+      var formEditState = {};
+      async function renderFormBuilder() {
+        var el = $('tabForms');
+        el.innerHTML = '<div class="head"><h2>Form Builder</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('form_definitions').select('id,key,name,fields,active').order('name');
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Form Builder</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>Form Builder</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">Every form is dynamic. Toggle a form <b>Active</b> and edit its fields. Active application forms (agent / promoter / lead / property) appear in the app’s <b>Applications &amp; Forms</b> hub; buyer / KYC / booking have their own screens. Changes are live in the app instantly.</div>' +
+          (rows.length ? rows.map(function (f) {
+            var fields = Array.isArray(f.fields) ? f.fields : [];
+            return '<div class="panel" data-id="' + f.id + '">' +
+              '<div class="row" style="justify-content:space-between;align-items:center">' +
+                '<div><b>' + esc(f.name) + '</b> <span class="mono muted">' + esc(f.key) + '</span> · <span class="muted">' + fields.length + ' fields</span></div>' +
+                '<label class="row" style="gap:6px;align-items:center;margin:0"><input type="checkbox" class="fd_active"' + (f.active ? ' checked' : '') + ' /> Active</label>' +
+              '</div>' +
+              '<div class="row" style="margin-top:8px"><input class="inp fd_name" style="max-width:280px" value="' + esc(f.name) + '" /><button class="btn btn-sm fd_rename">Rename</button><button class="btn-o btn-sm fd_edit">Edit fields</button></div>' +
+              '<div class="fd_editor hidden" style="margin-top:10px"></div>' +
+            '</div>';
+          }).join('') : '<div class="muted">No forms defined.</div>');
+        el.querySelectorAll('.panel[data-id]').forEach(function (p) {
+          var id = p.dataset.id;
+          var row = rows.filter(function (r) { return r.id === id; })[0];
+          p.querySelector('.fd_active').onchange = async function () {
+            var r = await sb.from('form_definitions').update({ active: this.checked }).eq('id', id);
+            if (r.error) { alert(r.error.message); this.checked = !this.checked; }
+          };
+          p.querySelector('.fd_rename').onclick = async function () {
+            var nm = p.querySelector('.fd_name').value.trim(); if (!nm) return alert('Name required.');
+            this.textContent = '…'; var r = await sb.from('form_definitions').update({ name: nm }).eq('id', id);
+            this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+          p.querySelector('.fd_edit').onclick = function () {
+            var ed = p.querySelector('.fd_editor');
+            if (!ed.classList.contains('hidden')) { ed.classList.add('hidden'); return; }
+            ed.classList.remove('hidden');
+            formEditState[id] = JSON.parse(JSON.stringify(Array.isArray(row.fields) ? row.fields : []));
+            drawFieldEditor(ed, id);
+          };
+        });
+      }
+      function drawFieldEditor(ed, id) {
+        var fields = formEditState[id];
+        ed.innerHTML =
+          (fields.length ? '<table><thead><tr><th>Label</th><th>Key</th><th>Type</th><th>Req</th><th>Options (select only, comma-sep)</th><th></th></tr></thead><tbody>' +
+          fields.map(function (f, i) {
+            return '<tr data-i="' + i + '">' +
+              '<td><input class="inp ff_label" style="width:150px;height:34px" value="' + esc(f.label || '') + '" /></td>' +
+              '<td><input class="inp ff_name" style="width:120px;height:34px" value="' + esc(f.name || '') + '" /></td>' +
+              '<td><select class="inp ff_type" style="height:34px">' + FORM_FIELD_TYPES.map(function (t) { return '<option value="' + t + '"' + (t === f.type ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></td>' +
+              '<td><input type="checkbox" class="ff_req"' + (f.required ? ' checked' : '') + ' /></td>' +
+              '<td><input class="inp ff_opts" style="width:200px;height:34px" value="' + esc((f.options || []).join(', ')) + '" /></td>' +
+              '<td class="row"><button class="btn-o btn-sm ff_up">↑</button><button class="btn-o btn-sm ff_down">↓</button><button class="btn-sm ff_del" style="background:#fee;color:#c00">✕</button></td>' +
+            '</tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No fields yet — add one below.</div>') +
+          '<div class="row" style="margin-top:8px"><button class="btn-o btn-sm ff_add">+ Add field</button><button class="btn btn-sm ff_save">Save fields</button></div>';
+        function readRow(tr) {
+          var i = +tr.dataset.i;
+          var type = tr.querySelector('.ff_type').value;
+          var o = { label: tr.querySelector('.ff_label').value, name: tr.querySelector('.ff_name').value.replace(/\s+/g, '_').toLowerCase(), type: type, required: tr.querySelector('.ff_req').checked };
+          if (type === 'select') o.options = tr.querySelector('.ff_opts').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+          fields[i] = o;
+        }
+        function syncAll() { ed.querySelectorAll('tr[data-i]').forEach(readRow); }
+        ed.querySelectorAll('tr[data-i]').forEach(function (tr) {
+          var i = +tr.dataset.i;
+          tr.querySelector('.ff_up').onclick = function () { syncAll(); if (i > 0) { var t = fields[i - 1]; fields[i - 1] = fields[i]; fields[i] = t; } drawFieldEditor(ed, id); };
+          tr.querySelector('.ff_down').onclick = function () { syncAll(); if (i < fields.length - 1) { var t = fields[i + 1]; fields[i + 1] = fields[i]; fields[i] = t; } drawFieldEditor(ed, id); };
+          tr.querySelector('.ff_del').onclick = function () { syncAll(); fields.splice(i, 1); drawFieldEditor(ed, id); };
+        });
+        ed.querySelector('.ff_add').onclick = function () { syncAll(); var n = fields.length + 1; fields.push({ name: 'field_' + n, label: 'New field ' + n, type: 'text' }); drawFieldEditor(ed, id); };
+        ed.querySelector('.ff_save').onclick = async function () {
+          syncAll();
+          var names = fields.map(function (f) { return (f.name || '').trim(); });
+          if (names.some(function (n) { return !n; }) || new Set(names).size !== names.length) return alert('Each field needs a unique, non-empty key.');
+          this.textContent = '…';
+          var r = await sb.from('form_definitions').update({ fields: fields }).eq('id', id);
+          if (r.error) { this.textContent = 'Save fields'; return alert(r.error.message); }
+          this.textContent = 'Saved ✓'; renderFormBuilder();
+        };
+      }
+
+      // ─── Form submissions (form_submissions: applications & enquiries) ──
+      var FORM_SUB_STATUSES = ['submitted', 'reviewed', 'approved', 'rejected'];
+      var formSubFilter = 'all';
+      async function renderFormSubs() {
+        var el = $('tabFormsubs');
+        el.innerHTML = '<div class="head"><h2>Form submissions</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('form_submissions').select('id,form_key,data,status,created_at, user:profiles(full_name)').order('created_at', { ascending: false }).limit(500);
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Form submissions</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        var keys = rows.reduce(function (a, r) { if (a.indexOf(r.form_key) < 0) a.push(r.form_key); return a; }, []);
+        var shown = formSubFilter === 'all' ? rows : rows.filter(function (r) { return r.form_key === formSubFilter; });
+        el.innerHTML = '<div class="head"><h2>Form submissions</h2></div>' +
+          '<div class="muted" style="margin-bottom:8px">Applications &amp; enquiries from the app’s dynamic forms (agent / promoter / lead / property + KYC / enquiry). Update each one’s status as you process it.</div>' +
+          '<div class="row" style="margin-bottom:10px">' + ['all'].concat(keys).map(function (k) { return '<button class="' + (k === formSubFilter ? 'btn' : 'btn-o') + ' btn-sm fs_filt" data-k="' + esc(k) + '">' + esc(k) + '</button>'; }).join('') + '</div>' +
+          (shown.length ? '<table><thead><tr><th>Type</th><th>From</th><th>When</th><th>Details</th><th>Status</th></tr></thead><tbody>' +
+          shown.map(function (s) {
+            var d = s.data || {};
+            var details = Object.keys(d).map(function (k) { return '<div><span class="muted">' + esc(k.replace(/_/g, ' ')) + ':</span> ' + esc(d[k] == null || d[k] === '' ? '—' : String(d[k])) + '</div>'; }).join('');
+            return '<tr data-id="' + s.id + '">' +
+              '<td><b>' + esc(s.form_key) + '</b></td>' +
+              '<td>' + esc(s.user ? s.user.full_name : '—') + '</td>' +
+              '<td class="muted">' + new Date(s.created_at).toLocaleDateString() + '</td>' +
+              '<td style="font-size:12px;line-height:1.5">' + (details || '<span class="muted">—</span>') + '</td>' +
+              '<td><select class="inp fs_status" style="width:130px;height:36px">' + FORM_SUB_STATUSES.map(function (t) { return '<option value="' + t + '"' + (t === s.status ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No submissions' + (formSubFilter === 'all' ? '' : ' for “' + esc(formSubFilter) + '”') + ' yet.</div>');
+        el.querySelectorAll('.fs_filt').forEach(function (b) { b.onclick = function () { formSubFilter = b.dataset.k; renderFormSubs(); }; });
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          tr.querySelector('.fs_status').onchange = async function () {
+            var r = await sb.from('form_submissions').update({ status: this.value }).eq('id', id);
+            if (r.error) alert(r.error.message);
+            refreshFormSubsBadge();
+          };
+        });
+        refreshFormSubsBadge();
+      }
+      async function refreshFormSubsBadge() {
+        var c = await sb.from('form_submissions').select('id', { count: 'exact', head: true }).eq('status', 'submitted');
+        var dot = $('formSubDot'); if (!dot) return;
         var n = c.count || 0; dot.textContent = n; dot.classList.toggle('hidden', n === 0);
       }
 
