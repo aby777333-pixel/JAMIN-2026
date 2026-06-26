@@ -60,6 +60,24 @@ export async function getMemberStats(memberId: string): Promise<MemberStats | nu
   return (data as unknown as MemberStats) ?? null;
 }
 
+export interface RosterMember {
+  id: string;
+  parent_id: string | null;
+  role: { name: string; level: number } | null;
+  territory: { name: string } | null;
+}
+
+/** Subtree roster with rank + territory, for the team-performance breakdown (RLS-scoped). */
+export async function getTeamRoster(): Promise<RosterMember[]> {
+  const { data: me } = await supabase.auth.getUser();
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, parent_id, role:roles(name,level), territory:territories(name)')
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return ((data ?? []) as unknown as RosterMember[]).filter((r) => r.id !== me.user?.id);
+}
+
 /** Resolve a territory name for display (§6 Territory Management — assigned by admin). */
 export async function getTerritoryName(territoryId: string | null): Promise<string | null> {
   if (!territoryId) return null;

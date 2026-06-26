@@ -1,9 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { getDownline, getMemberStats, getTeamSummary, getTerritoryName } from './api';
+import { getDownline, getMemberStats, getTeamRoster, getTeamSummary, getTerritoryName } from './api';
 
 export function useDownline() {
   return useQuery({ queryKey: ['downline'], queryFn: getDownline });
+}
+
+export function useTeamRoster() {
+  return useQuery({ queryKey: ['team-roster'], queryFn: getTeamRoster });
 }
 
 export function useTeamSummary() {

@@ -36,6 +36,7 @@ export default function Home() {
   const signOut = useAuth((s) => s.signOut);
   const isPartner = !!profile?.role_slug && profile.role_slug !== 'buyer';
   const canTeam = can(profile, 'team');
+  const canAnalytics = can(profile, 'teamAnalytics');
 
   const { data: summary } = useWalletSummary();
   const { data: team = [] } = useDownline();
@@ -215,6 +216,9 @@ export default function Home() {
             <QuickLink icon="trophy" label="Rewards" tint="#D97706" onPress={() => router.push('/rewards')} />
             {canTeam ? (
               <QuickLink icon="git-network" label="Network" tint="#0D9488" onPress={() => router.push('/(tabs)/network')} />
+            ) : null}
+            {canAnalytics ? (
+              <QuickLink icon="bar-chart" label="Performance" tint="#4F46E5" onPress={() => router.push('/performance')} />
             ) : null}
             <QuickLink icon="wallet" label="Wallet" tint="#16A34A" onPress={() => router.push('/(tabs)/wallet')} />
             <QuickLink icon="receipt" label="Bookings" tint="#EA580C" onPress={() => router.push('/payments')} />
