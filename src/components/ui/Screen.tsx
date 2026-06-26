@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { ScrollView, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { cn } from '@/lib/cn';
@@ -16,6 +16,7 @@ export function Screen({
   contentClassName,
   edges = true,
   backdrop,
+  keyboardAvoiding = false,
 }: {
   children: ReactNode;
   scroll?: boolean;
@@ -24,20 +25,33 @@ export function Screen({
   edges?: boolean;
   /** Optional decorative layer rendered behind the content (e.g. a brand backdrop). */
   backdrop?: ReactNode;
+  /** Lift inputs above the on-screen keyboard (forms). Opt-in to avoid affecting other screens. */
+  keyboardAvoiding?: boolean;
 }) {
   const insets = useSafeAreaInsets();
   const pad = edges ? { paddingTop: insets.top, paddingBottom: insets.bottom } : undefined;
 
   if (scroll) {
+    const scroller = (
+      <ScrollView
+        contentContainerClassName={cn('px-5 pb-8 grow', contentClassName)}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        {children}
+      </ScrollView>
+    );
     return (
       <View className={cn('flex-1 bg-paper', className)} style={pad}>
         {backdrop}
-        <ScrollView
-          contentContainerClassName={cn('px-5 pb-8 grow', contentClassName)}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
-          {children}
-        </ScrollView>
+        {keyboardAvoiding ? (
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            {scroller}
+          </KeyboardAvoidingView>
+        ) : (
+          scroller
+        )}
       </View>
     );
   }

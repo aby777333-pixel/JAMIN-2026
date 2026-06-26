@@ -30,7 +30,7 @@ export default function DynamicFormScreen() {
   }
 
   return (
-    <Screen contentClassName="pb-10 gap-4">
+    <Screen contentClassName="pb-10 gap-4" keyboardAvoiding>
       <BackHeader title={form?.name ?? 'Form'} />
 
       {isLoading ? (

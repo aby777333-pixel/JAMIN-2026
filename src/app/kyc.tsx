@@ -41,7 +41,7 @@ export default function Kyc() {
   }
 
   return (
-    <Screen contentClassName="pb-10 gap-4">
+    <Screen contentClassName="pb-10 gap-4" keyboardAvoiding>
       <BackHeader title="KYC Verification" />
 
       <Card className="flex-row items-center justify-between">
