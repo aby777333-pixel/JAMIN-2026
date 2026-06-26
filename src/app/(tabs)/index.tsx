@@ -200,18 +200,18 @@ export default function Home() {
           </View>
 
           <View className="flex-row flex-wrap gap-3">
-            <QuickLink icon="people" label="Leads" onPress={() => router.push('/leads')} />
-            <QuickLink icon="camera" label="Create Ad" onPress={() => router.push('/tools/ad-creator')} />
-            <QuickLink icon="document-text" label="Brochures" onPress={() => router.push('/brochures')} />
-            <QuickLink icon="sparkles" label="AI Studio" onPress={() => router.push('/tools/ai-studio')} />
-            <QuickLink icon="trophy" label="Rewards" onPress={() => router.push('/rewards')} />
-            <QuickLink icon="git-network" label="Network" onPress={() => router.push('/(tabs)/network')} />
-            <QuickLink icon="wallet" label="Wallet" onPress={() => router.push('/(tabs)/wallet')} />
-            <QuickLink icon="receipt" label="Bookings" onPress={() => router.push('/payments')} />
-            <QuickLink icon="qr-code" label="My Card" onPress={() => router.push('/(tabs)/card')} />
-            <QuickLink icon="clipboard" label="Forms" onPress={() => router.push('/forms')} />
+            <QuickLink icon="people" label="Leads" tint="#2563EB" onPress={() => router.push('/leads')} />
+            <QuickLink icon="camera" label="Create Ad" tint="#E11D48" onPress={() => router.push('/tools/ad-creator')} />
+            <QuickLink icon="document-text" label="Brochures" tint="#7C3AED" onPress={() => router.push('/brochures')} />
+            <QuickLink icon="sparkles" label="AI Studio" tint="#9333EA" onPress={() => router.push('/tools/ai-studio')} />
+            <QuickLink icon="trophy" label="Rewards" tint="#D97706" onPress={() => router.push('/rewards')} />
+            <QuickLink icon="git-network" label="Network" tint="#0D9488" onPress={() => router.push('/(tabs)/network')} />
+            <QuickLink icon="wallet" label="Wallet" tint="#16A34A" onPress={() => router.push('/(tabs)/wallet')} />
+            <QuickLink icon="receipt" label="Bookings" tint="#EA580C" onPress={() => router.push('/payments')} />
+            <QuickLink icon="qr-code" label="My Card" tint="#0891B2" onPress={() => router.push('/(tabs)/card')} />
+            <QuickLink icon="clipboard" label="Forms" tint="#475569" onPress={() => router.push('/forms')} />
             {profile?.role_is_admin ? (
-              <QuickLink icon="shield-checkmark" label="Admin" onPress={() => router.push('/admin')} />
+              <QuickLink icon="shield-checkmark" label="Admin" tint="#DC2626" onPress={() => router.push('/admin')} />
             ) : null}
           </View>
         </>
@@ -248,17 +248,22 @@ function QuickLink({
   icon,
   label,
   onPress,
+  tint = color.red,
 }: {
   icon: keyof typeof import('@expo/vector-icons').Ionicons.glyphMap;
   label: string;
   onPress: () => void;
+  /** Accent color for this tile's icon + soft icon background. */
+  tint?: string;
 }) {
   return (
     <Pressable
       onPress={onPress}
       className="w-[47%] flex-grow flex-row items-center gap-3 rounded-2xl border border-line bg-surface p-4">
-      <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
-        <Ionicons name={icon} size={20} color={color.red} />
+      <View
+        className="h-10 w-10 items-center justify-center rounded-xl"
+        style={{ backgroundColor: `${tint}1A` }}>
+        <Ionicons name={icon} size={20} color={tint} />
       </View>
       <Text variant="title" className="text-[15px]">
         {label}
