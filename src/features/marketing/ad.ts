@@ -1,3 +1,4 @@
+import { SITE_URL } from '@/lib/site';
 import { supabase } from '@/lib/supabase';
 import { uploadImageToBucket } from '@/lib/upload';
 
@@ -8,7 +9,7 @@ import { uploadImageToBucket } from '@/lib/upload';
  * (jaminproperties.co's DNS is not live yet — use the Netlify domain so the link
  * always resolves).
  */
-export const AD_SITE = 'https://wonderful-cupcake-0d3074.netlify.app';
+export const AD_SITE = SITE_URL;
 
 export interface PublishAdInput {
   uri: string;

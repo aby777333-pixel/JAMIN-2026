@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { SITE_URL } from '@/lib/site';
 import * as api from './api';
 
 /**
@@ -13,13 +14,13 @@ export const CONTENT_DEFAULTS: Record<string, string> = {
   'home.buyer_card_title': 'Find your next property',
   'home.buyer_card_body': 'Browse dynamic inventory, calculate EMI & ROI, and enquire or book a visit.',
   'support.hours': 'Mon–Sat, 10am–7pm IST',
-  'social.website': 'https://jaminproperties.co',
+  'social.website': SITE_URL,
   'calc.emi_down_pct': '20',
   'calc.emi_rate': '9',
   'calc.emi_years': '10',
   'calc.roi_appreciation': '8',
   'calc.roi_years': '5',
-  'legal.privacy_url': 'https://jaminproperties.co/privacy',
+  'legal.privacy_url': `${SITE_URL}/privacy.html`,
   'kyc.intro': 'Verify your identity to unlock payouts',
   'kyc.pending_msg': "Your documents are under review. We'll notify you once approved.",
   'kyc.verified_msg': "You're verified. Nothing more to do here.",

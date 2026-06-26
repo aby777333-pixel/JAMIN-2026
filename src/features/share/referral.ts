@@ -1,9 +1,10 @@
 import { Share } from 'react-native';
 
 import { deviceInfo } from '@/features/referral/device';
+import { SITE_URL } from '@/lib/site';
 import { supabase } from '@/lib/supabase';
 
-const BASE = 'https://jaminproperties.co';
+const BASE = SITE_URL;
 
 /**
  * Share with referral attribution (§5.05 property sharing / referral links, §8).

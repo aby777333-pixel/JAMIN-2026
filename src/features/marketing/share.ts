@@ -3,6 +3,7 @@ import * as Sharing from 'expo-sharing';
 import { Alert, Linking, Share } from 'react-native';
 
 import { deviceInfo } from '@/features/referral/device';
+import { SITE_URL } from '@/lib/site';
 import { supabase } from '@/lib/supabase';
 
 export type Channel =
@@ -16,7 +17,7 @@ export type Channel =
   | 'copy'
   | 'system';
 
-export const BASE_URL = 'https://jaminproperties.co';
+export const BASE_URL = SITE_URL;
 
 export function referralUrl(referralCode: string, propertyId?: string, campaignSlug?: string) {
   const base = propertyId

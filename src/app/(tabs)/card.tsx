@@ -12,6 +12,7 @@ import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { logArtifactShare } from '@/features/marketing/share';
 import { shareVCard } from '@/features/marketing/vcard';
+import { SITE_HOST, SITE_URL } from '@/lib/site';
 import { useAuth } from '@/stores/auth';
 import { BRAND, TAGLINE, color } from '@/theme/tokens';
 
@@ -26,7 +27,7 @@ export default function CardScreen() {
   const cardRef = useRef<View>(null);
 
   const code = profile?.referral_code ?? 'JAMIN';
-  const referralUrl = `https://jaminproperties.co/r/${code}`;
+  const referralUrl = `${SITE_URL}/r/${code}`;
 
   async function onVCard() {
     await shareVCard({
@@ -94,7 +95,7 @@ export default function CardScreen() {
             <Text className="min-w-0 flex-1 font-medium text-[10px] uppercase tracking-[1.5px] text-gold" numberOfLines={1}>
               {TAGLINE}
             </Text>
-            <Text className="text-[10px] text-white/50" numberOfLines={1}>jaminproperties.co</Text>
+            <Text className="text-[10px] text-white/50" numberOfLines={1}>{SITE_HOST}</Text>
           </View>
         </View>
       </View>
