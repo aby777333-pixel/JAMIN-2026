@@ -959,6 +959,7 @@
             return '<div style="align-self:' + (mine ? 'flex-end' : 'flex-start') + ';max-width:80%;background:' + (mine ? '#fd0001' : '#fff') + ';color:' + (mine ? '#fff' : '#1a1a1a') + ';border:1px solid #e6e7e2;border-radius:12px;padding:8px 12px;font-size:14px">' +
               '<div style="font-size:10px;opacity:.7;margin-bottom:2px">' + esc(mine ? 'You' : (m.name || 'Visitor')) + '</div>' + esc(m.body) + '</div>';
           }).join('') : '<div class="muted">No messages.</div>') + '</div>' +
+          '<div class="row" style="margin-top:10px;gap:8px"><a class="btn-o btn-sm" target="_blank" rel="noopener" href="https://meet.jit.si/JAMINAD' + esc(s) + '#userInfo.displayName=%22JAMIN%22&config.prejoinPageEnabled=false&config.startAudioOnly=true">📞 Join voice</a><a class="btn-o btn-sm" target="_blank" rel="noopener" href="https://meet.jit.si/JAMINAD' + esc(s) + '#userInfo.displayName=%22JAMIN%22&config.prejoinPageEnabled=false">📹 Join video</a></div>' +
           '<div class="row" style="margin-top:10px"><input id="ac_in" class="inp" style="flex:1" placeholder="Reply to the visitor…" /><button class="btn" id="ac_send">Send</button></div>';
         $('ac_back').onclick = function () { adChatSlug = null; renderAdChats(); };
         async function send() {

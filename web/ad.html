@@ -139,6 +139,8 @@
         var actions =
           (digits ? '<a class="big wa" href="https://wa.me/' + digits + '?text=' + waText + '">💬 Chat on WhatsApp</a>' : '') +
           (digits ? '<a class="big primary" href="tel:' + esc(ad.agent_phone) + '">📞 Call ' + esc(name) + '</a>' : '') +
+          '<button class="big o" id="voiceCall">📞 Voice call (in-app)</button>' +
+          '<button class="big o" id="videoCall">📹 Video call (in-app)</button>' +
           '<button class="big o" id="liveChatBtn">💬 Live chat here</button>' +
           '<button class="big o" id="saveContact">👤 Save contact</button>' +
           '<a class="big o" href="' + esc(ad.image_url) + '" target="_blank" rel="noopener" download>⬇ Download / save ad</a>' +
@@ -201,6 +203,20 @@
         };
         var lc = document.getElementById('liveChatBtn');
         if (lc) lc.onclick = function () { var p = document.getElementById('chatPanel'); if (p) { p.scrollIntoView({ behavior: 'smooth', block: 'start' }); var i = document.getElementById('chatInput'); if (i) setTimeout(function () { i.focus(); }, 350); } };
+
+        // In-app voice/video calls (Jitsi — no install, no infra). Both sides join
+        // the same per-ad room; the visitor's call notifies the agent via chat.
+        function callRoom() { return 'JAMINAD' + slug.replace(/[^A-Za-z0-9]/g, ''); }
+        function startCall(video) {
+          var nm = localStorage.getItem('jamin_chat_name');
+          if (!nm) { nm = (prompt('Your name (so the advertiser knows who is calling):') || 'Guest').trim() || 'Guest'; try { localStorage.setItem('jamin_chat_name', nm); } catch (e) {} }
+          var url = 'https://meet.jit.si/' + callRoom() + '#userInfo.displayName=' + encodeURIComponent('"' + nm + '"') + '&config.prejoinPageEnabled=false' + (video ? '' : '&config.startAudioOnly=true');
+          fetch(REST + 'ad_messages', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }, H),
+            body: JSON.stringify({ slug: slug, sender: 'visitor', name: nm, body: (video ? '📹 Started a video call' : '📞 Started a voice call') + ' — tap “Join” in your console to connect.' }) }).then(loadMessages).catch(function () {});
+          window.open(url, '_blank');
+        }
+        var vc = document.getElementById('voiceCall'); if (vc) vc.onclick = function () { startCall(false); };
+        var vd = document.getElementById('videoCall'); if (vd) vd.onclick = function () { startCall(true); };
 
         // QR modal
         var modal = document.getElementById('qrModal');
