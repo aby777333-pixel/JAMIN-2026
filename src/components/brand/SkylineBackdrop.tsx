@@ -1,17 +1,18 @@
 import { View } from 'react-native';
-import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { color } from '@/theme/tokens';
 
 /**
- * Subtle real-estate skyline motif (buildings + a low sun) for the top of
- * content screens. Brand-tinted, very low opacity, anchored top and
- * non-interactive — purely decorative so it never interferes with content
- * or input. Mirrors the FieldsBackdrop pattern (no binary assets, SVG only).
+ * Branded real-estate hero backdrop (warm sky + sun glow + skyline silhouette)
+ * anchored to the top of content screens and faded into the paper background.
+ * Brand-tinted, non-interactive — decorative only, so it never blocks content
+ * or input. SVG only (no binary assets, no extra deps). Visible-but-soft so
+ * text stays readable on top.
  */
 export function SkylineBackdrop({
-  opacity = 0.07,
-  height = 220,
+  opacity = 0.32,
+  height = 300,
 }: {
   opacity?: number;
   height?: number;
@@ -20,20 +21,40 @@ export function SkylineBackdrop({
     <View
       pointerEvents="none"
       style={{ position: 'absolute', left: 0, right: 0, top: 0, height, opacity }}>
-      <Svg width="100%" height="100%" viewBox="0 0 400 220" preserveAspectRatio="xMidYMin slice">
-        {/* low sun */}
-        <Circle cx="330" cy="58" r="40" fill={color.gold} />
+      <Svg width="100%" height="100%" viewBox="0 0 400 300" preserveAspectRatio="xMidYMin slice">
+        <Defs>
+          <LinearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={color.gold} stopOpacity="0.5" />
+            <Stop offset="1" stopColor={color.gold} stopOpacity="0" />
+          </LinearGradient>
+          <RadialGradient id="sun" cx="0.82" cy="0.26" r="0.55">
+            <Stop offset="0" stopColor={color.gold} stopOpacity="0.95" />
+            <Stop offset="1" stopColor={color.gold} stopOpacity="0" />
+          </RadialGradient>
+          <LinearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={color.paper} stopOpacity="0" />
+            <Stop offset="1" stopColor={color.paper} stopOpacity="1" />
+          </LinearGradient>
+        </Defs>
+
+        {/* warm sky wash + low sun */}
+        <Rect x="0" y="0" width="400" height="300" fill="url(#sky)" />
+        <Circle cx="328" cy="78" r="130" fill="url(#sun)" />
+        <Circle cx="328" cy="78" r="36" fill={color.gold} />
+
         {/* skyline silhouette */}
-        <Rect x="18" y="120" width="44" height="92" rx="3" fill={color.charcoal} />
-        <Rect x="70" y="92" width="36" height="120" rx="3" fill={color.goldDeep} />
-        <Rect x="114" y="138" width="40" height="74" rx="3" fill={color.charcoal} />
-        <Rect x="162" y="104" width="32" height="108" rx="3" fill={color.red} />
-        <Rect x="202" y="148" width="46" height="64" rx="3" fill={color.charcoal} />
-        <Rect x="256" y="118" width="34" height="94" rx="3" fill={color.goldDeep} />
-        <Rect x="298" y="150" width="42" height="62" rx="3" fill={color.charcoal} />
-        <Rect x="348" y="128" width="36" height="84" rx="3" fill={color.red} />
-        {/* ground line */}
-        <Path d="M0 210 H400 V220 H0 Z" fill={color.charcoal} />
+        <Rect x="6" y="158" width="48" height="104" rx="3" fill={color.charcoal} />
+        <Rect x="60" y="120" width="40" height="142" rx="3" fill={color.goldDeep} />
+        <Rect x="106" y="176" width="42" height="86" rx="3" fill={color.charcoal} />
+        <Rect x="154" y="132" width="34" height="130" rx="3" fill={color.red} />
+        <Rect x="194" y="186" width="50" height="76" rx="3" fill={color.charcoal} />
+        <Rect x="250" y="150" width="36" height="112" rx="3" fill={color.goldDeep} />
+        <Rect x="292" y="190" width="46" height="72" rx="3" fill={color.charcoal} />
+        <Rect x="344" y="162" width="40" height="100" rx="3" fill={color.red} />
+
+        {/* fade the whole scene into the page so content above stays readable */}
+        <Rect x="0" y="150" width="400" height="150" fill="url(#fade)" />
+        <Path d="M0 258 H400 V300 H0 Z" fill={color.paper} />
       </Svg>
     </View>
   );

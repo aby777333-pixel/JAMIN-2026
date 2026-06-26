@@ -61,7 +61,7 @@ export default function Home() {
   }
 
   return (
-    <Screen contentClassName="pt-4 gap-4" backdrop={<SkylineBackdrop opacity={0.05} />}>
+    <Screen contentClassName="pt-4 gap-4" backdrop={<SkylineBackdrop />}>
       <View className="flex-row items-start justify-between gap-3">
         <View className="min-w-0 flex-1">
           <Text variant="label">{t('home.greeting')}</Text>

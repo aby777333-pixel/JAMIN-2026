@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, View } from 'react-native';
 
+import { SkylineBackdrop } from '@/components/brand/SkylineBackdrop';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
@@ -24,7 +25,7 @@ export default function Wallet() {
   const balance = summary?.balance ?? '0';
 
   return (
-    <Screen contentClassName="pt-4 gap-4">
+    <Screen contentClassName="pt-4 gap-4" backdrop={<SkylineBackdrop />}>
       <Text variant="h1">{t('tabs.wallet')}</Text>
 
       <Card className="bg-charcoal">
