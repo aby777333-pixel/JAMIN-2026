@@ -37,6 +37,13 @@
       .big.primary { background:var(--red); color:#fff; }
       .big.wa { background:#25d366; color:#fff; }
       .big.o { background:#fff; color:var(--ink); border:1px solid var(--line); }
+      .big.blue { background:#2563eb; color:#fff; }
+      .big.purple { background:#7c3aed; color:#fff; }
+      .big.teal { background:#0ea5a4; color:#fff; }
+      .big.dark { background:var(--charcoal); color:#fff; }
+      .big.amber { background:var(--gold-deep); color:#fff; }
+      .big.slate { background:#475569; color:#fff; }
+      .big.gold { background:var(--gold); color:var(--ink); }
       /* Sender card */
       .sender { display:flex; align-items:center; gap:14px; background:var(--charcoal); color:#fff; border-radius:16px; padding:16px; margin-top:14px; }
       .sender .who b { font-size:16px; }
@@ -139,13 +146,13 @@
         var actions =
           (digits ? '<a class="big wa" href="https://wa.me/' + digits + '?text=' + waText + '">💬 Chat on WhatsApp</a>' : '') +
           (digits ? '<a class="big primary" href="tel:' + esc(ad.agent_phone) + '">📞 Call ' + esc(name) + '</a>' : '') +
-          '<button class="big o" id="voiceCall">📞 Voice call (in-app)</button>' +
-          '<button class="big o" id="videoCall">📹 Video call (in-app)</button>' +
-          '<button class="big o" id="liveChatBtn">💬 Live chat here</button>' +
-          '<button class="big o" id="saveContact">👤 Save contact</button>' +
-          '<a class="big o" href="' + esc(ad.image_url) + '" target="_blank" rel="noopener" download>⬇ Download / save ad</a>' +
-          '<button class="big o" id="shareBtn">↗ Share this ad</button>' +
-          '<a class="big o" href="/">🏠 Explore more properties</a>';
+          '<button class="big blue" id="voiceCall">📞 Voice call (in-app)</button>' +
+          '<button class="big purple" id="videoCall">📹 Video call (in-app)</button>' +
+          '<button class="big teal" id="liveChatBtn">💬 Live chat here</button>' +
+          '<button class="big dark" id="saveContact">👤 Save contact</button>' +
+          '<a class="big amber" href="' + esc(ad.image_url) + '" target="_blank" rel="noopener" download>⬇ Download / save ad</a>' +
+          '<button class="big slate" id="shareBtn">↗ Share this ad</button>' +
+          '<a class="big gold" href="/">🏠 Explore more properties</a>';
 
         var sender =
           '<div class="sender"><div class="who"><b>' + esc(name) + '</b>' +
