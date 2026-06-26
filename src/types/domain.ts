@@ -23,6 +23,8 @@ export interface Profile {
   role_id: string | null;
   role_slug: RoleSlug | null;
   role_is_admin: boolean;
+  /** Rank in the hierarchy (1 = Super Admin … 7 = Buyer). Drives capability gating. */
+  role_level: number | null;
   parent_id: string | null;
   hierarchy_path: string | null;
   referral_code: string;

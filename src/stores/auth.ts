@@ -77,18 +77,21 @@ export const useAuth = create<AuthState>((set, get) => ({
     if (!session) return;
     const { data } = await supabase
       .from('profiles')
-      .select('*, role:roles(slug, is_admin)')
+      .select('*, role:roles(slug, is_admin, level)')
       .eq('id', session.user.id)
       .maybeSingle();
 
     const row = data as
-      | (Record<string, unknown> & { role?: { slug?: string; is_admin?: boolean } | null })
+      | (Record<string, unknown> & {
+          role?: { slug?: string; is_admin?: boolean; level?: number } | null;
+        })
       | null;
     const profile = row
       ? ({
           ...row,
           role_slug: row.role?.slug ?? null,
           role_is_admin: row.role?.is_admin ?? false,
+          role_level: row.role?.level ?? null,
         } as unknown as Profile)
       : null;
     set({

@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { can } from '@/lib/access';
 import { color } from '@/theme/tokens';
 import { useAuth } from '@/stores/auth';
 
@@ -14,8 +15,7 @@ import { useAuth } from '@/stores/auth';
 export default function TabsLayout() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const role = useAuth((s) => s.profile?.role_slug);
-  const isPartner = role != null && role !== 'buyer';
+  const profile = useAuth((s) => s.profile);
 
   return (
     <Tabs
@@ -59,7 +59,7 @@ export default function TabsLayout() {
         name="network"
         options={{
           title: t('tabs.network'),
-          href: isPartner ? undefined : null,
+          href: can(profile, 'team') ? undefined : null,
           tabBarIcon: ({ color: c, size }) => <Ionicons name="people" color={c} size={size} />,
         }}
       />
@@ -67,7 +67,7 @@ export default function TabsLayout() {
         name="wallet"
         options={{
           title: t('tabs.wallet'),
-          href: isPartner ? undefined : null,
+          href: can(profile, 'sell') ? undefined : null,
           tabBarIcon: ({ color: c, size }) => <Ionicons name="wallet" color={c} size={size} />,
         }}
       />

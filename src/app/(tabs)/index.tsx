@@ -21,6 +21,7 @@ import { useUnreadCount } from '@/features/notifications/api';
 import { shareReferral } from '@/features/share/referral';
 import { useDownline } from '@/features/team/hooks';
 import { useWalletSummary } from '@/features/wallet/hooks';
+import { can } from '@/lib/access';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
 
@@ -34,6 +35,7 @@ export default function Home() {
   const profile = useAuth((s) => s.profile);
   const signOut = useAuth((s) => s.signOut);
   const isPartner = !!profile?.role_slug && profile.role_slug !== 'buyer';
+  const canTeam = can(profile, 'team');
 
   const { data: summary } = useWalletSummary();
   const { data: team = [] } = useDownline();
@@ -195,9 +197,11 @@ export default function Home() {
             </StatCard>
           </View>
           <View className="flex-row gap-3">
-            <StatCard label="Team" icon="people">
-              <Text className="font-mono-bold text-[18px] text-ink">{team.length}</Text>
-            </StatCard>
+            {canTeam ? (
+              <StatCard label="Team" icon="people">
+                <Text className="font-mono-bold text-[18px] text-ink">{team.length}</Text>
+              </StatCard>
+            ) : null}
             <StatCard label="Active leads" icon="flame">
               <Text className="font-mono-bold text-[18px] text-ink">{activeLeads}</Text>
             </StatCard>
@@ -209,7 +213,9 @@ export default function Home() {
             <QuickLink icon="document-text" label="Brochures" tint="#7C3AED" onPress={() => router.push('/brochures')} />
             <QuickLink icon="sparkles" label="AI Studio" tint="#9333EA" onPress={() => router.push('/tools/ai-studio')} />
             <QuickLink icon="trophy" label="Rewards" tint="#D97706" onPress={() => router.push('/rewards')} />
-            <QuickLink icon="git-network" label="Network" tint="#0D9488" onPress={() => router.push('/(tabs)/network')} />
+            {canTeam ? (
+              <QuickLink icon="git-network" label="Network" tint="#0D9488" onPress={() => router.push('/(tabs)/network')} />
+            ) : null}
             <QuickLink icon="wallet" label="Wallet" tint="#16A34A" onPress={() => router.push('/(tabs)/wallet')} />
             <QuickLink icon="receipt" label="Bookings" tint="#EA580C" onPress={() => router.push('/payments')} />
             <QuickLink icon="qr-code" label="My Card" tint="#0891B2" onPress={() => router.push('/(tabs)/card')} />

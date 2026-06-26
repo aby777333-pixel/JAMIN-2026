@@ -694,7 +694,13 @@
         el.innerHTML = '<div class="head"><h2>Users &amp; roles</h2></div><div class="muted">Loading…</div>';
         var q = await sb.from('profiles').select('id,full_name,email,kyc_status,territory_id, role:roles(slug,name)').order('created_at', { ascending: false });
         var rows = q.data || [];
-        el.innerHTML = '<div class="head"><h2>Users &amp; roles</h2></div><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Territory</th><th>KYC</th><th>Actions</th></tr></thead><tbody>' +
+        el.innerHTML = '<div class="head"><h2>Users &amp; roles</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px;line-height:1.6">Role decides what each person can access in the app: ' +
+          '<b>Buyer</b> = browse &amp; book only · <b>Agent</b> = + sales toolkit (leads, ads, brochures, AI, wallet/commission, card) · ' +
+          '<b>Sub&nbsp;Promoter</b> = + recruit a team &amp; Network · <b>Promoter</b> = + team analytics · ' +
+          '<b>Regional&nbsp;Manager</b> = + region view · <b>State&nbsp;Head</b> = + state view · ' +
+          '<b>Super&nbsp;Admin</b> = + this Admin Portal &amp; all approvals.</div>' +
+          '<table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Territory</th><th>KYC</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (u) {
             var curRole = (state.roles.find(function (r) { return r.slug === (u.role && u.role.slug); }) || {}).id;
             var roleSel = state.roles.map(function (r) { return '<option value="' + r.id + '"' + (r.id === curRole ? ' selected' : '') + '>' + esc(r.name) + '</option>'; }).join('');
