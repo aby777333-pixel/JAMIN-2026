@@ -46,7 +46,7 @@ export function Screen({
         {keyboardAvoiding ? (
           <KeyboardAvoidingView
             style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             {scroller}
           </KeyboardAvoidingView>
         ) : (

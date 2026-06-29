@@ -2322,6 +2322,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      public_selectable_roles: {
+        Args: never
+        Returns: {
+          id: string
+          level: number
+          name: string
+          slug: string
+        }[]
+      }
       referral_funnel: { Args: { p_days?: number }; Returns: Json }
       request_withdrawal: {
         Args: { p_amount: number; p_rail?: string }
