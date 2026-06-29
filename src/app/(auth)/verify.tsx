@@ -36,7 +36,7 @@ export default function Verify() {
   }
 
   return (
-    <Screen scroll={false} contentClassName="justify-center gap-8">
+    <Screen scroll keyboardAvoiding contentClassName="grow justify-center gap-8">
       <View className="items-center">
         <Logo width={200} />
       </View>

@@ -26,7 +26,7 @@ export default function Wallet() {
   const balance = summary?.balance ?? '0';
 
   return (
-    <Screen contentClassName="pt-4 gap-4" backdrop={<ImageBackdrop source={BG.wallet} />}>
+    <Screen contentClassName="pt-4 gap-4" keyboardAvoiding backdrop={<ImageBackdrop source={BG.wallet} />}>
       <Text variant="h1">{t('tabs.wallet')}</Text>
 
       <Card className="bg-charcoal">

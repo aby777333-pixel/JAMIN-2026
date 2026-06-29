@@ -76,7 +76,7 @@ export default function FormBuilder() {
   }
 
   return (
-    <Screen contentClassName="pb-10 gap-3">
+    <Screen contentClassName="pb-10 gap-3" keyboardAvoiding>
       <BackHeader
         title={form.name}
         right={

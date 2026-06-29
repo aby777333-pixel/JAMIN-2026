@@ -79,7 +79,7 @@ export default function LeadDetail() {
   const extras = Object.entries(lead.contact ?? {}).filter(([k]) => k !== 'name' && k !== 'phone');
 
   return (
-    <Screen contentClassName="pb-10 gap-4">
+    <Screen contentClassName="pb-10 gap-4" keyboardAvoiding>
       <BackHeader title="Lead" />
 
       <Card className="gap-2">

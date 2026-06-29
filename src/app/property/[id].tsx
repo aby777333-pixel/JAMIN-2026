@@ -135,7 +135,7 @@ export default function PropertyDetail() {
   }
 
   return (
-    <Screen contentClassName="pb-10 gap-4">
+    <Screen contentClassName="pb-10 gap-4" keyboardAvoiding>
       <BackHeader
         right={
           <View className="flex-row items-center gap-4">

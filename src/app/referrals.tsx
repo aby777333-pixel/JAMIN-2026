@@ -46,7 +46,7 @@ export default function ReferralsScreen() {
   }
 
   return (
-    <Screen contentClassName="pb-12 gap-5">
+    <Screen contentClassName="pb-12 gap-5" keyboardAvoiding>
       <BackHeader title="Referral Engine" />
 
       {/* ── Funnel (last 30 days) ── */}

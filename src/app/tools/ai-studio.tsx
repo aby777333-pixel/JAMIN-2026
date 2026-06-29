@@ -51,7 +51,7 @@ export default function AiStudio() {
   }
 
   return (
-    <Screen contentClassName="pb-10 gap-4">
+    <Screen contentClassName="pb-10 gap-4" keyboardAvoiding>
       <BackHeader
         title="AI Studio"
         right={
