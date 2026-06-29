@@ -1884,6 +1884,7 @@ export type Database = {
           level: number
           name: string
           permissions: Json
+          self_selectable: boolean
           slug: string
           updated_at: string
         }
@@ -1894,6 +1895,7 @@ export type Database = {
           level: number
           name: string
           permissions?: Json
+          self_selectable?: boolean
           slug: string
           updated_at?: string
         }
@@ -1904,6 +1906,7 @@ export type Database = {
           level?: number
           name?: string
           permissions?: Json
+          self_selectable?: boolean
           slug?: string
           updated_at?: string
         }
@@ -2362,6 +2365,7 @@ export type Database = {
         }[]
       }
       submit_kyc: { Args: { p_data: Json }; Returns: undefined }
+      switch_role: { Args: { p_slug: string }; Returns: string }
       team_member_stats: { Args: { p_member: string }; Returns: Json }
       team_summary: { Args: never; Returns: Json }
       text2ltree: { Args: { "": string }; Returns: unknown }
