@@ -821,8 +821,22 @@
               return '<tr data-kid="' + u.id + '"><td>' + esc(u.full_name || '—') + '</td><td>' + esc(u.email || '') + '</td><td>' + esc(u.role ? u.role.name : '—') + '</td>' +
                 '<td class="row"><button class="btn-g btn-sm ky_set" data-s="verified">Approve</button><button class="btn-d btn-sm ky_set" data-s="rejected">Reject</button></td></tr>';
             }).join('') + '</tbody></table>' : '<div class="muted">No pending KYC.</div>');
+        // Applications from potential clients (non-KYC form submissions awaiting review).
+        var aq = await sb.from('form_submissions').select('id,form_key,data,created_at, user:profiles(full_name)').neq('form_key', 'kyc').eq('status', 'submitted').order('created_at');
+        var apps = aq.data || [];
+        var appsHTML = '<div class="head"><h2>Applications</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">Applications &amp; enquiries from potential clients (agent / promoter / partner / lead / property forms). Approve, then assign their role in <b>Users &amp; roles</b> if a promotion is needed. (Full history lives in <b>Form submissions</b>.)</div>' +
+          (apps.length ? '<table><thead><tr><th>Type</th><th>From</th><th>Details</th><th>Actions</th></tr></thead><tbody>' +
+            apps.map(function (a) {
+              var d = a.data || {};
+              var det = Object.keys(d).map(function (k) { return '<div><span class="muted">' + esc(k.replace(/_/g, ' ')) + ':</span> ' + esc(d[k] == null || d[k] === '' ? '—' : String(d[k])) + '</div>'; }).join('');
+              return '<tr data-aid="' + a.id + '"><td><b>' + esc(a.form_key) + '</b></td><td>' + esc(a.user ? a.user.full_name : '—') + '</td>' +
+                '<td style="font-size:12px;line-height:1.5">' + (det || '<span class="muted">—</span>') + '</td>' +
+                '<td class="row"><button class="btn-g btn-sm ap_set" data-s="approved">Approve</button><button class="btn-d btn-sm ap_set" data-s="rejected">Reject</button></td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No pending applications.</div>');
         el.innerHTML = listingsHTML +
           '<div style="height:22px"></div>' + kycHTML +
+          '<div style="height:22px"></div>' + appsHTML +
           '<div style="height:22px"></div>' +
           '<div class="head"><h2>Approvals — withdrawals</h2></div>' +
           (rows.length ? '<table><thead><tr><th>Member</th><th>Amount</th><th>Rail</th><th>Status</th><th>Actions</th></tr></thead><tbody>' +
@@ -846,6 +860,13 @@
             var id = b.closest('tr').dataset.kid, s = b.dataset.s;
             var r = await sb.from('profiles').update({ kyc_status: s }).eq('id', id);
             if (r.error) return alert(r.error.message); renderApprovals(); refreshApprovalsBadge();
+          };
+        });
+        el.querySelectorAll('.ap_set').forEach(function (b) {
+          b.onclick = async function () {
+            var id = b.closest('tr').dataset.aid, s = b.dataset.s;
+            var r = await sb.from('form_submissions').update({ status: s }).eq('id', id);
+            if (r.error) return alert(r.error.message); renderApprovals(); refreshApprovalsBadge(); refreshFormSubsBadge();
           };
         });
         el.querySelectorAll('.wa_set').forEach(function (b) {

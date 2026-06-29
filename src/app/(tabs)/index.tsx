@@ -285,7 +285,7 @@ function QuickLink({
         style={{ backgroundColor: `${tint}2E` }}>
         <Ionicons name={icon} size={20} color={tint} />
       </View>
-      <Text variant="title" className="text-[15px]">
+      <Text variant="title" numberOfLines={2} className="flex-1 text-[15px]">
         {label}
       </Text>
     </Pressable>

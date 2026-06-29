@@ -123,7 +123,11 @@ export default function MapScreen() {
     <Screen scroll={false} contentClassName="gap-2">
       <BackHeader title="Map & radar" />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pr-4">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ flexGrow: 0 }}
+        contentContainerClassName="gap-2 pr-4 items-center">
         {RADII.map((r) => (
           <Chip
             key={r.label}
