@@ -19,6 +19,7 @@ import { PropertyGallery } from '@/features/buyer/components/PropertyGallery';
 import { RoiCalculator } from '@/features/buyer/components/RoiCalculator';
 import { SiteVisitSheet } from '@/features/buyer/components/SiteVisitSheet';
 import {
+  useLogPropertyView,
   useProperty,
   useReserveProperty,
   useToggleWishlist,
@@ -31,6 +32,7 @@ import { color } from '@/theme/tokens';
 export default function PropertyDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: property, isLoading } = useProperty(id);
+  useLogPropertyView(id);
   const { data: saved } = useWishlistIds();
   const role = useAuth((s) => s.profile?.role_slug);
   const isPartner = !!role && role !== 'buyer';
@@ -103,6 +105,15 @@ export default function PropertyDetail() {
   const lng = property.coordinates?.lng;
   const hasCoords = lat != null && lng != null;
 
+  // Verification badges (migration 0037) — admin-set trust signals.
+  const verifiedBadges: { label: string; icon: keyof typeof Ionicons.glyphMap }[] = [];
+  if (property.verified_seller) verifiedBadges.push({ label: 'Verified Seller', icon: 'shield-checkmark' });
+  if (property.verified_documents) verifiedBadges.push({ label: 'Verified Docs', icon: 'document-text' });
+  if (property.verified_location) verifiedBadges.push({ label: 'Verified Location', icon: 'location' });
+  if (property.is_premium) verifiedBadges.push({ label: 'Premium', icon: 'star' });
+  const isPending = property.approval_status === 'pending';
+  const isRejected = property.approval_status === 'rejected';
+
   function onReserve() {
     Alert.alert('Reserve this plot?', `${label}\nThis places a soft reservation.`, [
       { text: 'Cancel', style: 'cancel' },
@@ -149,6 +160,30 @@ export default function PropertyDetail() {
         ) : null}
         <MoneyText value={property.price} className="mt-1 text-[28px]" />
       </View>
+
+      {verifiedBadges.length > 0 ? (
+        <View className="flex-row flex-wrap gap-2">
+          {verifiedBadges.map((b) => (
+            <View
+              key={b.label}
+              className="flex-row items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1">
+              <Ionicons name={b.icon} size={13} color={color.goldDeep} />
+              <Text className="text-[11px] font-semibold text-gold-deep">{b.label}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+
+      {isPending || isRejected ? (
+        <Card className={`flex-row items-center gap-2.5 ${isRejected ? 'border-danger/40 bg-danger/5' : 'border-gold/40 bg-gold/5'}`}>
+          <Ionicons name={isRejected ? 'close-circle' : 'time'} size={18} color={isRejected ? color.red : color.goldDeep} />
+          <Text variant="caption" className="flex-1">
+            {isRejected
+              ? 'This listing was not approved. Edit it and contact support if you think this is a mistake.'
+              : 'Awaiting admin approval — this listing isn’t visible to buyers yet.'}
+          </Text>
+        </Card>
+      ) : null}
 
       {description ? (
         <View className="gap-1">

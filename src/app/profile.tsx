@@ -60,6 +60,21 @@ export default function EditProfile() {
           <Button title="Save profile" loading={saving} onPress={onSave} />
           <Text variant="caption">This is what appears on your Digital Business Card and shared brochures.</Text>
 
+          {isPartner ? (
+            <Pressable onPress={() => router.push('/sell')} className="mt-2">
+              <Card className="flex-row items-center gap-3">
+                <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
+                  <Ionicons name="business" size={18} color={color.red} />
+                </View>
+                <View className="flex-1">
+                  <Text variant="title">My listings</Text>
+                  <Text variant="caption">List a property & track views, enquiries and bookings</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={color.muted} />
+              </Card>
+            </Pressable>
+          ) : null}
+
           <Pressable onPress={() => router.push('/media')} className="mt-2">
             <Card className="flex-row items-center gap-3">
               <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">

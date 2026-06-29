@@ -16,6 +16,13 @@ export interface PropertyListItem {
   coordinates: { lat?: number; lng?: number } | null;
   project: PropertyRef | null;
   type: { slug: string; name: string } | null;
+  // Verification & approval (migration 0037) — optional so existing selects stay valid.
+  approval_status?: string;
+  verified_seller?: boolean;
+  verified_documents?: boolean;
+  verified_location?: boolean;
+  is_premium?: boolean;
+  seller_id?: string | null;
 }
 
 export interface PropertyDetail extends PropertyListItem {

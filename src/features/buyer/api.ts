@@ -7,7 +7,16 @@ import type {
 } from './types';
 
 const LIST_SELECT =
-  'id, plot_code, price, status, media, attrs, coordinates, project:projects(name,code,location), type:property_types(slug,name)';
+  'id, plot_code, price, status, media, attrs, coordinates, approval_status, verified_seller, verified_documents, verified_location, is_premium, seller_id, project:projects(name,code,location), type:property_types(slug,name)';
+
+/** Record a property view (deduped per viewer/day server-side). Fire-and-forget. */
+export async function logPropertyView(propertyId: string): Promise<void> {
+  try {
+    await supabase.rpc('log_property_view', { p_property: propertyId });
+  } catch {
+    /* view logging must never disrupt the screen */
+  }
+}
 
 async function currentUserId(): Promise<string> {
   const { data } = await supabase.auth.getUser();

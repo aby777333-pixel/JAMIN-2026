@@ -126,6 +126,8 @@
         <button class="nav-i" data-tab="content">📝 App Content</button>
         <button class="nav-i" data-tab="announcements">📣 Announcements</button>
         <button class="nav-i" data-tab="config">⚙️ System config</button>
+        <button class="nav-i" data-tab="audit">🧾 Audit log</button>
+        <button class="nav-i" data-tab="exports">📤 Exports</button>
         <div style="margin-top:14px;padding:10px 12px;font-size:11px;line-height:1.55;color:rgba(255,255,255,.6);background:rgba(255,255,255,.06);border-radius:10px">✓ Every change you save here is <b style="color:#7ee2a8">live in the phone app instantly</b> — no deploy needed.</div>
         <div class="who"><span id="whoEmail"></span><br /><button id="signOut" class="btn-o btn-sm" style="margin-top:8px">Sign out</button></div>
       </aside>
@@ -148,10 +150,15 @@
         <div id="tabContent" class="hidden"></div>
         <div id="tabAnnouncements" class="hidden"></div>
         <div id="tabConfig" class="hidden"></div>
+        <div id="tabAudit" class="hidden"></div>
+        <div id="tabExports" class="hidden"></div>
       </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
     <script>
       var SUPABASE_URL = 'https://oaqwnjgaypmuafvnfhxv.supabase.co';
       var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXduamdheXBtdWFmdm5maHh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMDI2ODAsImV4cCI6MjA5Nzc3ODY4MH0.2tfyC3Z8Kzib8FdLjnE-z8m830PZUd9vfcWtDXIqp3E';
@@ -229,7 +236,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -248,6 +255,8 @@
         if (tab === 'content') renderAppContent();
         if (tab === 'announcements') renderAnnouncements();
         if (tab === 'config') renderConfig();
+        if (tab === 'audit') renderAudit();
+        if (tab === 'exports') renderExports();
       }
 
       // ─── Properties ─────────────────────────────────────────────────────
@@ -267,6 +276,9 @@
         { key: 'Floors', ph: 'e.g. G+2' },
         { key: 'Road width', ph: 'e.g. 40 ft' },
         { key: 'Approval', ph: 'e.g. DTCP / RERA / CMDA' },
+        { key: 'Full address', ph: 'Door/plot no, street, area, city, PIN' },
+        { key: 'Land category / zoning', ph: 'e.g. Residential / Commercial / Agricultural' },
+        { key: 'Ownership / document status', ph: 'e.g. Clear title / Patta / Khata-A' },
       ];
       function specInputsHTML() {
         var areaUnits = AREA_UNITS.map(function (u) { return '<option value="' + esc(u) + '">' + esc(u) + '</option>'; }).join('');
@@ -280,6 +292,7 @@
           '</div></div>' +
           '<div><label>Facing</label><select id="ns_facing" class="inp">' + facings + '</select></div>' +
           '<div><label>Corner plot</label><select id="ns_corner" class="inp"><option value="">—</option><option>Yes</option><option>No</option></select></div>' +
+          '<div><label>Price negotiable</label><select id="ns_nego" class="inp"><option value="">—</option><option>Negotiable</option><option>Fixed price</option></select></div>' +
           texts;
       }
       function collectSpecs() {
@@ -288,6 +301,7 @@
         if (area) out['Plot area'] = area + (($('ns_area_unit') && $('ns_area_unit').value) ? ' ' + $('ns_area_unit').value : '');
         var facing = $('ns_facing') ? $('ns_facing').value : ''; if (facing) out['Facing'] = facing;
         var corner = $('ns_corner') ? $('ns_corner').value : ''; if (corner) out['Corner plot'] = corner;
+        var nego = $('ns_nego') ? $('ns_nego').value : ''; if (nego) out['Price negotiable'] = nego;
         document.querySelectorAll('#tabProperties .ns_spec').forEach(function (i) {
           var v = i.value.trim(); if (v) out[i.dataset.key] = v;
         });
@@ -329,6 +343,12 @@
           '<a href="' + esc(url) + '" download target="_blank" rel="noopener" title="Download" style="position:absolute;bottom:-6px;left:-6px;background:#1a1a1a;color:#fff;border-radius:999px;width:18px;height:18px;line-height:18px;font-size:11px;text-align:center;text-decoration:none">⤓</a>' +
           '<button type="button" class="ph_rm" title="Remove photo" style="position:absolute;top:-6px;right:-6px;background:#c00;color:#fff;border:none;border-radius:999px;width:18px;height:18px;line-height:16px;font-size:12px;cursor:pointer">×</button></span>';
       }
+      // Verification-badge toggle button for the Properties table.
+      function badgeBtn(r, field, label, title) {
+        var on = !!r[field];
+        return '<button type="button" class="btn-o btn-sm pp_badge" data-field="' + field + '" title="' + esc(title) + (on ? ' — on' : ' — off') + '"' +
+          (on ? ' style="background:var(--gold);border-color:var(--gold);color:#1a1a1a"' : ' style="opacity:.5"') + '>' + esc(label) + '</button>';
+      }
       function photoThumbs(media) {
         var arr = Array.isArray(media) ? media : [];
         if (!arr.length) return '<span class="muted" style="font-size:12px">No photos yet — add some below.</span>';
@@ -343,11 +363,12 @@
         var el = $('tabProperties');
         el.innerHTML = '<div class="head"><h2>Properties</h2></div><div class="muted">Loading…</div>';
         var q = await sb.from('properties')
-          .select('id,plot_code,price,status,media,attrs,coordinates,project_id,plan_id,property_type_id, project:projects(name), type:property_types(name)')
+          .select('id,plot_code,price,status,approval_status,verified_seller,verified_documents,verified_location,is_premium,media,attrs,coordinates,project_id,plan_id,property_type_id, project:projects(name), type:property_types(name), seller:profiles!seller_id(full_name)')
           .order('plot_code');
         var rows = q.data || [];
         var byStatus = { available: 0, reserved: 0, sold: 0 };
         rows.forEach(function (r) { byStatus[r.status] = (byStatus[r.status] || 0) + 1; });
+        var pendingCount = rows.filter(function (r) { return r.approval_status === 'pending'; }).length;
 
         var addForm =
           '<div class="panel"><h3>Add property</h3><div class="grid2">' +
@@ -367,25 +388,34 @@
           '<div style="grid-column:1/-1"><label>Custom fields — name them however you like (shown on the listing)</label><div id="np_custom"></div><button type="button" id="np_addfield" class="btn-o btn-sm" style="margin-top:6px">+ Add field</button></div>' +
           '</div><button id="np_add" class="btn" style="margin-top:14px">+ Add property</button> <span id="np_msg" class="muted">Add images after creating, from the table below.</span></div>';
 
-        var table = '<table><thead><tr><th>Plot</th><th>Project</th><th>Type</th><th>Price</th><th>Status</th><th title="Featured in the app home rail">★</th><th>Images</th><th>Actions</th></tr></thead><tbody>' +
+        var table = '<table><thead><tr><th>Plot</th><th>Project</th><th>Type</th><th>Price</th><th>Status</th><th>Approval</th><th title="Verification badges: S=Seller · D=Documents · L=Location · ★=Premium">Verification</th><th title="Featured in the app home rail">★</th><th>Images</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (r) {
             var imgs = Array.isArray(r.media) ? r.media : [];
             var title = (r.attrs && r.attrs.title) ? r.attrs.title : '';
             var isFeat = !!(r.attrs && r.attrs.featured);
             return '<tr data-id="' + r.id + '">' +
-              '<td class="mono">' + esc(r.plot_code) + (title ? '<div class="muted" style="font-size:11px">' + esc(title) + '</div>' : '') + '</td>' +
+              '<td class="mono">' + esc(r.plot_code) + (title ? '<div class="muted" style="font-size:11px">' + esc(title) + '</div>' : '') + (r.seller ? '<div class="muted" style="font-size:10px">by ' + esc(r.seller.full_name || 'seller') + '</div>' : '') + '</td>' +
               '<td>' + esc(r.project ? r.project.name : '') + '</td>' +
               '<td>' + esc(r.type ? r.type.name : '') + '</td>' +
               '<td><input class="inp btn-sm pp_price" style="width:120px;height:36px" value="' + Number(r.price) + '" /></td>' +
               '<td><select class="inp pp_status" style="width:130px;height:36px">' +
                 ['available', 'reserved', 'sold'].map(function (s) { return '<option value="' + s + '"' + (s === r.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') +
               '</select></td>' +
+              '<td><select class="inp pp_appr" style="width:118px;height:36px">' +
+                ['pending', 'approved', 'rejected'].map(function (s) { return '<option value="' + s + '"' + (s === (r.approval_status || 'approved') ? ' selected' : '') + '>' + s + '</option>'; }).join('') +
+              '</select></td>' +
+              '<td><div class="row" style="gap:4px;flex-wrap:nowrap">' +
+                badgeBtn(r, 'verified_seller', 'S', 'Verified Seller') +
+                badgeBtn(r, 'verified_documents', 'D', 'Verified Documents') +
+                badgeBtn(r, 'verified_location', 'L', 'Verified Location') +
+                badgeBtn(r, 'is_premium', '★', 'Premium Listing') +
+              '</div></td>' +
               '<td style="text-align:center"><button class="btn-o btn-sm pp_feat"' + (isFeat ? ' style="background:var(--gold);border-color:var(--gold)"' : '') + ' title="' + (isFeat ? 'Featured — tap to remove from the home rail' : 'Tap to feature in the app home rail') + '">' + (isFeat ? '★' : '☆') + '</button></td>' +
               '<td><div class="thumbs" style="align-items:center">' + (imgs.length ? '' : '<span class="pill" style="background:rgba(230,161,13,.16);color:#e6a10d">No photos</span>') + imgs.map(function (m) { var u = m.url || m; return '<a href="' + esc(u) + '" download target="_blank" rel="noopener" title="Open / download"><img src="' + esc(u) + '" /></a>'; }).join('') +
                 '<label class="btn-o btn-sm" style="display:inline-block" title="Upload photos for this plot">⬆ Upload<input type="file" accept="image/*" class="pp_file hidden" multiple /></label></div></td>' +
               '<td class="row"><button class="btn-o btn-sm pp_det">Details</button><button class="btn btn-sm pp_save">Save</button><button class="btn-d btn-sm pp_del">Delete</button></td>' +
               '</tr>' +
-              '<tr class="det" data-for="' + r.id + '" style="display:none"><td colspan="8"><div class="panel" style="margin:0">' +
+              '<tr class="det" data-for="' + r.id + '" style="display:none"><td colspan="10"><div class="panel" style="margin:0">' +
                 '<div class="grid2">' +
                   '<div><label>Title / name</label><input class="inp de_title" value="' + esc((r.attrs && r.attrs.title) || '') + '" /></div>' +
                   '<div style="grid-column:1/-1"><label>Description</label><textarea class="inp de_desc" style="height:auto;min-height:72px;padding:10px">' + esc((r.attrs && r.attrs.description) || '') + '</textarea></div>' +
@@ -408,6 +438,7 @@
             '<div class="stat"><div class="n">' + (byStatus.available || 0) + '</div><div class="l">Available</div></div>' +
             '<div class="stat"><div class="n">' + (byStatus.reserved || 0) + '</div><div class="l">Reserved</div></div>' +
             '<div class="stat"><div class="n">' + (byStatus.sold || 0) + '</div><div class="l">Sold</div></div>' +
+            '<div class="stat"><div class="n"' + (pendingCount ? ' style="color:#e6a10d"' : '') + '>' + pendingCount + '</div><div class="l">Pending approval</div></div>' +
             '<div class="stat"><div class="n"' + (noPhotos ? ' style="color:#e6a10d"' : '') + '>' + noPhotos + '</div><div class="l">No photos</div></div>' +
           '</div>' + addForm + (rows.length ? table : '<div class="muted">No properties yet — add one above.</div>');
 
@@ -487,6 +518,28 @@
             this.textContent = r.error ? 'Err' : 'Saved';
             if (r.error) alert(r.error.message);
           };
+          // Approval workflow — set the listing's public visibility (item 7-9).
+          var apprSel = tr.querySelector('.pp_appr');
+          if (apprSel) apprSel.onchange = async function () {
+            var v = this.value; this.disabled = true;
+            var r = await sb.from('properties').update({ approval_status: v, reviewed_by: state.user.id, reviewed_at: new Date().toISOString() }).eq('id', id);
+            this.disabled = false;
+            if (r.error) { alert(r.error.message); return; }
+            rec.approval_status = v; refreshApprovalsBadge();
+          };
+          // Verification badges — toggle a single boolean column.
+          tr.querySelectorAll('.pp_badge').forEach(function (b) {
+            b.onclick = async function () {
+              var field = b.dataset.field, now = !rec[field], patch = {}; patch[field] = now;
+              b.disabled = true;
+              var r = await sb.from('properties').update(patch).eq('id', id);
+              b.disabled = false;
+              if (r.error) { alert(r.error.message); return; }
+              rec[field] = now;
+              b.style.cssText = now ? 'background:var(--gold);border-color:var(--gold);color:#1a1a1a' : 'opacity:.5';
+              b.title = b.title.replace(/ — (on|off)$/, '') + (now ? ' — on' : ' — off');
+            };
+          });
           var detRow = el.querySelector('tr.det[data-for="' + id + '"]');
           tr.querySelector('.pp_det').onclick = function () {
             if (detRow) detRow.style.display = detRow.style.display === 'none' ? 'table-row' : 'none';
@@ -733,7 +786,21 @@
         el.innerHTML = '<div class="head"><h2>Approvals</h2></div><div class="muted">Loading…</div>';
         var q = await sb.from('withdrawals').select('id,amount,status,rail,requested_at, user:profiles(full_name)').in('status', ['requested', 'approved']).order('requested_at');
         var rows = q.data || [];
-        el.innerHTML = '<div class="head"><h2>Approvals — withdrawals</h2></div>' +
+        // Seller-submitted listings awaiting review (item 7-9).
+        var lq = await sb.from('properties')
+          .select('id,plot_code,price,created_at, project:projects(name), type:property_types(name), seller:profiles!seller_id(full_name)')
+          .eq('approval_status', 'pending').order('created_at');
+        var listings = lq.data || [];
+        var listingsHTML = '<div class="head"><h2>Listing approvals</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">Seller-submitted listings awaiting review. Approve to make a listing publicly visible in the app; reject to keep it hidden.</div>' +
+          (listings.length ? '<table><thead><tr><th>Plot</th><th>Project</th><th>Type</th><th>Price</th><th>Seller</th><th>Actions</th></tr></thead><tbody>' +
+            listings.map(function (p) {
+              return '<tr data-lid="' + p.id + '"><td class="mono">' + esc(p.plot_code) + '</td><td>' + esc(p.project ? p.project.name : '—') + '</td><td>' + esc(p.type ? p.type.name : '—') + '</td><td class="mono">' + inr(p.price) + '</td><td>' + esc(p.seller ? p.seller.full_name : '—') + '</td>' +
+                '<td class="row"><button class="btn-g btn-sm la_set" data-s="approved">Approve</button><button class="btn-d btn-sm la_set" data-s="rejected">Reject</button></td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No listings awaiting approval.</div>');
+        el.innerHTML = listingsHTML +
+          '<div style="height:22px"></div>' +
+          '<div class="head"><h2>Approvals — withdrawals</h2></div>' +
           (rows.length ? '<table><thead><tr><th>Member</th><th>Amount</th><th>Rail</th><th>Status</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (w) {
             return '<tr data-id="' + w.id + '"><td>' + esc(w.user ? w.user.full_name : '—') + '</td><td class="mono">' + inr(w.amount) + '</td><td>' + esc(w.rail || '') + '</td>' +
@@ -743,6 +810,13 @@
                 : '<button class="btn btn-sm wa_set" data-s="paid">Mark paid</button>') + '</td></tr>';
           }).join('') + '</tbody></table>'
           : '<div class="muted">No pending payouts.</div>');
+        el.querySelectorAll('.la_set').forEach(function (b) {
+          b.onclick = async function () {
+            var id = b.closest('tr').dataset.lid, s = b.dataset.s;
+            var r = await sb.from('properties').update({ approval_status: s, reviewed_by: state.user.id, reviewed_at: new Date().toISOString() }).eq('id', id);
+            if (r.error) return alert(r.error.message); renderApprovals(); refreshApprovalsBadge();
+          };
+        });
         el.querySelectorAll('.wa_set').forEach(function (b) {
           b.onclick = async function () {
             var id = b.closest('tr').dataset.id, s = b.dataset.s;
@@ -754,7 +828,8 @@
       async function refreshApprovalsBadge() {
         var c = await sb.from('withdrawals').select('id', { count: 'exact', head: true }).in('status', ['requested', 'approved']);
         var p = await sb.from('profiles').select('id', { count: 'exact', head: true }).eq('kyc_status', 'pending');
-        var n = (c.count || 0) + (p.count || 0);
+        var l = await sb.from('properties').select('id', { count: 'exact', head: true }).eq('approval_status', 'pending');
+        var n = (c.count || 0) + (p.count || 0) + (l.count || 0);
         var dot = $('apprDot'); dot.textContent = n; dot.classList.toggle('hidden', n === 0);
       }
 
@@ -1413,6 +1488,201 @@
         var r = await sb.from('messages').insert({ thread_id: chatThread, sender_id: state.user.id, body: body });
         if (r.error) { alert(r.error.message); return; }
         loadMessages(chatThread);
+      }
+
+      // ─── Audit log ──────────────────────────────────────────────────────
+      async function renderAudit() {
+        var el = $('tabAudit');
+        el.innerHTML = '<div class="head"><h2>Audit log</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('audit_logs').select('id,action,entity,entity_id,actor_id,payload,created_at').order('created_at', { ascending: false }).limit(300);
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Audit log</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        var ids = Array.from(new Set(rows.map(function (r) { return r.actor_id; }).filter(Boolean)));
+        var names = {};
+        if (ids.length) { var pr = await sb.from('profiles').select('id,full_name,email').in('id', ids); (pr.data || []).forEach(function (p) { names[p.id] = p.full_name || p.email || p.id; }); }
+        el.innerHTML = '<div class="head"><h2>Audit log</h2><button id="au_exp" class="btn-o btn-sm">⤓ Export CSV</button></div>' +
+          '<div class="muted" style="margin-bottom:10px">Most recent ' + rows.length + ' activity events (newest first). Listing reviews, verification, KYC, role changes, bookings, payouts and payments are recorded automatically.</div>' +
+          (rows.length ? '<table><thead><tr><th>When</th><th>Action</th><th>Entity</th><th>Actor</th><th>Details</th></tr></thead><tbody>' +
+            rows.map(function (r) {
+              var det = (r.payload && Object.keys(r.payload).length) ? JSON.stringify(r.payload) : '';
+              return '<tr><td class="muted" style="white-space:nowrap">' + esc(new Date(r.created_at).toLocaleString()) + '</td>' +
+                '<td><span class="pill">' + esc(r.action) + '</span></td>' +
+                '<td>' + esc(r.entity || '') + '</td>' +
+                '<td>' + esc(names[r.actor_id] || (r.actor_id ? '—' : 'system')) + '</td>' +
+                '<td class="muted" style="font-size:11px;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(det) + '</td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No audit events yet.</div>');
+        if ($('au_exp')) $('au_exp').onclick = function () {
+          exportCSV('audit-log', [
+            { label: 'When', get: function (r) { return r.created_at; } },
+            { label: 'Action', get: function (r) { return r.action; } },
+            { label: 'Entity', get: function (r) { return r.entity; } },
+            { label: 'Entity ID', get: function (r) { return r.entity_id; } },
+            { label: 'Actor', get: function (r) { return names[r.actor_id] || r.actor_id; } },
+            { label: 'Details', get: function (r) { return r.payload ? JSON.stringify(r.payload) : ''; } }
+          ], rows);
+        };
+      }
+
+      // ─── Exports (CSV / Excel / PDF) ────────────────────────────────────
+      function dlBlob(filename, blob) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+      function csvCell(v) { v = (v == null ? '' : String(v)); if (/[",\n]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"'; return v; }
+      function logExport(name, fmt, n) { try { sb.rpc('log_admin_action', { p_action: 'export.' + fmt, p_entity: 'report', p_entity_id: null, p_payload: { report: name, rows: n } }); } catch (e) {} }
+      function exportCSV(name, cols, rows) {
+        var head = cols.map(function (c) { return csvCell(c.label); }).join(',');
+        var body = rows.map(function (r) { return cols.map(function (c) { return csvCell(c.get(r)); }).join(','); }).join('\n');
+        dlBlob(name + '.csv', new Blob(['﻿' + head + '\n' + body], { type: 'text/csv;charset=utf-8;' }));
+        logExport(name, 'csv', rows.length);
+      }
+      function exportXLSX(name, cols, rows) {
+        if (!window.XLSX) { alert('Spreadsheet library still loading — try again in a moment.'); return; }
+        var aoa = [cols.map(function (c) { return c.label; })].concat(rows.map(function (r) { return cols.map(function (c) { var v = c.get(r); return v == null ? '' : v; }); }));
+        var ws = XLSX.utils.aoa_to_sheet(aoa), wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, (name.replace(/[^a-zA-Z0-9 ]/g, ' ').slice(0, 28) || 'Sheet1'));
+        XLSX.writeFile(wb, name + '.xlsx'); logExport(name, 'xlsx', rows.length);
+      }
+      function exportPDF(name, cols, rows) {
+        var J = window.jspdf && window.jspdf.jsPDF; if (!J) { alert('PDF library still loading — try again in a moment.'); return; }
+        var doc = new J({ orientation: 'landscape' });
+        doc.setFontSize(13); doc.text(name, 14, 14);
+        doc.setFontSize(9); doc.text(new Date().toLocaleString() + '  ·  ' + rows.length + ' rows', 14, 20);
+        doc.autoTable({ head: [cols.map(function (c) { return c.label; })], body: rows.map(function (r) { return cols.map(function (c) { var v = c.get(r); return v == null ? '' : String(v); }); }), startY: 24, styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, headStyles: { fillColor: [253, 0, 1] } });
+        doc.save(name + '.pdf'); logExport(name, 'pdf', rows.length);
+      }
+      function pickContact(c, k) { try { return c && c[k] != null ? c[k] : ''; } catch (e) { return ''; } }
+
+      var EXPORT_DATASETS = [
+        { key: 'users', title: 'Users (buyers · sellers · agents)', desc: 'All members with role, KYC and contact.',
+          cols: [
+            { label: 'Name', get: function (r) { return r.full_name; } },
+            { label: 'Email', get: function (r) { return r.email; } },
+            { label: 'Phone', get: function (r) { return r.phone; } },
+            { label: 'Role', get: function (r) { return r.role ? r.role.name : ''; } },
+            { label: 'KYC', get: function (r) { return r.kyc_status; } },
+            { label: 'Status', get: function (r) { return r.status; } },
+            { label: 'Joined', get: function (r) { return r.created_at; } }],
+          fetch: function () { return sb.from('profiles').select('full_name,email,phone,kyc_status,status,created_at, role:roles(name)').order('created_at', { ascending: false }); } },
+        { key: 'properties', title: 'Properties', desc: 'Inventory with price, status, approval & verification.',
+          cols: [
+            { label: 'Plot', get: function (r) { return r.plot_code; } },
+            { label: 'Project', get: function (r) { return r.project ? r.project.name : ''; } },
+            { label: 'Type', get: function (r) { return r.type ? r.type.name : ''; } },
+            { label: 'Price', get: function (r) { return r.price; } },
+            { label: 'Status', get: function (r) { return r.status; } },
+            { label: 'Approval', get: function (r) { return r.approval_status; } },
+            { label: 'Verified seller', get: function (r) { return r.verified_seller ? 'yes' : ''; } },
+            { label: 'Verified docs', get: function (r) { return r.verified_documents ? 'yes' : ''; } },
+            { label: 'Verified location', get: function (r) { return r.verified_location ? 'yes' : ''; } },
+            { label: 'Premium', get: function (r) { return r.is_premium ? 'yes' : ''; } },
+            { label: 'Lat', get: function (r) { return r.coordinates ? r.coordinates.lat : ''; } },
+            { label: 'Lng', get: function (r) { return r.coordinates ? r.coordinates.lng : ''; } },
+            { label: 'Created', get: function (r) { return r.created_at; } }],
+          fetch: function () { return sb.from('properties').select('plot_code,price,status,approval_status,verified_seller,verified_documents,verified_location,is_premium,coordinates,created_at, project:projects(name), type:property_types(name)').order('plot_code'); } },
+        { key: 'leads', title: 'Leads / enquiries', desc: 'Buyer enquiries with source, status and score.',
+          cols: [
+            { label: 'Name', get: function (r) { return pickContact(r.contact, 'name'); } },
+            { label: 'Phone', get: function (r) { return pickContact(r.contact, 'phone'); } },
+            { label: 'Source', get: function (r) { return r.source; } },
+            { label: 'Status', get: function (r) { return r.status; } },
+            { label: 'Score', get: function (r) { return r.score; } },
+            { label: 'Property', get: function (r) { return r.property ? r.property.plot_code : ''; } },
+            { label: 'Created', get: function (r) { return r.created_at; } }],
+          fetch: function () { return sb.from('leads').select('contact,source,status,score,created_at, property:properties(plot_code)').order('created_at', { ascending: false }); } },
+        { key: 'transactions', title: 'Transactions (bookings)', desc: 'Site visits, reservations and sales.',
+          cols: [
+            { label: 'Property', get: function (r) { return r.property ? r.property.plot_code : ''; } },
+            { label: 'Buyer', get: function (r) { return r.buyer ? r.buyer.full_name : ''; } },
+            { label: 'Status', get: function (r) { return r.status; } },
+            { label: 'Amount', get: function (r) { return r.amount; } },
+            { label: 'Schedule', get: function (r) { return r.schedule; } },
+            { label: 'Created', get: function (r) { return r.created_at; } }],
+          fetch: function () { return sb.from('bookings').select('status,amount,schedule,created_at, property:properties(plot_code), buyer:profiles!buyer_id(full_name)').order('created_at', { ascending: false }); } },
+        { key: 'payments', title: 'Payments', desc: 'Payment records with method and gateway status.',
+          cols: [
+            { label: 'Amount', get: function (r) { return r.amount; } },
+            { label: 'Status', get: function (r) { return r.status; } },
+            { label: 'Method', get: function (r) { return r.method; } },
+            { label: 'Gateway', get: function (r) { return r.gateway; } },
+            { label: 'Purpose', get: function (r) { return r.purpose; } },
+            { label: 'Txn ref', get: function (r) { return r.txn_ref; } },
+            { label: 'Created', get: function (r) { return r.created_at; } }],
+          fetch: function () { return sb.from('payments').select('amount,status,method,gateway,purpose,txn_ref,created_at').order('created_at', { ascending: false }); } },
+        { key: 'commissions', title: 'Commission reports', desc: 'Commission ledger entries (append-only).',
+          cols: [
+            { label: 'Member', get: function (r) { return r.user ? r.user.full_name : ''; } },
+            { label: 'Amount', get: function (r) { return r.amount; } },
+            { label: 'Direction', get: function (r) { return r.direction; } },
+            { label: 'Status', get: function (r) { return r.status; } },
+            { label: 'Created', get: function (r) { return r.created_at; } }],
+          fetch: function () { return sb.from('commission_ledger').select('amount,direction,status,created_at, user:profiles!user_id(full_name)').order('created_at', { ascending: false }); } },
+        { key: 'geographic', title: 'Geographic report', desc: 'Listings by project / location with coordinates.',
+          cols: [
+            { label: 'Project', get: function (r) { return r.project ? r.project.name : ''; } },
+            { label: 'Location', get: function (r) { return r.project ? r.project.location : ''; } },
+            { label: 'Plot', get: function (r) { return r.plot_code; } },
+            { label: 'Price', get: function (r) { return r.price; } },
+            { label: 'Status', get: function (r) { return r.status; } },
+            { label: 'Lat', get: function (r) { return r.coordinates ? r.coordinates.lat : ''; } },
+            { label: 'Lng', get: function (r) { return r.coordinates ? r.coordinates.lng : ''; } }],
+          fetch: function () { return sb.from('properties').select('plot_code,price,status,coordinates, project:projects(name,location)').order('plot_code'); } }
+      ];
+
+      async function runExport(ds, fmt, btn) {
+        var old = btn.textContent; btn.disabled = true; btn.textContent = '…';
+        try {
+          var r = await ds.fetch();
+          if (r.error) { alert(r.error.message); return; }
+          var rows = r.data || [];
+          if (!rows.length) { alert('Nothing to export for "' + ds.title + '" yet.'); return; }
+          if (fmt === 'csv') exportCSV(ds.key, ds.cols, rows);
+          else if (fmt === 'xlsx') exportXLSX(ds.key, ds.cols, rows);
+          else exportPDF(ds.title, ds.cols, rows);
+        } catch (e) { alert('Export failed: ' + (e && e.message ? e.message : e)); }
+        finally { btn.disabled = false; btn.textContent = old; }
+      }
+
+      // Communications merge two sources (support chat + ad messages).
+      async function exportCommunications(fmt, btn) {
+        var old = btn.textContent; btn.disabled = true; btn.textContent = '…';
+        try {
+          var m = await sb.from('messages').select('thread_id,sender_id,body,created_at').order('created_at', { ascending: false }).limit(5000);
+          var a = await sb.from('ad_messages').select('slug,sender,name,body,created_at').order('created_at', { ascending: false }).limit(5000);
+          var rows = [];
+          (m.data || []).forEach(function (x) { rows.push({ channel: 'support', ref: x.thread_id, who: x.sender_id, body: x.body, created_at: x.created_at }); });
+          (a.data || []).forEach(function (x) { rows.push({ channel: 'ad', ref: x.slug, who: (x.sender || '') + (x.name ? ' (' + x.name + ')' : ''), body: x.body, created_at: x.created_at }); });
+          rows.sort(function (p, q) { return String(q.created_at || '').localeCompare(String(p.created_at || '')); });
+          if (!rows.length) { alert('No communications to export yet.'); return; }
+          var cols = [
+            { label: 'Channel', get: function (r) { return r.channel; } },
+            { label: 'Ref', get: function (r) { return r.ref; } },
+            { label: 'Sender', get: function (r) { return r.who; } },
+            { label: 'Message', get: function (r) { return r.body; } },
+            { label: 'When', get: function (r) { return r.created_at; } }];
+          if (fmt === 'csv') exportCSV('communications', cols, rows);
+          else if (fmt === 'xlsx') exportXLSX('communications', cols, rows);
+          else exportPDF('Communications', cols, rows);
+        } catch (e) { alert('Export failed: ' + (e && e.message ? e.message : e)); }
+        finally { btn.disabled = false; btn.textContent = old; }
+      }
+
+      function renderExports() {
+        var el = $('tabExports');
+        var cards = EXPORT_DATASETS.map(function (ds) {
+          return '<div class="panel" data-ds="' + ds.key + '"><h3 style="margin:0 0 4px">' + esc(ds.title) + '</h3>' +
+            '<div class="muted" style="font-size:12px;margin-bottom:10px">' + esc(ds.desc) + '</div>' +
+            '<div class="row" style="gap:8px"><button class="btn-o btn-sm ex_btn" data-f="csv">CSV</button><button class="btn-o btn-sm ex_btn" data-f="xlsx">Excel</button><button class="btn-o btn-sm ex_btn" data-f="pdf">PDF</button></div></div>';
+        }).join('');
+        var comms = '<div class="panel" data-ds="communications"><h3 style="margin:0 0 4px">Communications</h3>' +
+          '<div class="muted" style="font-size:12px;margin-bottom:10px">Support chat + ad-page messages, newest first.</div>' +
+          '<div class="row" style="gap:8px"><button class="btn-o btn-sm exc_btn" data-f="csv">CSV</button><button class="btn-o btn-sm exc_btn" data-f="xlsx">Excel</button><button class="btn-o btn-sm exc_btn" data-f="pdf">PDF</button></div></div>';
+        el.innerHTML = '<div class="head"><h2>Exports &amp; reports</h2></div>' +
+          '<div class="muted" style="margin:-6px 0 14px">Download any dataset as CSV, Excel or PDF. Every export is recorded in the audit log.</div>' +
+          '<div class="grid2">' + cards + comms + '</div>';
+        el.querySelectorAll('.panel[data-ds]').forEach(function (card) {
+          var key = card.dataset.ds;
+          var ds = EXPORT_DATASETS.find(function (d) { return d.key === key; });
+          if (ds) card.querySelectorAll('.ex_btn').forEach(function (b) { b.onclick = function () { runExport(ds, b.dataset.f, b); }; });
+          card.querySelectorAll('.exc_btn').forEach(function (b) { b.onclick = function () { exportCommunications(b.dataset.f, b); }; });
+        });
       }
 
       boot();

@@ -1,7 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 import * as api from './api';
 import type { PropertyFilters } from './types';
+
+/** Log a view once per property open (deduped per viewer/day server-side). */
+export function useLogPropertyView(id: string | undefined) {
+  useEffect(() => {
+    if (id) void api.logPropertyView(id);
+  }, [id]);
+}
 
 export function useProperties(filters: PropertyFilters) {
   return useQuery({
