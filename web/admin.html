@@ -757,7 +757,7 @@
       async function renderUsers() {
         var el = $('tabUsers');
         el.innerHTML = '<div class="head"><h2>Users &amp; roles</h2></div><div class="muted">Loading…</div>';
-        var q = await sb.from('profiles').select('id,full_name,email,kyc_status,territory_id, role:roles(slug,name)').order('created_at', { ascending: false });
+        var q = await sb.from('profiles').select('id,full_name,email,phone,kyc_status,territory_id, role:roles(slug,name)').order('created_at', { ascending: false });
         var rows = q.data || [];
         el.innerHTML = '<div class="head"><h2>Users &amp; roles</h2></div>' +
           '<div class="muted" style="margin-bottom:10px;line-height:1.6">Role decides what each person can access in the app: ' +
@@ -771,7 +771,7 @@
             var curRole = (state.roles.find(function (r) { return r.slug === (u.role && u.role.slug); }) || {}).id;
             var roleSel = state.roles.map(function (r) { return '<option value="' + r.id + '"' + (r.id === curRole ? ' selected' : '') + '>' + esc(r.name) + '</option>'; }).join('');
             var terrSel = '<option value="">—</option>' + state.territories.map(function (t) { return '<option value="' + t.id + '"' + (t.id === u.territory_id ? ' selected' : '') + '>' + esc(t.name) + '</option>'; }).join('');
-            return '<tr data-id="' + u.id + '"><td>' + esc(u.full_name || '—') + '</td><td>' + esc(u.email || '') + '</td>' +
+            return '<tr data-id="' + u.id + '"><td>' + esc(u.full_name || '—') + '</td><td>' + esc(u.email || '') + (u.phone ? '<div class="muted" style="font-size:11px">' + esc(u.phone) + '</div>' : '') + '</td>' +
               '<td><select class="inp uu_role" style="width:150px;height:36px">' + roleSel + '</select></td>' +
               '<td><select class="inp uu_terr" style="width:140px;height:36px">' + terrSel + '</select></td>' +
               '<td><span class="pill ' + (u.kyc_status || 'neutral') + '">' + esc(u.kyc_status) + '</span></td>' +

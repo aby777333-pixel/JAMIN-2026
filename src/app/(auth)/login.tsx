@@ -145,6 +145,12 @@ export default function Login() {
             {usePassword ? 'Use email code instead' : 'Sign in with password'}
           </Text>
         </Pressable>
+
+        <Pressable onPress={() => router.push('/(auth)/register')} hitSlop={8} className="mt-1 self-center">
+          <Text className="text-[13px] text-muted">
+            New to JAMIN? <Text className="font-semibold text-red">Create an account</Text>
+          </Text>
+        </Pressable>
       </View>
 
       <Text variant="caption" className="text-center text-muted">

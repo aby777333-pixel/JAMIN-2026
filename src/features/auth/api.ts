@@ -24,6 +24,34 @@ export async function signInWithPassword(email: string, password: string) {
   return data;
 }
 
+/**
+ * Register with email + password. Name / phone / intended role are passed as signup
+ * metadata; the handle_new_user trigger persists them onto the profile (the role is
+ * validated server-side — only self-selectable, non-admin roles are honoured).
+ * Returns data.session (present when email confirmation is disabled).
+ */
+export async function signUpWithPassword(input: {
+  email: string;
+  password: string;
+  fullName: string;
+  phone: string;
+  role: string;
+}) {
+  const { data, error } = await supabase.auth.signUp({
+    email: input.email.trim().toLowerCase(),
+    password: input.password,
+    options: {
+      data: {
+        full_name: input.fullName.trim(),
+        phone: input.phone.trim(),
+        intended_role: input.role,
+      },
+    },
+  });
+  if (error) throw error;
+  return data;
+}
+
 export async function verifyEmailOtp(email: string, token: string) {
   const { data, error } = await supabase.auth.verifyOtp({
     email: email.trim().toLowerCase(),
