@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, ScrollView } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -43,27 +43,29 @@ export function OfferSheet({
 
   return (
     <Sheet visible={visible} onClose={onClose} title="Make an offer">
-      <Text variant="caption" className="mb-3">
-        {propertyLabel}
-        {listPrice ? ` · Asking ₹${listPrice.toLocaleString('en-IN')}` : ''}
-      </Text>
-      <Input
-        label="Your offer (₹)"
-        value={amount}
-        onChangeText={setAmount}
-        keyboardType="numeric"
-        inputMode="numeric"
-        placeholder="1400000"
-      />
-      <Input
-        label="Message (optional)"
-        value={message}
-        onChangeText={setMessage}
-        placeholder="A note to the seller"
-        multiline
-        className="mt-3 h-auto min-h-[72px] py-3"
-      />
-      <Button title="Send offer" loading={make.isPending} onPress={submit} className="mt-4" />
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="pb-4">
+        <Text variant="caption" className="mb-3">
+          {propertyLabel}
+          {listPrice ? ` · Asking ₹${listPrice.toLocaleString('en-IN')}` : ''}
+        </Text>
+        <Input
+          label="Your offer (₹)"
+          value={amount}
+          onChangeText={setAmount}
+          keyboardType="numeric"
+          inputMode="numeric"
+          placeholder="1400000"
+        />
+        <Input
+          label="Message (optional)"
+          value={message}
+          onChangeText={setMessage}
+          placeholder="A note to the seller"
+          multiline
+          className="mt-3 h-auto min-h-[72px] py-3"
+        />
+        <Button title="Send offer" loading={make.isPending} onPress={submit} className="mt-4" />
+      </ScrollView>
     </Sheet>
   );
 }

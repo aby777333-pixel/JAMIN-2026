@@ -811,7 +811,18 @@
               return '<tr data-lid="' + p.id + '"><td class="mono">' + esc(p.plot_code) + '</td><td>' + esc(p.project ? p.project.name : '—') + '</td><td>' + esc(p.type ? p.type.name : '—') + '</td><td class="mono">' + inr(p.price) + '</td><td>' + esc(p.seller ? p.seller.full_name : '—') + '</td>' +
                 '<td class="row"><button class="btn-g btn-sm la_set" data-s="approved">Approve</button><button class="btn-d btn-sm la_set" data-s="rejected">Reject</button></td></tr>';
             }).join('') + '</tbody></table>' : '<div class="muted">No listings awaiting approval.</div>');
+        // Members with KYC awaiting review (also approvable in Users & roles / Form submissions).
+        var kq = await sb.from('profiles').select('id,full_name,email, role:roles(name)').eq('kyc_status', 'pending').order('created_at');
+        var kyc = kq.data || [];
+        var kycHTML = '<div class="head"><h2>KYC approvals</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">Members who submitted KYC. Approve to mark them verified and unlock payouts in the app.</div>' +
+          (kyc.length ? '<table><thead><tr><th>Member</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead><tbody>' +
+            kyc.map(function (u) {
+              return '<tr data-kid="' + u.id + '"><td>' + esc(u.full_name || '—') + '</td><td>' + esc(u.email || '') + '</td><td>' + esc(u.role ? u.role.name : '—') + '</td>' +
+                '<td class="row"><button class="btn-g btn-sm ky_set" data-s="verified">Approve</button><button class="btn-d btn-sm ky_set" data-s="rejected">Reject</button></td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No pending KYC.</div>');
         el.innerHTML = listingsHTML +
+          '<div style="height:22px"></div>' + kycHTML +
           '<div style="height:22px"></div>' +
           '<div class="head"><h2>Approvals — withdrawals</h2></div>' +
           (rows.length ? '<table><thead><tr><th>Member</th><th>Amount</th><th>Rail</th><th>Status</th><th>Actions</th></tr></thead><tbody>' +
@@ -827,6 +838,13 @@
           b.onclick = async function () {
             var id = b.closest('tr').dataset.lid, s = b.dataset.s;
             var r = await sb.from('properties').update({ approval_status: s, reviewed_by: state.user.id, reviewed_at: new Date().toISOString() }).eq('id', id);
+            if (r.error) return alert(r.error.message); renderApprovals(); refreshApprovalsBadge();
+          };
+        });
+        el.querySelectorAll('.ky_set').forEach(function (b) {
+          b.onclick = async function () {
+            var id = b.closest('tr').dataset.kid, s = b.dataset.s;
+            var r = await sb.from('profiles').update({ kyc_status: s }).eq('id', id);
             if (r.error) return alert(r.error.message); renderApprovals(); refreshApprovalsBadge();
           };
         });
@@ -979,7 +997,7 @@
       async function renderFormSubs() {
         var el = $('tabFormsubs');
         el.innerHTML = '<div class="head"><h2>Form submissions</h2></div><div class="muted">Loading…</div>';
-        var q = await sb.from('form_submissions').select('id,form_key,data,status,created_at, user:profiles(full_name)').order('created_at', { ascending: false }).limit(500);
+        var q = await sb.from('form_submissions').select('id,form_key,data,status,created_at,user_id, user:profiles(full_name)').order('created_at', { ascending: false }).limit(500);
         if (q.error) { el.innerHTML = '<div class="head"><h2>Form submissions</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
         var rows = q.data || [];
         var keys = rows.reduce(function (a, r) { if (a.indexOf(r.form_key) < 0) a.push(r.form_key); return a; }, []);
@@ -991,20 +1009,30 @@
           shown.map(function (s) {
             var d = s.data || {};
             var details = Object.keys(d).map(function (k) { return '<div><span class="muted">' + esc(k.replace(/_/g, ' ')) + ':</span> ' + esc(d[k] == null || d[k] === '' ? '—' : String(d[k])) + '</div>'; }).join('');
-            return '<tr data-id="' + s.id + '">' +
+            return '<tr data-id="' + s.id + '" data-key="' + esc(s.form_key) + '" data-uid="' + esc(s.user_id || '') + '">' +
               '<td><b>' + esc(s.form_key) + '</b></td>' +
               '<td>' + esc(s.user ? s.user.full_name : '—') + '</td>' +
               '<td class="muted">' + new Date(s.created_at).toLocaleDateString() + '</td>' +
               '<td style="font-size:12px;line-height:1.5">' + (details || '<span class="muted">—</span>') + '</td>' +
-              '<td><select class="inp fs_status" style="width:130px;height:36px">' + FORM_SUB_STATUSES.map(function (t) { return '<option value="' + t + '"' + (t === s.status ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></td></tr>';
+              '<td><select class="inp fs_status" style="width:130px;height:36px">' + FORM_SUB_STATUSES.map(function (t) { return '<option value="' + t + '"' + (t === s.status ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select> <span class="muted fs_msg" style="font-size:11px"></span>' +
+              (s.form_key === 'kyc' ? '<div class="muted" style="font-size:10px;margin-top:2px">Approve → unlocks the member’s KYC in the app</div>' : '') + '</td></tr>';
           }).join('') + '</tbody></table>' : '<div class="muted">No submissions' + (formSubFilter === 'all' ? '' : ' for “' + esc(formSubFilter) + '”') + ' yet.</div>');
         el.querySelectorAll('.fs_filt').forEach(function (b) { b.onclick = function () { formSubFilter = b.dataset.k; renderFormSubs(); }; });
         el.querySelectorAll('tr[data-id]').forEach(function (tr) {
           var id = tr.dataset.id;
           tr.querySelector('.fs_status').onchange = async function () {
-            var r = await sb.from('form_submissions').update({ status: this.value }).eq('id', id);
-            if (r.error) alert(r.error.message);
-            refreshFormSubsBadge();
+            var val = this.value, msg = tr.querySelector('.fs_msg');
+            if (msg) { msg.style.color = ''; msg.textContent = 'Saving…'; }
+            var r = await sb.from('form_submissions').update({ status: val }).eq('id', id);
+            if (r.error) { if (msg) { msg.style.color = '#c00'; msg.textContent = 'Error'; } alert(r.error.message); return; }
+            // Keep KYC in sync with the member's profile so the app reflects it instantly.
+            if (tr.dataset.key === 'kyc' && tr.dataset.uid) {
+              var kyc = val === 'approved' ? 'verified' : val === 'rejected' ? 'rejected' : 'pending';
+              var pr = await sb.from('profiles').update({ kyc_status: kyc }).eq('id', tr.dataset.uid);
+              if (pr.error) { if (msg) { msg.style.color = '#c00'; msg.textContent = 'Profile not updated'; } alert('Saved on the form, but updating the member profile failed: ' + pr.error.message); refreshFormSubsBadge(); refreshApprovalsBadge(); return; }
+            }
+            if (msg) { msg.style.color = '#0a0'; msg.textContent = 'Saved ✓'; setTimeout(function () { msg.textContent = ''; }, 2500); }
+            refreshFormSubsBadge(); refreshApprovalsBadge();
           };
         });
         refreshFormSubsBadge();

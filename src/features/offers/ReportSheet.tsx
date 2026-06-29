@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, ScrollView } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -40,21 +40,23 @@ export function ReportSheet({
 
   return (
     <Sheet visible={visible} onClose={onClose} title="Report a problem">
-      {propertyLabel ? (
-        <Text variant="caption" className="mb-3">
-          {propertyLabel}
-        </Text>
-      ) : null}
-      <Input label="Subject" value={subject} onChangeText={setSubject} placeholder="e.g. Wrong location / suspicious listing" />
-      <Input
-        label="Details (optional)"
-        value={details}
-        onChangeText={setDetails}
-        placeholder="Tell us what's wrong"
-        multiline
-        className="mt-3 h-auto min-h-[88px] py-3"
-      />
-      <Button title="Submit report" loading={raise.isPending} onPress={submit} className="mt-4" />
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="pb-4">
+        {propertyLabel ? (
+          <Text variant="caption" className="mb-3">
+            {propertyLabel}
+          </Text>
+        ) : null}
+        <Input label="Subject" value={subject} onChangeText={setSubject} placeholder="e.g. Wrong location / suspicious listing" />
+        <Input
+          label="Details (optional)"
+          value={details}
+          onChangeText={setDetails}
+          placeholder="Tell us what's wrong"
+          multiline
+          className="mt-3 h-auto min-h-[88px] py-3"
+        />
+        <Button title="Submit report" loading={raise.isPending} onPress={submit} className="mt-4" />
+      </ScrollView>
     </Sheet>
   );
 }
