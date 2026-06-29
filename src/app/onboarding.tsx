@@ -7,18 +7,40 @@ import { Logo } from '@/components/brand/Logo';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
+import { Select, type SelectOption } from '@/components/ui/Select';
 import { Text } from '@/components/ui/Text';
 import { completeProfile } from '@/features/auth/api';
+import { useSelectableRoles } from '@/features/roles/hooks';
+import { switchRole } from '@/features/roles/api';
 import { useAuth } from '@/stores/auth';
+
+const ROLE_HINT: Record<string, string> = {
+  buyer: 'Browse & buy properties',
+  agent: 'Sales partner — earn commissions',
+  seller: 'List & sell your own plots',
+  builder: 'List your builds',
+  developer: 'List your projects',
+  surveyor: 'Offer survey services',
+  legal_consultant: 'Offer legal services',
+  broker: 'Broker listings & deals',
+};
 
 export default function Onboarding() {
   const { t } = useTranslation();
   const refreshProfile = useAuth((s) => s.refreshProfile);
+  const { data: roles = [] } = useSelectableRoles();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [role, setRole] = useState<string>('buyer');
   const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ fullName?: string; phone?: string }>({});
+
+  const roleOptions: SelectOption[] = roles.map((r) => ({
+    value: r.slug,
+    label: r.name,
+    hint: ROLE_HINT[r.slug],
+  }));
 
   async function onFinish() {
     const next: typeof errors = {};
@@ -30,6 +52,10 @@ export default function Onboarding() {
     setLoading(true);
     try {
       await completeProfile({ fullName, phone, referralCode });
+      // Apply the chosen role (only ever a self-selectable, non-admin role).
+      if (role && role !== 'buyer') {
+        await switchRole(role);
+      }
       await refreshProfile();
       router.replace('/(tabs)');
     } catch (e) {
@@ -40,7 +66,7 @@ export default function Onboarding() {
   }
 
   return (
-    <Screen contentClassName="py-4">
+    <Screen contentClassName="py-4" keyboardAvoiding>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View className="items-center py-2">
           <Logo width={180} />
@@ -69,6 +95,18 @@ export default function Onboarding() {
             inputMode="tel"
             error={errors.phone}
           />
+          <View className="gap-1">
+            <Select
+              label="I'm registering as"
+              value={role}
+              options={roleOptions}
+              onChange={setRole}
+              placeholder="Choose your role"
+            />
+            <Text variant="caption">
+              You can switch roles anytime later. Senior management roles are assigned by an admin.
+            </Text>
+          </View>
           <Input
             label={t('onboarding.referralCode')}
             value={referralCode}
