@@ -261,6 +261,14 @@ export default function PropertyDetail() {
                 <Text className="text-[13px] font-semibold text-ink">Nearby & directions</Text>
               </Pressable>
             ) : null}
+            {hasCoords ? (
+              <Pressable
+                onPress={() => router.push({ pathname: '/ar', params: { id: property.id } })}
+                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                <Ionicons name="scan" size={16} color={color.red} />
+                <Text className="text-[13px] font-semibold text-ink">AR boundary (beta)</Text>
+              </Pressable>
+            ) : null}
           </View>
         </View>
       ) : null}
