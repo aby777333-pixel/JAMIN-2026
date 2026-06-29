@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Pressable, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, Share, View } from 'react-native';
 
 import { Badge } from '@/components/ui/Badge';
 import { BackHeader } from '@/components/ui/BackHeader';
@@ -28,6 +28,7 @@ import {
   useWishlistIds,
 } from '@/features/buyer/hooks';
 import { useSubmitPhotos } from '@/features/submissions/hooks';
+import { SITE_URL } from '@/lib/site';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
 
@@ -137,9 +138,21 @@ export default function PropertyDetail() {
     <Screen contentClassName="pb-10 gap-4">
       <BackHeader
         right={
-          <Pressable onPress={() => toggle.mutate({ propertyId: property.id, saved: isSaved })} hitSlop={10}>
-            <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={24} color={isSaved ? color.red : color.ink} />
-          </Pressable>
+          <View className="flex-row items-center gap-4">
+            <Pressable
+              onPress={() =>
+                Share.share({
+                  message: `${customTitle ?? property.project?.name ?? 'Property'} (${property.plot_code}) on JAMIN Properties\n${SITE_URL}/p/${property.id}`,
+                  url: `${SITE_URL}/p/${property.id}`,
+                }).catch(() => {})
+              }
+              hitSlop={10}>
+              <Ionicons name="share-social-outline" size={22} color={color.ink} />
+            </Pressable>
+            <Pressable onPress={() => toggle.mutate({ propertyId: property.id, saved: isSaved })} hitSlop={10}>
+              <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={24} color={isSaved ? color.red : color.ink} />
+            </Pressable>
+          </View>
         }
       />
 

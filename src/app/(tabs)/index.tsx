@@ -224,31 +224,36 @@ export default function Home() {
             <QuickLink icon="receipt" label="Bookings" tint="#EA580C" onPress={() => router.push('/payments')} />
             <QuickLink icon="qr-code" label="My Card" tint="#0891B2" onPress={() => router.push('/(tabs)/card')} />
             <QuickLink icon="clipboard" label="Forms" tint="#475569" onPress={() => router.push('/forms')} />
+            <QuickLink icon="help-circle" label="Help & FAQ" tint="#64748B" onPress={() => router.push('/help')} />
             {profile?.role_is_admin ? (
               <QuickLink icon="shield-checkmark" label="Admin" tint="#DC2626" onPress={() => router.push('/admin')} />
             ) : null}
           </View>
         </>
       ) : (
-        <Card>
-          <Text variant="title">{get('home.buyer_card_title')}</Text>
-          <Text variant="body" className="mt-1 text-muted">
-            {get('home.buyer_card_body')}
-          </Text>
-          <View className="mt-3 gap-2">
-            <Button title="Browse properties" onPress={() => router.push('/(tabs)/properties')} />
-            <Button
-              title="My bookings & payments"
-              variant="secondary"
-              onPress={() => router.push('/payments')}
-            />
-            <Button
-              title="Become a partner — earn with JAMIN"
-              variant="outline"
-              onPress={() => router.push('/become-partner')}
-            />
+        <>
+          <Card>
+            <Text variant="title">{get('home.buyer_card_title')}</Text>
+            <Text variant="body" className="mt-1 text-muted">
+              {get('home.buyer_card_body')}
+            </Text>
+            <View className="mt-3">
+              <Button title="Browse properties" onPress={() => router.push('/(tabs)/properties')} />
+            </View>
+          </Card>
+          <View className="flex-row flex-wrap gap-3">
+            <QuickLink icon="map" label="Map & Radar" tint="#0D9488" onPress={() => router.push('/map')} />
+            <QuickLink icon="radio" label="Requirements" tint="#2563EB" onPress={() => router.push('/requirements')} />
+            <QuickLink icon="heart" label="Saved" tint="#E11D48" onPress={() => router.push('/(tabs)/properties')} />
+            <QuickLink icon="time" label="Recently viewed" tint="#7C3AED" onPress={() => router.push('/recent')} />
+            <QuickLink icon="pricetag" label="My offers" tint="#D97706" onPress={() => router.push('/offers')} />
+            <QuickLink icon="git-compare" label="Compare" tint="#4F46E5" onPress={() => router.push('/compare')} />
+            <QuickLink icon="calculator" label="Valuation" tint="#16A34A" onPress={() => router.push('/tools/valuation')} />
+            <QuickLink icon="receipt" label="My bookings" tint="#EA580C" onPress={() => router.push('/payments')} />
+            <QuickLink icon="help-circle" label="Help & FAQ" tint="#475569" onPress={() => router.push('/help')} />
+            <QuickLink icon="rocket" label="Become partner" tint="#DC2626" onPress={() => router.push('/become-partner')} />
           </View>
-        </Card>
+        </>
       )}
 
       <Pressable onPress={() => signOut()} className="self-center py-3">
