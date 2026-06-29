@@ -105,6 +105,8 @@
       var raw = (parts[1] || params.get('id') || '').trim();
       var slug = /^[A-Za-z0-9]{4,24}$/.test(raw) ? raw : '';
       var AD = null, pollTimer = null, lastCount = 0;
+      var SETTINGS = { ad_contact_visibility: 'hidden' };
+      var SHOW_CONTACT = false; // buyer protection: contact stays platform-mediated unless admin opts in
 
       function notFound(msg) {
         document.getElementById('root').innerHTML =
@@ -113,18 +115,26 @@
           '<a class="big primary" href="/">Explore JAMIN Properties →</a></div>';
       }
 
-      if (!slug) { notFound('Invalid link'); }
-      else {
+      function loadAd() {
         fetch(REST + 'shared_ads?slug=eq.' + encodeURIComponent(slug) + '&select=*&limit=1', { headers: H })
           .then(function (r) { return r.json(); })
           .then(function (rows) { if (!rows || !rows.length) { notFound(); return; } AD = rows[0]; render(); })
           .catch(function () { notFound('Could not load this ad'); });
       }
+      if (!slug) { notFound('Invalid link'); }
+      else {
+        fetch(REST + 'rpc/get_public_settings', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, H), body: '{}' })
+          .then(function (r) { return r.json(); })
+          .then(function (s) { if (s && typeof s === 'object') SETTINGS = s; })
+          .catch(function () {})
+          .finally(loadAd);
+      }
 
       function render() {
         var ad = AD;
+        SHOW_CONTACT = SETTINGS.ad_contact_visibility === 'visible';
         var hasGeo = ad.lat != null && ad.lng != null;
-        var digits = phoneDigits(ad.agent_phone);
+        var digits = SHOW_CONTACT ? phoneDigits(ad.agent_phone) : '';
         var name = ad.agent_name || 'JAMIN Partner';
         var refUrl = ad.agent_referral ? SITE + '/r/' + encodeURIComponent(ad.agent_referral) : SITE;
 
@@ -139,8 +149,9 @@
           '<div class="coord"><div><div class="c">' + Number(ad.lat).toFixed(6) + ', ' + Number(ad.lng).toFixed(6) + '</div>' +
           (ad.place ? '<div class="p">' + esc(ad.place) + '</div>' : '') + '</div><button id="copyCoord">Copy</button></div>') :
           '<div class="p" style="color:var(--muted);font-size:13px">Location wasn’t captured for this photo.</div>';
-        var callRow = ad.agent_phone ? (
-          '<a class="call" href="tel:' + esc(ad.agent_phone) + '">📞 <span class="num">' + esc(ad.agent_phone) + '</span><span class="t">Tap to call</span></a>') : '';
+        var callRow = (SHOW_CONTACT && ad.agent_phone) ? (
+          '<a class="call" href="tel:' + esc(ad.agent_phone) + '">📞 <span class="num">' + esc(ad.agent_phone) + '</span><span class="t">Tap to call</span></a>') :
+          '<div class="p" style="color:var(--muted);font-size:12.5px;margin-top:6px">🔒 For your safety, contact happens securely through JAMIN — message or call in-app below.</div>';
 
         var waText = encodeURIComponent('Hi ' + name + ', I saw the property you shared on JAMIN Properties' + (ad.place ? ' (' + ad.place + ')' : '') + '. Please share the details.');
         var actions =
@@ -156,7 +167,7 @@
 
         var sender =
           '<div class="sender"><div class="who"><b>' + esc(name) + '</b>' +
-          (ad.agent_phone ? '<div class="ph">' + esc(ad.agent_phone) + '</div>' : '') +
+          (SHOW_CONTACT && ad.agent_phone ? '<div class="ph">' + esc(ad.agent_phone) + '</div>' : '') +
           (ad.agent_referral ? '<div class="ref">Ref ' + esc(ad.agent_referral) + '</div>' : '') +
           '<div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:8px;letter-spacing:1px">SIGNATURE FOR FORTUNE</div></div>' +
           '<div class="qr" id="qrTrigger"><img alt="QR" src="' + qrSrc(refUrl, 120) + '" /><div class="hint">TAP TO ENLARGE</div></div></div>';
@@ -194,7 +205,7 @@
         if (sc) sc.onclick = function () {
           var name = ad.agent_name || 'JAMIN Partner';
           var v = ['BEGIN:VCARD', 'VERSION:3.0', 'FN:' + name, 'ORG:JAMIN Properties'];
-          if (ad.agent_phone) v.push('TEL;TYPE=CELL:' + ad.agent_phone);
+          if (SHOW_CONTACT && ad.agent_phone) v.push('TEL;TYPE=CELL:' + ad.agent_phone);
           if (ad.agent_referral) v.push('NOTE:JAMIN referral ' + ad.agent_referral);
           v.push('END:VCARD');
           var blob = new Blob([v.join('\r\n')], { type: 'text/vcard' });
@@ -220,6 +231,8 @@
           var url = 'https://meet.jit.si/' + callRoom() + '#userInfo.displayName=' + encodeURIComponent('"' + nm + '"') + '&config.prejoinPageEnabled=false' + (video ? '' : '&config.startAudioOnly=true');
           fetch(REST + 'ad_messages', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }, H),
             body: JSON.stringify({ slug: slug, sender: 'visitor', name: nm, body: (video ? '📹 Started a video call' : '📞 Started a voice call') + ' — tap “Join” in your console to connect.' }) }).then(loadMessages).catch(function () {});
+          fetch(REST + 'call_logs', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }, H),
+            body: JSON.stringify({ slug: slug, initiator: nm, kind: video ? 'video' : 'voice', room: callRoom() }) }).catch(function () {});
           window.open(url, '_blank');
         }
         var vc = document.getElementById('voiceCall'); if (vc) vc.onclick = function () { startCall(false); };
@@ -256,7 +269,7 @@
         pollTimer = setInterval(loadMessages, 4000);
       }
       function loadMessages() {
-        fetch(REST + 'ad_messages?slug=eq.' + encodeURIComponent(slug) + '&select=sender,name,body,created_at&order=created_at.asc', { headers: H })
+        fetch(REST + 'ad_messages?slug=eq.' + encodeURIComponent(slug) + '&hidden=eq.false&select=sender,name,body,created_at&order=created_at.asc', { headers: H })
           .then(function (r) { return r.json(); })
           .then(function (rows) { if (Array.isArray(rows)) renderMessages(rows); })
           .catch(function () {});

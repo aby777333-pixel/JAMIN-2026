@@ -67,6 +67,7 @@ export default function MyListings() {
                   <Stat label="Views" value={l.views} />
                   <Stat label="Enquiries" value={l.enquiries} />
                   <Stat label="Saved" value={l.saves} />
+                  <Stat label="Offers" value={l.offers} />
                   <Stat label="Bookings" value={l.bookings} />
                 </View>
               </Card>

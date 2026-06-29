@@ -75,6 +75,19 @@ export default function EditProfile() {
             </Pressable>
           ) : null}
 
+          <Pressable onPress={() => router.push('/offers')} className="mt-2">
+            <Card className="flex-row items-center gap-3">
+              <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
+                <Ionicons name="pricetag" size={18} color={color.red} />
+              </View>
+              <View className="flex-1">
+                <Text variant="title">My offers</Text>
+                <Text variant="caption">Offers you've made & seller responses</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={color.muted} />
+            </Card>
+          </Pressable>
+
           <Pressable onPress={() => router.push('/media')} className="mt-2">
             <Card className="flex-row items-center gap-3">
               <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">

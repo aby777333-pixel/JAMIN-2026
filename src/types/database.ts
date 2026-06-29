@@ -72,6 +72,7 @@ export type Database = {
         Row: {
           body: string
           created_at: string
+          hidden: boolean
           id: string
           name: string | null
           sender: string
@@ -80,6 +81,7 @@ export type Database = {
         Insert: {
           body: string
           created_at?: string
+          hidden?: boolean
           id?: string
           name?: string | null
           sender: string
@@ -88,6 +90,7 @@ export type Database = {
         Update: {
           body?: string
           created_at?: string
+          hidden?: boolean
           id?: string
           name?: string | null
           sender?: string
@@ -503,6 +506,44 @@ export type Database = {
           },
         ]
       }
+      call_logs: {
+        Row: {
+          created_at: string
+          id: string
+          initiator: string | null
+          kind: string | null
+          property_id: string | null
+          room: string | null
+          slug: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          initiator?: string | null
+          kind?: string | null
+          property_id?: string | null
+          room?: string | null
+          slug?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          initiator?: string | null
+          kind?: string | null
+          property_id?: string | null
+          room?: string | null
+          slug?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_logs_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaigns: {
         Row: {
           active: boolean
@@ -777,6 +818,60 @@ export type Database = {
         }
         Relationships: []
       }
+      disputes: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          property_id: string | null
+          raised_by: string
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          property_id?: string | null
+          raised_by: string
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          property_id?: string | null
+          raised_by?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_raised_by_fkey"
+            columns: ["raised_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follow_ups: {
         Row: {
           created_at: string
@@ -1001,6 +1096,7 @@ export type Database = {
         Row: {
           body: string
           created_at: string
+          hidden: boolean
           id: string
           read_at: string | null
           sender_id: string
@@ -1009,6 +1105,7 @@ export type Database = {
         Insert: {
           body: string
           created_at?: string
+          hidden?: boolean
           id?: string
           read_at?: string | null
           sender_id: string
@@ -1017,6 +1114,7 @@ export type Database = {
         Update: {
           body?: string
           created_at?: string
+          hidden?: boolean
           id?: string
           read_at?: string | null
           sender_id?: string
@@ -1076,6 +1174,66 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offers: {
+        Row: {
+          amount: number
+          buyer_id: string
+          counter_amount: number | null
+          counter_message: string | null
+          created_at: string
+          id: string
+          message: string | null
+          property_id: string
+          responded_at: string | null
+          responded_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          buyer_id: string
+          counter_amount?: number | null
+          counter_message?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          property_id: string
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string
+          counter_amount?: number | null
+          counter_message?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          property_id?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offers_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offers_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -2055,6 +2213,7 @@ export type Database = {
           value: number
         }[]
       }
+      get_public_settings: { Args: never; Returns: Json }
       log_admin_action: {
         Args: {
           p_action: string
@@ -2085,6 +2244,10 @@ export type Database = {
             }
             Returns: boolean
           }
+      make_offer: {
+        Args: { p_amount: number; p_message?: string; p_property: string }
+        Returns: string
+      }
       next_plot_code: { Args: { p_type: string }; Returns: string }
       notify: {
         Args: {
@@ -2100,6 +2263,15 @@ export type Database = {
       request_withdrawal: {
         Args: { p_amount: number; p_rail?: string }
         Returns: string
+      }
+      respond_offer: {
+        Args: {
+          p_counter_amount?: number
+          p_counter_message?: string
+          p_decision: string
+          p_offer: string
+        }
+        Returns: undefined
       }
       rule_matches: {
         Args: {
@@ -2120,6 +2292,7 @@ export type Database = {
           approval_status: string
           bookings: number
           enquiries: number
+          offers: number
           plot_code: string
           price: number
           property_id: string
@@ -2133,6 +2306,7 @@ export type Database = {
       team_summary: { Args: never; Returns: Json }
       text2ltree: { Args: { "": string }; Returns: unknown }
       uuid_label: { Args: { p: string }; Returns: string }
+      withdraw_offer: { Args: { p_offer: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

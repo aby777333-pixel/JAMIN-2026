@@ -18,6 +18,8 @@ import { NearbyAmenities } from '@/features/buyer/components/NearbyAmenities';
 import { PropertyGallery } from '@/features/buyer/components/PropertyGallery';
 import { RoiCalculator } from '@/features/buyer/components/RoiCalculator';
 import { SiteVisitSheet } from '@/features/buyer/components/SiteVisitSheet';
+import { OfferSheet } from '@/features/offers/OfferSheet';
+import { ReportSheet } from '@/features/offers/ReportSheet';
 import {
   useLogPropertyView,
   useProperty,
@@ -35,6 +37,7 @@ export default function PropertyDetail() {
   useLogPropertyView(id);
   const { data: saved } = useWishlistIds();
   const role = useAuth((s) => s.profile?.role_slug);
+  const myId = useAuth((s) => s.profile?.id);
   const isPartner = !!role && role !== 'buyer';
   const toggle = useToggleWishlist();
   const reserve = useReserveProperty();
@@ -42,6 +45,8 @@ export default function PropertyDetail() {
 
   const [enquiry, setEnquiry] = useState(false);
   const [visit, setVisit] = useState(false);
+  const [offer, setOffer] = useState(false);
+  const [report, setReport] = useState(false);
 
   async function onSuggestPhoto() {
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -268,13 +273,21 @@ export default function PropertyDetail() {
       <View className="gap-3">
         <Button title="Enquire now" onPress={() => setEnquiry(true)} />
         <Button title="Book a site visit" variant="outline" onPress={() => setVisit(true)} />
+        {property.status === 'available' && property.seller_id !== myId ? (
+          <Button title="Make an offer" variant="outline" onPress={() => setOffer(true)} />
+        ) : null}
         {property.status === 'available' ? (
           <Button title="Reserve this plot" variant="secondary" loading={reserve.isPending} onPress={onReserve} />
         ) : null}
+        <Pressable onPress={() => setReport(true)} className="items-center pt-1">
+          <Text className="text-[13px] font-semibold text-muted">Report a problem with this listing</Text>
+        </Pressable>
       </View>
 
       <EnquirySheet visible={enquiry} onClose={() => setEnquiry(false)} propertyId={property.id} propertyLabel={label} />
       <SiteVisitSheet visible={visit} onClose={() => setVisit(false)} propertyId={property.id} propertyLabel={label} />
+      <OfferSheet visible={offer} onClose={() => setOffer(false)} propertyId={property.id} propertyLabel={label} listPrice={property.price} />
+      <ReportSheet visible={report} onClose={() => setReport(false)} propertyId={property.id} propertyLabel={label} />
     </Screen>
   );
 }

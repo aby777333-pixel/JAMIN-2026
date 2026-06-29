@@ -126,6 +126,8 @@
         <button class="nav-i" data-tab="content">📝 App Content</button>
         <button class="nav-i" data-tab="announcements">📣 Announcements</button>
         <button class="nav-i" data-tab="config">⚙️ System config</button>
+        <button class="nav-i" data-tab="offers">🤝 Offers</button>
+        <button class="nav-i" data-tab="moderation">🛡️ Moderation</button>
         <button class="nav-i" data-tab="audit">🧾 Audit log</button>
         <button class="nav-i" data-tab="exports">📤 Exports</button>
         <div style="margin-top:14px;padding:10px 12px;font-size:11px;line-height:1.55;color:rgba(255,255,255,.6);background:rgba(255,255,255,.06);border-radius:10px">✓ Every change you save here is <b style="color:#7ee2a8">live in the phone app instantly</b> — no deploy needed.</div>
@@ -150,6 +152,8 @@
         <div id="tabContent" class="hidden"></div>
         <div id="tabAnnouncements" class="hidden"></div>
         <div id="tabConfig" class="hidden"></div>
+        <div id="tabOffers" class="hidden"></div>
+        <div id="tabModeration" class="hidden"></div>
         <div id="tabAudit" class="hidden"></div>
         <div id="tabExports" class="hidden"></div>
       </main>
@@ -236,7 +240,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'moderation', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -255,6 +259,8 @@
         if (tab === 'content') renderAppContent();
         if (tab === 'announcements') renderAnnouncements();
         if (tab === 'config') renderConfig();
+        if (tab === 'offers') renderOffers();
+        if (tab === 'moderation') renderModeration();
         if (tab === 'audit') renderAudit();
         if (tab === 'exports') renderExports();
       }
@@ -1490,6 +1496,97 @@
         loadMessages(chatThread);
       }
 
+      // ─── Offers / negotiation ───────────────────────────────────────────
+      async function renderOffers() {
+        var el = $('tabOffers');
+        el.innerHTML = '<div class="head"><h2>Offers</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('offers')
+          .select('id,amount,message,status,counter_amount,counter_message,created_at, property:properties(plot_code), buyer:profiles!buyer_id(full_name)')
+          .order('created_at', { ascending: false });
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Offers</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>Offers &amp; negotiation</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">Buyer offers on listings. Accept, decline, or send a counter — the buyer is notified in-app.</div>' +
+          (rows.length ? '<table><thead><tr><th>Plot</th><th>Buyer</th><th>Offer</th><th>Status</th><th>Counter</th><th>Actions</th></tr></thead><tbody>' +
+            rows.map(function (o) {
+              var live = (o.status === 'pending' || o.status === 'countered');
+              var pill = o.status === 'accepted' ? 'paid' : (o.status === 'declined' || o.status === 'withdrawn') ? 'sold' : 'requested';
+              var act = live
+                ? '<button class="btn-g btn-sm of_acc">Accept</button><button class="btn-d btn-sm of_dec">Decline</button><button class="btn-o btn-sm of_cnt">Counter</button>'
+                : '<span class="muted">—</span>';
+              return '<tr data-id="' + o.id + '"><td class="mono">' + esc(o.property ? o.property.plot_code : '—') + '</td>' +
+                '<td>' + esc(o.buyer ? o.buyer.full_name : '—') + '</td>' +
+                '<td class="mono">' + inr(o.amount) + (o.message ? '<div class="muted" style="font-size:11px">' + esc(o.message) + '</div>' : '') + '</td>' +
+                '<td><span class="pill ' + pill + '">' + esc(o.status) + '</span></td>' +
+                '<td class="mono">' + (o.counter_amount ? inr(o.counter_amount) : '—') + '</td>' +
+                '<td class="row">' + act + '</td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No offers yet.</div>');
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          async function respond(decision, ca, cm) {
+            var r = await sb.rpc('respond_offer', { p_offer: id, p_decision: decision, p_counter_amount: ca || null, p_counter_message: cm || null });
+            if (r.error) return alert(r.error.message);
+            renderOffers();
+          }
+          var a = tr.querySelector('.of_acc'); if (a) a.onclick = function () { if (confirm('Accept this offer?')) respond('accepted'); };
+          var d = tr.querySelector('.of_dec'); if (d) d.onclick = function () { if (confirm('Decline this offer?')) respond('declined'); };
+          var c = tr.querySelector('.of_cnt'); if (c) c.onclick = function () {
+            var amt = parseFloat(prompt('Counter amount (₹):') || ''); if (isNaN(amt) || amt <= 0) return;
+            respond('countered', amt, prompt('Message to the buyer (optional):') || null);
+          };
+        });
+      }
+
+      // ─── Moderation & safety (contact visibility + disputes) ────────────
+      async function renderModeration() {
+        var el = $('tabModeration');
+        el.innerHTML = '<div class="head"><h2>Moderation</h2></div><div class="muted">Loading…</div>';
+        var cfg = await sb.from('system_config').select('value').eq('key', 'ad_contact_visibility').maybeSingle();
+        var vis = (cfg.data && cfg.data.value) ? cfg.data.value : 'hidden';
+        var disp = await sb.from('disputes')
+          .select('id,subject,details,status,resolution,created_at, raiser:profiles!raised_by(full_name), property:properties(plot_code)')
+          .order('created_at', { ascending: false });
+        var rows = disp.data || [];
+        el.innerHTML = '<div class="head"><h2>Moderation &amp; safety</h2></div>' +
+          '<div class="panel"><h3>Web ad — seller contact</h3>' +
+            '<div class="muted" style="font-size:12px;margin-bottom:10px">When <b>Hidden</b>, shared web ads never expose a seller phone/WhatsApp — buyers contact in-app only (recommended). When <b>Visible</b>, the phone & WhatsApp buttons return.</div>' +
+            '<div class="row" style="gap:8px">' +
+              '<button class="btn' + (vis !== 'visible' ? '' : '-o') + ' btn-sm cv_set" data-v="hidden">🔒 Hidden (mediated)</button>' +
+              '<button class="btn' + (vis === 'visible' ? '' : '-o') + ' btn-sm cv_set" data-v="visible">👁 Visible</button>' +
+            '</div></div>' +
+          '<div class="head" style="margin-top:18px"><h2>Disputes &amp; reports</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">Issues raised by users. Set a status and record how it was resolved.</div>' +
+          (rows.length ? '<table><thead><tr><th>Subject</th><th>Raised by</th><th>Plot</th><th>Status</th><th>Resolution</th><th></th></tr></thead><tbody>' +
+            rows.map(function (d) {
+              return '<tr data-did="' + d.id + '"><td>' + esc(d.subject) + (d.details ? '<div class="muted" style="font-size:11px">' + esc(d.details) + '</div>' : '') + '</td>' +
+                '<td>' + esc(d.raiser ? d.raiser.full_name : '—') + '</td>' +
+                '<td class="mono">' + esc(d.property ? d.property.plot_code : '—') + '</td>' +
+                '<td><select class="inp ds_status" style="width:118px;height:34px">' + ['open', 'reviewing', 'resolved', 'rejected'].map(function (s) { return '<option' + (s === d.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></td>' +
+                '<td><input class="inp ds_res" style="width:170px;height:34px" placeholder="Resolution note" value="' + esc(d.resolution || '') + '" /></td>' +
+                '<td><button class="btn btn-sm ds_save">Save</button></td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No disputes raised.</div>');
+        el.querySelectorAll('.cv_set').forEach(function (b) {
+          b.onclick = async function () {
+            var r = await sb.from('system_config').upsert({ key: 'ad_contact_visibility', value: b.dataset.v }, { onConflict: 'key' });
+            if (r.error) return alert(r.error.message);
+            try { sb.rpc('log_admin_action', { p_action: 'config.ad_contact_visibility', p_entity: 'system_config', p_entity_id: null, p_payload: { value: b.dataset.v } }); } catch (e) {}
+            renderModeration();
+          };
+        });
+        el.querySelectorAll('tr[data-did]').forEach(function (tr) {
+          var id = tr.dataset.did;
+          tr.querySelector('.ds_save').onclick = async function () {
+            var st = tr.querySelector('.ds_status').value, res = tr.querySelector('.ds_res').value.trim();
+            this.textContent = '…';
+            var patch = { status: st, resolution: res || null };
+            if (st === 'resolved' || st === 'rejected') { patch.resolved_by = state.user.id; patch.resolved_at = new Date().toISOString(); }
+            var r = await sb.from('disputes').update(patch).eq('id', id);
+            this.textContent = r.error ? 'Err' : 'Saved';
+            if (r.error) alert(r.error.message);
+          };
+        });
+      }
+
       // ─── Audit log ──────────────────────────────────────────────────────
       async function renderAudit() {
         var el = $('tabAudit');
@@ -1614,6 +1711,23 @@
             { label: 'Status', get: function (r) { return r.status; } },
             { label: 'Created', get: function (r) { return r.created_at; } }],
           fetch: function () { return sb.from('commission_ledger').select('amount,direction,status,created_at, user:profiles!user_id(full_name)').order('created_at', { ascending: false }); } },
+        { key: 'offers', title: 'Offers', desc: 'Buyer offers & negotiation outcomes.',
+          cols: [
+            { label: 'Plot', get: function (r) { return r.property ? r.property.plot_code : ''; } },
+            { label: 'Buyer', get: function (r) { return r.buyer ? r.buyer.full_name : ''; } },
+            { label: 'Amount', get: function (r) { return r.amount; } },
+            { label: 'Status', get: function (r) { return r.status; } },
+            { label: 'Counter', get: function (r) { return r.counter_amount; } },
+            { label: 'Created', get: function (r) { return r.created_at; } }],
+          fetch: function () { return sb.from('offers').select('amount,status,counter_amount,created_at, property:properties(plot_code), buyer:profiles!buyer_id(full_name)').order('created_at', { ascending: false }); } },
+        { key: 'disputes', title: 'Disputes', desc: 'User-raised disputes and resolutions.',
+          cols: [
+            { label: 'Subject', get: function (r) { return r.subject; } },
+            { label: 'Raised by', get: function (r) { return r.raiser ? r.raiser.full_name : ''; } },
+            { label: 'Status', get: function (r) { return r.status; } },
+            { label: 'Resolution', get: function (r) { return r.resolution; } },
+            { label: 'Created', get: function (r) { return r.created_at; } }],
+          fetch: function () { return sb.from('disputes').select('subject,status,resolution,created_at, raiser:profiles!raised_by(full_name)').order('created_at', { ascending: false }); } },
         { key: 'geographic', title: 'Geographic report', desc: 'Listings by project / location with coordinates.',
           cols: [
             { label: 'Project', get: function (r) { return r.project ? r.project.name : ''; } },

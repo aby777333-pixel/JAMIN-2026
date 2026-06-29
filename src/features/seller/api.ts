@@ -14,6 +14,7 @@ export interface SellerListingStat {
   enquiries: number;
   saves: number;
   bookings: number;
+  offers: number;
 }
 
 export async function getMyListingStats(): Promise<SellerListingStat[]> {
