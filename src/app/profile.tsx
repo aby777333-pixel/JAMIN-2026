@@ -127,6 +127,19 @@ export default function EditProfile() {
             </Card>
           </Pressable>
 
+          <Pressable onPress={() => router.push('/tools/valuation')} className="mt-2">
+            <Card className="flex-row items-center gap-3">
+              <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
+                <Ionicons name="calculator" size={18} color={color.red} />
+              </View>
+              <View className="flex-1">
+                <Text variant="title">Land valuation</Text>
+                <Text variant="caption">Estimate a plot's value from live comparables</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={color.muted} />
+            </Card>
+          </Pressable>
+
           <Pressable onPress={() => router.push('/media')} className="mt-2">
             <Card className="flex-row items-center gap-3">
               <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">

@@ -129,6 +129,7 @@
         <button class="nav-i" data-tab="offers">🤝 Offers</button>
         <button class="nav-i" data-tab="requirements">📍 Requirements</button>
         <button class="nav-i" data-tab="moderation">🛡️ Moderation</button>
+        <button class="nav-i" data-tab="insights">📈 Insights</button>
         <button class="nav-i" data-tab="audit">🧾 Audit log</button>
         <button class="nav-i" data-tab="exports">📤 Exports</button>
         <div style="margin-top:14px;padding:10px 12px;font-size:11px;line-height:1.55;color:rgba(255,255,255,.6);background:rgba(255,255,255,.06);border-radius:10px">✓ Every change you save here is <b style="color:#7ee2a8">live in the phone app instantly</b> — no deploy needed.</div>
@@ -156,6 +157,7 @@
         <div id="tabOffers" class="hidden"></div>
         <div id="tabRequirements" class="hidden"></div>
         <div id="tabModeration" class="hidden"></div>
+        <div id="tabInsights" class="hidden"></div>
         <div id="tabAudit" class="hidden"></div>
         <div id="tabExports" class="hidden"></div>
       </main>
@@ -242,7 +244,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'moderation', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'moderation', 'insights', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -264,6 +266,7 @@
         if (tab === 'offers') renderOffers();
         if (tab === 'requirements') renderRequirements();
         if (tab === 'moderation') renderModeration();
+        if (tab === 'insights') renderInsights();
         if (tab === 'audit') renderAudit();
         if (tab === 'exports') renderExports();
       }
@@ -1608,6 +1611,71 @@
             if (r.error) alert(r.error.message);
           };
         });
+      }
+
+      // ─── Insights / BI (KPIs, demand, supply vs demand, conversion) ─────
+      function statBox(n, l) { return '<div class="stat"><div class="n">' + n + '</div><div class="l">' + esc(l) + '</div></div>'; }
+      async function renderInsights() {
+        var el = $('tabInsights');
+        el.innerHTML = '<div class="head"><h2>Insights</h2></div><div class="muted">Crunching the numbers…</div>';
+        var res = await Promise.all([
+          sb.from('properties').select('status,approval_status,price, project:projects(name,location)'),
+          sb.from('leads').select('id'),
+          sb.from('bookings').select('id,status'),
+          sb.from('offers').select('id,status'),
+          sb.from('buyer_requirements').select('id,location'),
+          sb.from('profiles').select('id', { count: 'exact', head: true }),
+        ]);
+        var props = res[0].data || [], leads = res[1].data || [], bookings = res[2].data || [];
+        var offers = res[3].data || [], reqs = res[4].data || [], usersN = res[5].count || 0;
+
+        var avail = props.filter(function (p) { return p.status === 'available'; }).length;
+        var sold = props.filter(function (p) { return p.status === 'sold'; }).length;
+        var soldValue = props.filter(function (p) { return p.status === 'sold'; }).reduce(function (s, p) { return s + Number(p.price || 0); }, 0);
+        var pending = props.filter(function (p) { return p.approval_status === 'pending'; }).length;
+        var acceptedOffers = offers.filter(function (o) { return o.status === 'accepted'; }).length;
+
+        // Demand by area (buyer requirements) + supply by area (available listings).
+        function norm(s) { return (s || '').trim(); }
+        var demand = {}, supply = {};
+        reqs.forEach(function (r) { var k = norm(r.location) || '(any)'; demand[k] = (demand[k] || 0) + 1; });
+        props.forEach(function (p) { if (p.status === 'available') { var k = norm(p.project && p.project.location) || '(unspecified)'; supply[k] = (supply[k] || 0) + 1; } });
+        var areas = Object.keys(demand).concat(Object.keys(supply)).filter(function (v, i, a) { return a.indexOf(v) === i && v !== '(any)'; });
+        areas.sort(function (a, b) { return (demand[b] || 0) - (demand[a] || 0) || (supply[b] || 0) - (supply[a] || 0); });
+
+        // Price trends — avg price by project.
+        var byProj = {};
+        props.forEach(function (p) { var n = (p.project && p.project.name) || '—'; (byProj[n] = byProj[n] || []).push(Number(p.price || 0)); });
+        var projRows = Object.keys(byProj).map(function (n) { var a = byProj[n]; var avg = a.reduce(function (s, x) { return s + x; }, 0) / a.length; return { name: n, avg: avg, count: a.length }; }).sort(function (a, b) { return b.avg - a.avg; });
+
+        // Conversion funnel: enquiries → bookings → sold.
+        function pct(a, b) { return b ? Math.round((a / b) * 100) : 0; }
+
+        el.innerHTML = '<div class="head"><h2>Insights &amp; business intelligence</h2></div>' +
+          '<div class="stat-row">' +
+            statBox(usersN, 'Users') + statBox(props.length, 'Listings') + statBox(avail, 'Available') +
+            statBox(sold, 'Sold') + statBox(inr(soldValue), 'Sold value') + statBox(leads.length, 'Leads') +
+            statBox(offers.length, 'Offers') + statBox(pending, 'Pending approval') +
+          '</div>' +
+          '<div class="panel"><h3>Conversion funnel</h3>' +
+            '<div class="stat-row" style="margin:0">' +
+              statBox(leads.length, 'Enquiries') +
+              statBox(bookings.length, 'Bookings (' + pct(bookings.length, leads.length) + '% of enquiries)') +
+              statBox(acceptedOffers, 'Accepted offers') +
+              statBox(sold, 'Sold (' + pct(sold, leads.length) + '% of enquiries)') +
+            '</div></div>' +
+          '<div class="panel"><h3>Demand vs supply by area</h3>' +
+            '<div class="muted" style="font-size:12px;margin-bottom:8px">Buyer requirements (demand) against available listings (supply), highest demand first.</div>' +
+            (areas.length ? '<table><thead><tr><th>Area</th><th>Demand</th><th>Supply</th><th>Gap</th></tr></thead><tbody>' +
+              areas.slice(0, 15).map(function (k) {
+                var d = demand[k] || 0, s = supply[k] || 0, gap = d - s;
+                return '<tr><td>' + esc(k) + '</td><td class="mono">' + d + '</td><td class="mono">' + s + '</td><td class="mono"' + (gap > 0 ? ' style="color:#e6a10d"' : '') + '>' + (gap > 0 ? '+' + gap + ' under-supplied' : gap < 0 ? gap : '0') + '</td></tr>';
+              }).join('') + '</tbody></table>' : '<div class="muted">No demand data yet — buyers haven\'t saved requirements.</div>') +
+          '</div>' +
+          '<div class="panel"><h3>Average price by project</h3>' +
+            (projRows.length ? '<table><thead><tr><th>Project</th><th>Listings</th><th>Avg price</th></tr></thead><tbody>' +
+              projRows.slice(0, 15).map(function (r) { return '<tr><td>' + esc(r.name) + '</td><td class="mono">' + r.count + '</td><td class="mono">' + inr(Math.round(r.avg)) + '</td></tr>'; }).join('') + '</tbody></table>' : '<div class="muted">No listings yet.</div>') +
+          '</div>';
       }
 
       // ─── Audit log ──────────────────────────────────────────────────────

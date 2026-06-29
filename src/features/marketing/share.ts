@@ -12,6 +12,7 @@ export type Channel =
   | 'facebook'
   | 'twitter'
   | 'linkedin'
+  | 'karochat'
   | 'sms'
   | 'email'
   | 'copy'
@@ -65,6 +66,9 @@ export async function shareToChannel(channel: Channel, text: string, url: string
         return await Linking.openURL(
           `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
         );
+      case 'karochat':
+        // Deep-link the KaroChat app if installed; otherwise fall back to the OS sheet.
+        return await Linking.openURL(`karochat://share?text=${enc}`);
       case 'sms':
         return await Linking.openURL(`sms:?body=${enc}`);
       case 'email':

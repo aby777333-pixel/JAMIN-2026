@@ -11,6 +11,7 @@ const CHANNELS: { key: Channel; icon: keyof typeof Ionicons.glyphMap; label: str
   { key: 'facebook', icon: 'logo-facebook', label: 'Facebook' },
   { key: 'twitter', icon: 'logo-twitter', label: 'X' },
   { key: 'linkedin', icon: 'logo-linkedin', label: 'LinkedIn' },
+  { key: 'karochat', icon: 'chatbubbles', label: 'KaroChat' },
   { key: 'sms', icon: 'chatbubble', label: 'SMS' },
   { key: 'email', icon: 'mail', label: 'Email' },
   { key: 'copy', icon: 'copy', label: 'Copy' },
