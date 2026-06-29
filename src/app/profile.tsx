@@ -88,6 +88,32 @@ export default function EditProfile() {
             </Card>
           </Pressable>
 
+          <Pressable onPress={() => router.push('/requirements')} className="mt-2">
+            <Card className="flex-row items-center gap-3">
+              <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
+                <Ionicons name="radio" size={18} color={color.red} />
+              </View>
+              <View className="flex-1">
+                <Text variant="title">Property requirements</Text>
+                <Text variant="caption">Get radar alerts when matching listings go live</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={color.muted} />
+            </Card>
+          </Pressable>
+
+          <Pressable onPress={() => router.push('/recent')} className="mt-2">
+            <Card className="flex-row items-center gap-3">
+              <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
+                <Ionicons name="time" size={18} color={color.red} />
+              </View>
+              <View className="flex-1">
+                <Text variant="title">Recently viewed</Text>
+                <Text variant="caption">Properties you've looked at recently</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={color.muted} />
+            </Card>
+          </Pressable>
+
           <Pressable onPress={() => router.push('/media')} className="mt-2">
             <Card className="flex-row items-center gap-3">
               <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">

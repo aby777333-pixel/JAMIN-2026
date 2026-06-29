@@ -32,19 +32,57 @@ export async function listProperties(filters: PropertyFilters): Promise<Property
     if (savedIds.length === 0) return [];
   }
 
-  let q = supabase.from('properties').select(LIST_SELECT).order('plot_code', { ascending: true });
+  let q = supabase.from('properties').select(LIST_SELECT);
 
   q = q.eq('status', filters.status ?? 'available');
   if (filters.propertyTypeId) q = q.eq('property_type_id', filters.propertyTypeId);
   if (filters.projectId) q = q.eq('project_id', filters.projectId);
   if (filters.priceMin != null) q = q.gte('price', filters.priceMin);
   if (filters.priceMax != null) q = q.lte('price', filters.priceMax);
+  if (filters.premiumOnly) q = q.eq('is_premium', true);
+  if (filters.verifiedOnly) q = q.eq('verified_seller', true);
   if (filters.search && filters.search.trim()) q = q.ilike('plot_code', `%${filters.search.trim()}%`);
   if (savedIds) q = q.in('id', savedIds);
+
+  // Sort (default: plot code ascending — unchanged behaviour).
+  switch (filters.sort) {
+    case 'price_asc':
+      q = q.order('price', { ascending: true });
+      break;
+    case 'price_desc':
+      q = q.order('price', { ascending: false });
+      break;
+    case 'newest':
+      q = q.order('created_at', { ascending: false });
+      break;
+    default:
+      q = q.order('plot_code', { ascending: true });
+  }
 
   const { data, error } = await q;
   if (error) throw error;
   return (data ?? []) as unknown as PropertyListItem[];
+}
+
+/** Properties the signed-in user has viewed, most-recent first (item 25). */
+export async function getRecentlyViewed(limit = 12): Promise<PropertyListItem[]> {
+  const { data: views, error } = await supabase
+    .from('property_views')
+    .select('property_id, created_at')
+    .order('created_at', { ascending: false })
+    .limit(60);
+  if (error) throw error;
+  const ids: string[] = [];
+  for (const row of views ?? []) {
+    const pid = (row as { property_id: string }).property_id;
+    if (pid && !ids.includes(pid)) ids.push(pid);
+    if (ids.length >= limit) break;
+  }
+  if (ids.length === 0) return [];
+  const { data, error: e2 } = await supabase.from('properties').select(LIST_SELECT).in('id', ids);
+  if (e2) throw e2;
+  const rows = (data ?? []) as unknown as PropertyListItem[];
+  return ids.map((id) => rows.find((r) => r.id === id)).filter(Boolean) as PropertyListItem[];
 }
 
 export async function getProperty(id: string): Promise<PropertyDetail | null> {

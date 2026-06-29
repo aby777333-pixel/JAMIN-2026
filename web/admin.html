@@ -127,6 +127,7 @@
         <button class="nav-i" data-tab="announcements">📣 Announcements</button>
         <button class="nav-i" data-tab="config">⚙️ System config</button>
         <button class="nav-i" data-tab="offers">🤝 Offers</button>
+        <button class="nav-i" data-tab="requirements">📍 Requirements</button>
         <button class="nav-i" data-tab="moderation">🛡️ Moderation</button>
         <button class="nav-i" data-tab="audit">🧾 Audit log</button>
         <button class="nav-i" data-tab="exports">📤 Exports</button>
@@ -153,6 +154,7 @@
         <div id="tabAnnouncements" class="hidden"></div>
         <div id="tabConfig" class="hidden"></div>
         <div id="tabOffers" class="hidden"></div>
+        <div id="tabRequirements" class="hidden"></div>
         <div id="tabModeration" class="hidden"></div>
         <div id="tabAudit" class="hidden"></div>
         <div id="tabExports" class="hidden"></div>
@@ -240,7 +242,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'moderation', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'moderation', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -260,6 +262,7 @@
         if (tab === 'announcements') renderAnnouncements();
         if (tab === 'config') renderConfig();
         if (tab === 'offers') renderOffers();
+        if (tab === 'requirements') renderRequirements();
         if (tab === 'moderation') renderModeration();
         if (tab === 'audit') renderAudit();
         if (tab === 'exports') renderExports();
@@ -1537,6 +1540,26 @@
         });
       }
 
+      // ─── Buyer requirements (demand) ────────────────────────────────────
+      async function renderRequirements() {
+        var el = $('tabRequirements');
+        el.innerHTML = '<div class="head"><h2>Buyer requirements</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('buyer_requirements')
+          .select('id,location,budget_min,budget_max,min_area,purpose,notify,created_at, user:profiles!user_id(full_name), type:property_types(name)')
+          .order('created_at', { ascending: false });
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Buyer requirements</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>Buyer requirements (demand)</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">What buyers are looking for — useful for sourcing inventory. Buyers are auto-notified (Property Radar) when a matching listing is approved.</div>' +
+          (rows.length ? '<table><thead><tr><th>Buyer</th><th>Location</th><th>Budget</th><th>Type</th><th>Purpose</th><th>Alerts</th></tr></thead><tbody>' +
+            rows.map(function (r) {
+              var budget = (r.budget_min || r.budget_max) ? (inr(r.budget_min || 0) + ' – ' + (r.budget_max ? inr(r.budget_max) : 'any')) : 'Any';
+              return '<tr><td>' + esc(r.user ? r.user.full_name : '—') + '</td><td>' + esc(r.location || 'Any') + '</td>' +
+                '<td class="mono">' + budget + '</td><td>' + esc(r.type ? r.type.name : 'Any') + '</td>' +
+                '<td>' + esc(r.purpose || '—') + '</td><td>' + (r.notify ? 'On' : 'Off') + '</td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No requirements yet.</div>');
+      }
+
       // ─── Moderation & safety (contact visibility + disputes) ────────────
       async function renderModeration() {
         var el = $('tabModeration');
@@ -1728,6 +1751,16 @@
             { label: 'Resolution', get: function (r) { return r.resolution; } },
             { label: 'Created', get: function (r) { return r.created_at; } }],
           fetch: function () { return sb.from('disputes').select('subject,status,resolution,created_at, raiser:profiles!raised_by(full_name)').order('created_at', { ascending: false }); } },
+        { key: 'requirements', title: 'Buyer requirements (demand)', desc: 'What buyers are searching for.',
+          cols: [
+            { label: 'Buyer', get: function (r) { return r.user ? r.user.full_name : ''; } },
+            { label: 'Location', get: function (r) { return r.location; } },
+            { label: 'Budget min', get: function (r) { return r.budget_min; } },
+            { label: 'Budget max', get: function (r) { return r.budget_max; } },
+            { label: 'Type', get: function (r) { return r.type ? r.type.name : ''; } },
+            { label: 'Purpose', get: function (r) { return r.purpose; } },
+            { label: 'Created', get: function (r) { return r.created_at; } }],
+          fetch: function () { return sb.from('buyer_requirements').select('location,budget_min,budget_max,purpose,created_at, user:profiles!user_id(full_name), type:property_types(name)').order('created_at', { ascending: false }); } },
         { key: 'geographic', title: 'Geographic report', desc: 'Listings by project / location with coordinates.',
           cols: [
             { label: 'Project', get: function (r) { return r.project ? r.project.name : ''; } },

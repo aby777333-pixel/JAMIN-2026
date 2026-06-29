@@ -18,6 +18,10 @@ export function useProperties(filters: PropertyFilters) {
   });
 }
 
+export function useRecentlyViewed(limit = 12) {
+  return useQuery({ queryKey: ['recently-viewed', limit], queryFn: () => api.getRecentlyViewed(limit) });
+}
+
 export function useProperty(id: string | undefined) {
   return useQuery({
     queryKey: ['property', id],

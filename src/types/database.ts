@@ -506,6 +506,66 @@ export type Database = {
           },
         ]
       }
+      buyer_requirements: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string
+          id: string
+          label: string | null
+          location: string | null
+          min_area: string | null
+          notify: boolean
+          property_type_id: string | null
+          purpose: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          id?: string
+          label?: string | null
+          location?: string | null
+          min_area?: string | null
+          notify?: boolean
+          property_type_id?: string | null
+          purpose?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          id?: string
+          label?: string | null
+          location?: string | null
+          min_area?: string | null
+          notify?: boolean
+          property_type_id?: string | null
+          purpose?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buyer_requirements_property_type_id_fkey"
+            columns: ["property_type_id"]
+            isOneToOne: false
+            referencedRelation: "property_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "buyer_requirements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       call_logs: {
         Row: {
           created_at: string

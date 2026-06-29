@@ -40,6 +40,9 @@ export interface PropertyFilters {
   priceMax?: number | null;
   status?: PropertyStatus;
   savedOnly?: boolean;
+  premiumOnly?: boolean;
+  verifiedOnly?: boolean;
+  sort?: 'plot' | 'price_asc' | 'price_desc' | 'newest';
 }
 
 export interface FormField {

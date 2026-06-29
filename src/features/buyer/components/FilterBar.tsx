@@ -88,9 +88,35 @@ export function FilterBar({
           );
         })}
       </ScrollView>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerClassName="gap-2 pr-4 items-center">
+        <Chip label="✓ Verified" active={!!filters.verifiedOnly} onPress={() => onChange({ verifiedOnly: !filters.verifiedOnly })} />
+        <Chip label="★ Premium" active={!!filters.premiumOnly} onPress={() => onChange({ premiumOnly: !filters.premiumOnly })} />
+        <Text variant="caption" className="mx-1">
+          Sort
+        </Text>
+        {SORTS.map((s) => (
+          <Chip
+            key={s.value}
+            label={s.label}
+            active={(filters.sort ?? 'plot') === s.value}
+            onPress={() => onChange({ sort: s.value })}
+          />
+        ))}
+      </ScrollView>
     </View>
   );
 }
+
+const SORTS: { label: string; value: NonNullable<PropertyFilters['sort']> }[] = [
+  { label: 'Plot', value: 'plot' },
+  { label: 'Newest', value: 'newest' },
+  { label: 'Price ↑', value: 'price_asc' },
+  { label: 'Price ↓', value: 'price_desc' },
+];
 
 const PRICE_BANDS: { label: string; min: number | null; max: number | null }[] = [
   { label: '< ₹20L', min: null, max: 2_000_000 },
