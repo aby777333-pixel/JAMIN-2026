@@ -14,6 +14,16 @@ export async function sendEmailOtp(email: string) {
   if (error) throw error;
 }
 
+/** Email + password sign-in (for staff/test/role accounts; OTP remains the default). */
+export async function signInWithPassword(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email.trim().toLowerCase(),
+    password,
+  });
+  if (error) throw error;
+  return data;
+}
+
 export async function verifyEmailOtp(email: string, token: string) {
   const { data, error } = await supabase.auth.verifyOtp({
     email: email.trim().toLowerCase(),
