@@ -1,6 +1,6 @@
 import { SITE_URL } from '@/lib/site';
 import { supabase } from '@/lib/supabase';
-import { uploadImageToBucket } from '@/lib/upload';
+import { uploadFileToBucket, uploadImageToBucket } from '@/lib/upload';
 
 /**
  * The shareable ad opens a rich, interactive landing page so the recipient gets
@@ -21,6 +21,9 @@ export interface PublishAdInput {
   agentPhone?: string | null;
   agentReferral?: string | null;
   capturedAt?: string | null;
+  /** Optional source video — uploaded best-effort so the ad page can play it. */
+  videoUri?: string;
+  videoMime?: string;
 }
 
 function makeSlug(): string {
@@ -40,10 +43,28 @@ export async function publishAd(input: PublishAdInput): Promise<{ slug: string; 
     name: `ad_${slug}.png`,
     mimeType: 'image/png',
   });
+  // Source video is optional + best-effort: a failed/oversized upload still ships the image ad.
+  let videoUrl: string | null = null;
+  if (input.videoUri) {
+    try {
+      const ext = (input.videoMime ?? 'video/mp4').split('/')[1] ?? 'mp4';
+      const up = await uploadFileToBucket(
+        'user-media',
+        `${input.ownerId}/ads`,
+        { uri: input.videoUri, name: `ad_${slug}.${ext}`, mimeType: input.videoMime ?? 'video/mp4' },
+        `ad_${slug}.mp4`,
+        'video/mp4',
+      );
+      videoUrl = up.url;
+    } catch {
+      videoUrl = null;
+    }
+  }
   const { error } = await supabase.from('shared_ads').insert({
     slug,
     owner_id: input.ownerId,
     image_url: imageUrl,
+    video_url: videoUrl,
     place: input.place ?? null,
     lat: input.lat ?? null,
     lng: input.lng ?? null,

@@ -1169,7 +1169,7 @@
       async function renderSharedAds() {
         var el = $('tabSharedads');
         el.innerHTML = '<div class="head"><h2>Shared ads</h2></div><div class="muted">Loading…</div>';
-        var q = await sb.from('shared_ads').select('id,slug,image_url,place,agent_name,agent_phone,created_at').order('created_at', { ascending: false }).limit(300);
+        var q = await sb.from('shared_ads').select('id,slug,image_url,video_url,place,agent_name,agent_phone,created_at').order('created_at', { ascending: false }).limit(300);
         if (q.error) { el.innerHTML = '<div class="head"><h2>Shared ads</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
         var rows = q.data || [];
         el.innerHTML = '<div class="head"><h2>Shared ads</h2></div>' +
@@ -1178,7 +1178,7 @@
           rows.map(function (s) {
             var url = location.origin + '/ad/' + encodeURIComponent(s.slug);
             return '<tr data-id="' + s.id + '">' +
-              '<td><a href="' + esc(s.image_url) + '" target="_blank" rel="noopener"><img src="' + esc(s.image_url) + '" style="height:54px;width:54px;object-fit:cover;border-radius:8px;border:1px solid #e6e7e2" /></a></td>' +
+              '<td><a href="' + esc(s.image_url) + '" target="_blank" rel="noopener"><img src="' + esc(s.image_url) + '" style="height:54px;width:54px;object-fit:cover;border-radius:8px;border:1px solid #e6e7e2" /></a>' + (s.video_url ? '<br><a href="' + esc(s.video_url) + '" target="_blank" rel="noopener" class="mono" style="font-size:11px">🎥 video</a>' : '') + '</td>' +
               '<td>' + esc(s.agent_name || '—') + (s.agent_phone ? '<br><span class="muted mono">' + esc(s.agent_phone) + '</span>' : '') + '</td>' +
               '<td>' + esc(s.place || '—') + '</td>' +
               '<td class="muted">' + new Date(s.created_at).toLocaleDateString() + '</td>' +

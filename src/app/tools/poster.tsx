@@ -27,6 +27,8 @@ import { errMessage } from '@/lib/errors';
 interface Media {
   uri: string; // the background still (a video's extracted frame, or the photo)
   kind: 'image' | 'video';
+  sourceUri?: string; // original video file (for in-page playback on the ad)
+  videoMime?: string;
 }
 
 /**
@@ -62,13 +64,17 @@ export default function PosterMaker() {
   async function pick() {
     setPicking(true);
     try {
-      const res = await ImagePicker.launchImageLibraryAsync({ quality: 0.9, mediaTypes: ['images', 'videos'] });
+      const res = await ImagePicker.launchImageLibraryAsync({
+        quality: 0.9,
+        mediaTypes: ['images', 'videos'],
+        videoMaxDuration: 60,
+      });
       if (res.canceled || !res.assets[0]) return;
       const a = res.assets[0];
       if (a.type === 'video') {
         try {
           const { uri } = await VideoThumbnails.getThumbnailAsync(a.uri, { time: 1500, quality: 0.9 });
-          setMedia({ uri, kind: 'video' });
+          setMedia({ uri, kind: 'video', sourceUri: a.uri, videoMime: a.mimeType ?? 'video/mp4' });
         } catch {
           Alert.alert('Could not read video', 'Try a different video or use a photo.');
         }
@@ -135,6 +141,7 @@ export default function PosterMaker() {
   }
 
   async function onShare() {
+    if (!media) return;
     setBusy(true);
     try {
       const uri = await render();
@@ -151,6 +158,8 @@ export default function PosterMaker() {
             agentName: profile.full_name,
             agentPhone: profile.phone,
             agentReferral: profile.referral_code,
+            videoUri: media.kind === 'video' ? media.sourceUri : undefined,
+            videoMime: media.videoMime,
           });
           const caption =
             `${title || 'Property for sale'}${price.trim() ? ` · ${formatINR(money(price))}` : ''}` +

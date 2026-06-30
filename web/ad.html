@@ -177,8 +177,12 @@
           '<div class="chat-log" id="chatLog"><div class="chat-empty">Send a message — ' + esc(name.split(' ')[0]) + ' will reply here.</div></div>' +
           '<div class="chat-in"><input class="inp" id="chatInput" placeholder="Type a message…" /><button class="send" id="chatSend">Send</button></div></div>';
 
+        var media = ad.video_url
+          ? '<video class="ad" src="' + esc(ad.video_url) + '" poster="' + esc(ad.image_url) + '" controls playsinline preload="metadata"></video>'
+          : '<img class="ad" src="' + esc(ad.image_url) + '" alt="Property — captured live" />';
+
         document.getElementById('root').innerHTML =
-          '<img class="ad" src="' + esc(ad.image_url) + '" alt="Property — captured live" />' +
+          media +
           '<div class="panel"><h3>Location &amp; contact</h3>' + coordRow + geoBtns + callRow + '</div>' +
           '<div class="panel"><h3>Get in touch</h3>' + actions + '</div>' +
           sender + chat + '<div class="tag">JAMIN PROPERTIES</div>';

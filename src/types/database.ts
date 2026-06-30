@@ -2280,6 +2280,7 @@ export type Database = {
           owner_id: string
           place: string | null
           slug: string
+          video_url: string | null
         }
         Insert: {
           agent_name?: string | null
@@ -2295,6 +2296,7 @@ export type Database = {
           owner_id: string
           place?: string | null
           slug: string
+          video_url?: string | null
         }
         Update: {
           agent_name?: string | null
@@ -2310,6 +2312,7 @@ export type Database = {
           owner_id?: string
           place?: string | null
           slug?: string
+          video_url?: string | null
         }
         Relationships: [
           {
