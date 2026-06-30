@@ -13,6 +13,7 @@ import { color } from '@/theme/tokens';
 const ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string; href: string }[] = [
   { icon: 'person-circle', label: 'Edit profile', sub: 'Name, phone, designation, photo', href: '/profile' },
   { icon: 'calendar', label: 'My site visits', sub: 'Bookings & check-in', href: '/visits' },
+  { icon: 'people', label: 'Shared shortlists', sub: 'Decide together with family', href: '/shortlists' },
   { icon: 'apps', label: "What's included", sub: 'Explore all platform features', href: '/features' },
   { icon: 'notifications', label: 'Notifications', sub: 'Choose your alerts', href: '/settings/notifications' },
   { icon: 'lock-closed', label: 'Security & language', sub: 'App lock, language', href: '/settings/security' },

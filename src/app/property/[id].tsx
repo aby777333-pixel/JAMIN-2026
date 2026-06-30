@@ -17,6 +17,7 @@ import { EmiCalculator } from '@/features/buyer/components/EmiCalculator';
 import { EnquirySheet } from '@/features/buyer/components/EnquirySheet';
 import { ListingQrSheet } from '@/features/buyer/components/ListingQrSheet';
 import { NearbyAmenities } from '@/features/buyer/components/NearbyAmenities';
+import { NeighborhoodScores } from '@/features/buyer/components/NeighborhoodScores';
 import { PriceHistoryPanel } from '@/features/buyer/components/PriceHistoryPanel';
 import { PropertyGallery } from '@/features/buyer/components/PropertyGallery';
 import { RentVsBuyCalculator } from '@/features/buyer/components/RentVsBuyCalculator';
@@ -25,6 +26,7 @@ import { RoiCalculator } from '@/features/buyer/components/RoiCalculator';
 import { SiteVisitSheet } from '@/features/buyer/components/SiteVisitSheet';
 import { StampDutyCalculator } from '@/features/buyer/components/StampDutyCalculator';
 import { ReviewsPanel } from '@/features/reviews/ReviewsPanel';
+import { AddToShortlistSheet } from '@/features/shortlists/AddToShortlistSheet';
 import { OfferSheet } from '@/features/offers/OfferSheet';
 import { ReportSheet } from '@/features/offers/ReportSheet';
 import {
@@ -57,6 +59,7 @@ export default function PropertyDetail() {
   const [offer, setOffer] = useState(false);
   const [report, setReport] = useState(false);
   const [qr, setQr] = useState(false);
+  const [shortlist, setShortlist] = useState(false);
 
   async function onSuggestPhoto() {
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -305,6 +308,8 @@ export default function PropertyDetail() {
 
       {hasCoords ? <NearbyAmenities lat={lat as number} lng={lng as number} /> : null}
 
+      <NeighborhoodScores scores={property.project?.neighborhood} />
+
       <PriceHistoryPanel propertyId={property.id} />
 
       <EmiCalculator price={property.price} />
@@ -318,6 +323,7 @@ export default function PropertyDetail() {
       <View className="gap-3">
         <Button title="Enquire now" onPress={() => setEnquiry(true)} />
         <Button title="Book a site visit" variant="outline" onPress={() => setVisit(true)} />
+        <Button title="Add to shared shortlist" variant="outline" left={<Ionicons name="people" size={16} color={color.ink} />} onPress={() => setShortlist(true)} />
         {property.status === 'available' && property.seller_id !== myId ? (
           <Button title="Make an offer" variant="outline" onPress={() => setOffer(true)} />
         ) : null}
@@ -334,6 +340,7 @@ export default function PropertyDetail() {
       <OfferSheet visible={offer} onClose={() => setOffer(false)} propertyId={property.id} propertyLabel={label} listPrice={property.price} />
       <ReportSheet visible={report} onClose={() => setReport(false)} propertyId={property.id} propertyLabel={label} />
       <ListingQrSheet visible={qr} onClose={() => setQr(false)} propertyId={property.id} propertyLabel={label} />
+      <AddToShortlistSheet visible={shortlist} onClose={() => setShortlist(false)} propertyId={property.id} />
     </Screen>
   );
 }

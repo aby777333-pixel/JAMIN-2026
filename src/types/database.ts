@@ -1651,6 +1651,7 @@ export type Database = {
           location: string | null
           media: Json
           name: string
+          neighborhood: Json
           rera_doc_path: string | null
           rera_number: string | null
           rera_status: string
@@ -1669,6 +1670,7 @@ export type Database = {
           location?: string | null
           media?: Json
           name: string
+          neighborhood?: Json
           rera_doc_path?: string | null
           rera_number?: string | null
           rera_status?: string
@@ -1687,6 +1689,7 @@ export type Database = {
           location?: string | null
           media?: Json
           name?: string
+          neighborhood?: Json
           rera_doc_path?: string | null
           rera_number?: string | null
           rera_status?: string
@@ -2231,6 +2234,198 @@ export type Database = {
           },
         ]
       }
+      shortlist_comments: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          item_id: string
+          user_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          item_id: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shortlist_comments_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "shortlist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shortlist_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shortlist_items: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          id: string
+          property_id: string
+          shortlist_id: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          id?: string
+          property_id: string
+          shortlist_id: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          id?: string
+          property_id?: string
+          shortlist_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shortlist_items_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shortlist_items_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shortlist_items_shortlist_id_fkey"
+            columns: ["shortlist_id"]
+            isOneToOne: false
+            referencedRelation: "shortlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shortlist_members: {
+        Row: {
+          id: string
+          joined_at: string
+          role: string
+          shortlist_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          role?: string
+          shortlist_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          role?: string
+          shortlist_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shortlist_members_shortlist_id_fkey"
+            columns: ["shortlist_id"]
+            isOneToOne: false
+            referencedRelation: "shortlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shortlist_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shortlist_votes: {
+        Row: {
+          id: string
+          item_id: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shortlist_votes_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "shortlist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shortlist_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shortlists: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          share_token: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          share_token?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          share_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shortlists_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_visits: {
         Row: {
           agent_id: string | null
@@ -2636,6 +2831,8 @@ export type Database = {
         }[]
       }
       get_public_settings: { Args: never; Returns: Json }
+      is_shortlist_member: { Args: { p_sl: string }; Returns: boolean }
+      join_shortlist: { Args: { p_token: string }; Returns: string }
       lead_score_band: { Args: { p_score: number }; Returns: string }
       log_admin_action: {
         Args: {
@@ -2765,6 +2962,7 @@ export type Database = {
         Args: { p_status: string; p_visit: string }
         Returns: undefined
       }
+      shortlist_id_for_item: { Args: { p_item: string }; Returns: string }
       submit_kyc: { Args: { p_data: Json }; Returns: undefined }
       switch_role: { Args: { p_slug: string }; Returns: string }
       team_member_stats: { Args: { p_member: string }; Returns: Json }

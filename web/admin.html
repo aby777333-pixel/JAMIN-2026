@@ -233,7 +233,7 @@
 
       // ─── Lookups ────────────────────────────────────────────────────────
       async function loadLookups() {
-        var p = await sb.from('projects').select('id,code,name,location,status,rera_number,rera_status,rera_valid_till').order('name');
+        var p = await sb.from('projects').select('id,code,name,location,status,rera_number,rera_status,rera_valid_till,neighborhood').order('name');
         var pl = await sb.from('plans').select('id,project_id,name');
         var t = await sb.from('property_types').select('id,slug,name,code_prefix').eq('active', true).order('name');
         var r = await sb.from('roles').select('id,slug,name,level').order('level');
@@ -690,6 +690,13 @@
             '<input id="c_pname" class="inp" style="max-width:220px" placeholder="Name" />' +
             '<input id="c_ploc" class="inp" style="max-width:200px" placeholder="Location" />' +
             '<button id="c_padd" class="btn btn-sm">Add project</button></div>' + projTable + '</div>' +
+          '<div class="panel"><h3>Neighborhood scores (0–5)</h3>' +
+            '<div class="muted" style="font-size:12px;margin-bottom:8px">Set per-project liveability scores shown to buyers.</div>' +
+            '<div class="row"><select id="nb_proj" class="inp" style="max-width:220px">' + opt(state.projects, null, function (x) { return esc(x.name); }) + '</select>' +
+            ['schools', 'healthcare', 'connectivity', 'safety', 'utilities'].map(function (k) {
+              return '<input class="inp nb_' + k + '" type="number" min="0" max="5" step="0.5" style="max-width:110px" placeholder="' + k + '" />';
+            }).join('') +
+            '<button id="nb_save" class="btn btn-sm">Save scores</button></div></div>' +
           '<div class="panel"><h3>Plans</h3>' +
             '<div class="row"><select id="c_plproj" class="inp" style="max-width:220px">' + opt(state.projects, null, function (x) { return esc(x.name); }) + '</select>' +
             '<input id="c_plname" class="inp" style="max-width:200px" placeholder="Plan name (e.g. Plan A)" />' +
@@ -704,6 +711,22 @@
           if (!$('c_pname').value.trim()) return alert('Project name is required.');
           var r = await sb.from('projects').insert({ code: $('c_pcode').value.trim() || null, name: $('c_pname').value.trim(), location: $('c_ploc').value.trim() || null });
           if (r.error) return alert(r.error.message); renderCatalog();
+        };
+        // Neighborhood scores: load selected project's values, save back to projects.neighborhood.
+        var NB_KEYS = ['schools', 'healthcare', 'connectivity', 'safety', 'utilities'];
+        function nbLoad() {
+          var proj = (state.projects || []).find(function (x) { return x.id === $('nb_proj').value; });
+          var nb = (proj && proj.neighborhood) || {};
+          NB_KEYS.forEach(function (k) { var el2 = document.querySelector('.nb_' + k); if (el2) el2.value = (nb[k] != null ? nb[k] : ''); });
+        }
+        if ($('nb_proj')) { $('nb_proj').onchange = nbLoad; nbLoad(); }
+        if ($('nb_save')) $('nb_save').onclick = async function () {
+          var pid = $('nb_proj').value; if (!pid) return alert('Pick a project.');
+          var nb = {};
+          NB_KEYS.forEach(function (k) { var v = document.querySelector('.nb_' + k).value; if (v !== '') nb[k] = Math.max(0, Math.min(5, Number(v))); });
+          this.textContent = '…';
+          var r = await sb.from('projects').update({ neighborhood: nb }).eq('id', pid);
+          this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message); else { var proj = state.projects.find(function (x) { return x.id === pid; }); if (proj) proj.neighborhood = nb; }
         };
         $('c_pladd').onclick = async function () {
           if (!$('c_plproj').value || !$('c_plname').value.trim()) return alert('Pick a project and enter a plan name.');

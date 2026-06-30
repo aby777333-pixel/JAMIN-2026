@@ -8,6 +8,7 @@ export interface PropertyRef {
   rera_number?: string | null;
   rera_status?: string | null;
   rera_valid_till?: string | null;
+  neighborhood?: Record<string, number> | null;
 }
 
 export interface PropertyListItem {
