@@ -1318,6 +1318,22 @@
         var q = await sb.from('brochure_templates').select('id,name,kind,active,is_default').order('created_at');
         if (q.error) { el.innerHTML = '<div class="head"><h2>Marketing assets</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
         var rows = q.data || [];
+        var ma = await sb.from('marketing_assets').select('id,title,kind,file_url,active,created_at').order('created_at', { ascending: false });
+        var assets = ma.data || [];
+        var FKINDS = ['brochure', 'flyer', 'poster'];
+        var filesHtml = '<div class="panel"><h3>Upload brochure / flyer / poster (file)</h3>' +
+          '<div class="muted" style="font-size:12px;margin-bottom:8px">PDF or image. Appears in the app’s Brochures library for everyone.</div>' +
+          '<div class="row"><input id="maf_title" class="inp" style="max-width:240px" placeholder="Title" />' +
+          '<select id="maf_kind" class="inp" style="max-width:140px">' + FKINDS.map(function (k) { return '<option value="' + k + '">' + k + '</option>'; }).join('') + '</select>' +
+          '<label class="btn-o btn-sm" style="display:inline-block">Choose file<input id="maf_file" type="file" accept="image/*,application/pdf" class="hidden" /></label>' +
+          '<button id="maf_up" class="btn btn-sm">Upload</button> <span id="maf_msg" class="muted"></span></div></div>' +
+          (assets.length ? '<table><thead><tr><th>Title</th><th>Kind</th><th>File</th><th>Active</th><th></th></tr></thead><tbody>' +
+            assets.map(function (a) {
+              return '<tr data-aid="' + a.id + '"><td>' + esc(a.title) + '</td><td>' + esc(a.kind) + '</td>' +
+                '<td><a href="' + esc(a.file_url) + '" target="_blank" rel="noopener" class="mono" style="font-size:12px">open</a></td>' +
+                '<td><span class="pill ' + (a.active ? 'available' : 'sold') + '">' + (a.active ? 'on' : 'off') + '</span></td>' +
+                '<td class="row"><button class="btn-o btn-sm maf_tog">' + (a.active ? 'Disable' : 'Enable') + '</button><button class="btn-d btn-sm maf_del">Delete</button></td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No uploaded files yet.</div>');
         var KINDS = ['project', 'flyer', 'offer', 'image', 'video', 'campaign'];
         el.innerHTML = '<div class="head"><h2>Marketing assets</h2></div>' +
           '<div class="panel"><h3>Add brochure / template</h3><div class="row">' +
@@ -1333,7 +1349,35 @@
               '<td><button class="btn-o btn-sm mk_def"' + (b.is_default ? ' style="background:var(--gold);border-color:var(--gold)"' : '') + '>' + (b.is_default ? '★ Default' : 'Set default') + '</button></td>' +
               '<td><span class="pill ' + (b.active ? 'available' : 'sold') + '">' + (b.active ? 'active' : 'off') + '</span></td>' +
               '<td class="row"><button class="btn btn-sm mk_save">Save</button><button class="btn-o btn-sm mk_tog">' + (b.active ? 'Disable' : 'Enable') + '</button><button class="btn-d btn-sm mk_del">Delete</button></td></tr>';
-          }).join('') + '</tbody></table>' : '<div class="muted">No templates.</div>');
+          }).join('') + '</tbody></table>' : '<div class="muted">No templates.</div>') + filesHtml;
+        var mafFile = $('maf_file');
+        $('maf_up').onclick = async function () {
+          var f = mafFile && mafFile.files && mafFile.files[0];
+          var title = $('maf_title').value.trim();
+          if (!title) return alert('Enter a title.');
+          if (!f) return alert('Choose a file.');
+          $('maf_msg').textContent = 'Uploading…';
+          var path = 'marketing/' + Date.now() + '_' + f.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          var up = await sb.storage.from('property-media').upload(path, f, { contentType: f.type, upsert: false });
+          if (up.error) { $('maf_msg').textContent = ''; return alert(up.error.message); }
+          var url = sb.storage.from('property-media').getPublicUrl(path).data.publicUrl;
+          var r = await sb.from('marketing_assets').insert({ title: title, kind: $('maf_kind').value, file_url: url, file_path: path, mime: f.type });
+          if (r.error) { $('maf_msg').textContent = ''; return alert(r.error.message); }
+          renderMarketing();
+        };
+        el.querySelectorAll('tr[data-aid]').forEach(function (tr) {
+          var id = tr.dataset.aid;
+          tr.querySelector('.maf_tog').onclick = async function () {
+            var on = this.textContent === 'Enable';
+            var r = await sb.from('marketing_assets').update({ active: on }).eq('id', id);
+            if (r.error) alert(r.error.message); else renderMarketing();
+          };
+          tr.querySelector('.maf_del').onclick = async function () {
+            if (!confirm('Delete this file?')) return;
+            var r = await sb.from('marketing_assets').delete().eq('id', id);
+            if (r.error) alert(r.error.message); else renderMarketing();
+          };
+        });
         $('mk_add').onclick = async function () {
           var name = $('mk_name').value.trim(); if (!name) return;
           var r = await sb.from('brochure_templates').insert({ name: name, kind: $('mk_kind').value, config: {}, active: true });

@@ -1851,6 +1851,59 @@ export type Database = {
           },
         ]
       }
+      marketing_assets: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          file_path: string | null
+          file_url: string
+          id: string
+          kind: string
+          mime: string | null
+          project_id: string | null
+          sort_order: number
+          thumb_url: string | null
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          file_path?: string | null
+          file_url: string
+          id?: string
+          kind?: string
+          mime?: string | null
+          project_id?: string | null
+          sort_order?: number
+          thumb_url?: string | null
+          title: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          file_path?: string | null
+          file_url?: string
+          id?: string
+          kind?: string
+          mime?: string | null
+          project_id?: string | null
+          sort_order?: number
+          thumb_url?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_assets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           body: string
