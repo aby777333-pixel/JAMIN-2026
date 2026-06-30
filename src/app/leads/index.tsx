@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +10,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
 import { LEAD_STATUSES, type Lead } from '@/features/leads/api';
+import { ScoreBandPill } from '@/features/leads/ScoreBandPill';
 import { useLeads } from '@/features/leads/hooks';
 import { router } from 'expo-router';
 import { color } from '@/theme/tokens';
@@ -21,7 +23,18 @@ export default function LeadsList() {
   return (
     <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
       <View className="px-5">
-        <BackHeader title="Leads" />
+        <BackHeader
+          title="Leads"
+          right={
+            <Pressable
+              onPress={() => router.push('/leads/pipeline')}
+              hitSlop={10}
+              className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5">
+              <Ionicons name="git-branch" size={14} color={color.red} />
+              <Text className="text-[12px] font-semibold text-ink">Pipeline</Text>
+            </Pressable>
+          }
+        />
       </View>
       <ScrollView
         horizontal
@@ -67,9 +80,12 @@ function LeadRow({ lead }: { lead: Lead }) {
     <Pressable onPress={() => router.push(`/leads/${lead.id}`)}>
       <Card className="flex-row items-center gap-3">
         <View className="flex-1">
-          <Text variant="title" numberOfLines={1}>
-            {name}
-          </Text>
+          <View className="flex-row items-center gap-2">
+            <Text variant="title" numberOfLines={1} className="flex-shrink">
+              {name}
+            </Text>
+            <ScoreBandPill band={lead.score_band} score={lead.score} />
+          </View>
           {prop ? (
             <Text variant="caption" numberOfLines={1}>
               {prop}

@@ -6,6 +6,7 @@ import { Pressable, View } from 'react-native';
 import { Badge } from '@/components/ui/Badge';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Text } from '@/components/ui/Text';
+import { ReraBadge } from './ReraBadge';
 import { color } from '@/theme/tokens';
 import type { PropertyListItem } from '../types';
 
@@ -72,6 +73,11 @@ export function PropertyCard({
             {item.project.location}
           </Text>
         ) : null}
+        <ReraBadge
+          status={item.project?.rera_status}
+          validTill={item.project?.rera_valid_till}
+          compact
+        />
         <MoneyText value={item.price} className="mt-1 text-[18px]" />
       </View>
     </Pressable>

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { Text } from '@/components/ui/Text';
 import { useBookSiteVisit } from '../hooks';
+import { useBookVisit } from '@/features/visits/hooks';
 import { Sheet } from './EnquirySheet';
 import { errMessage } from '@/lib/errors';
 
@@ -26,6 +27,7 @@ export function SiteVisitSheet({
   propertyLabel: string;
 }) {
   const book = useBookSiteVisit();
+  const trackedVisit = useBookVisit();
   const [dayIdx, setDayIdx] = useState(0);
   const [slotIdx, setSlotIdx] = useState(0);
 
@@ -46,7 +48,10 @@ export function SiteVisitSheet({
     const d = new Date(days[dayIdx].date);
     d.setHours(SLOTS[slotIdx].hour, 0, 0, 0);
     try {
-      await book.mutateAsync({ propertyId, scheduledAt: d.toISOString() });
+      // Tracked site visit (notifies the agent + enables geofenced check-in).
+      await trackedVisit.mutateAsync({ propertyId, scheduledAt: d.toISOString() });
+      // Legacy booking row kept for the admin Approvals workflow (best-effort).
+      await book.mutateAsync({ propertyId, scheduledAt: d.toISOString() }).catch(() => {});
       onClose();
       Alert.alert('Visit booked', `${propertyLabel} · ${days[dayIdx].label}, ${SLOTS[slotIdx].label}`);
     } catch (e) {
@@ -78,7 +83,7 @@ export function SiteVisitSheet({
         ))}
       </View>
 
-      <Button title="Confirm visit" loading={book.isPending} onPress={confirm} />
+      <Button title="Confirm visit" loading={trackedVisit.isPending || book.isPending} onPress={confirm} />
     </Sheet>
   );
 }

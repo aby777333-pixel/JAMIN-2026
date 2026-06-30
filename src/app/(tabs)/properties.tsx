@@ -83,9 +83,17 @@ export default function Properties() {
             />
             <FilterBar types={types} projects={projects} filters={filters} onChange={patch} />
             {!isLoading ? (
-              <Text variant="caption">
-                {properties.length} {properties.length === 1 ? 'property' : 'properties'}
-              </Text>
+              <View className="flex-row items-center justify-between">
+                <Text variant="caption">
+                  {properties.length} {properties.length === 1 ? 'property' : 'properties'}
+                </Text>
+                <Pressable
+                  onPress={() => router.push('/requirements')}
+                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5">
+                  <Ionicons name="notifications-outline" size={14} color={color.red} />
+                  <Text className="text-[12px] font-semibold text-ink">Get alerts</Text>
+                </Pressable>
+              </View>
             ) : null}
           </View>
         }

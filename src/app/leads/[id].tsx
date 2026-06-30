@@ -18,9 +18,13 @@ import {
   useCreateFollowUp,
   useFollowUps,
   useLead,
+  useScoreLead,
   useSetFollowUpStatus,
+  useUpdateLeadDeal,
   useUpdateLeadStatus,
 } from '@/features/leads/hooks';
+import { ScoreBandPill } from '@/features/leads/ScoreBandPill';
+import { formatINR, money } from '@/lib/money';
 import { color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
 
@@ -32,7 +36,27 @@ export default function LeadDetail() {
   const createFollowUp = useCreateFollowUp(id ?? '');
   const setFollowUpStatus = useSetFollowUpStatus(id ?? '');
   const qc = useQueryClient();
+  const updateDeal = useUpdateLeadDeal();
+  const smartScore = useScoreLead();
   const [scoring, setScoring] = useState(false);
+
+  async function scoreSmart() {
+    if (!lead) return;
+    try {
+      const res = await smartScore.mutateAsync(lead.id);
+      const f = res.factors ?? {};
+      const lines = [
+        `Status: ${f.status ?? 0}`,
+        `Phone: ${f.has_phone ?? 0}`,
+        `Follow-ups: ${f.followups ?? 0}`,
+        `Recency: ${f.recency ?? 0}`,
+        `Deal value: ${f.has_value ?? 0}`,
+      ].join('\n');
+      Alert.alert(`Smart score: ${res.score}/100 (${res.band})`, lines);
+    } catch (e) {
+      Alert.alert('Smart score', errMessage(e));
+    }
+  }
 
   async function scoreWithAI() {
     if (!lead) return;
@@ -120,18 +144,47 @@ export default function LeadDetail() {
         ) : null}
       </Card>
 
-      <Card className="flex-row items-center gap-3">
-        <Ionicons name="sparkles" size={20} color={color.gold} />
-        <View className="flex-1">
-          <Text variant="title" className="text-[14px]">
-            AI lead score
-          </Text>
-          <Text variant="caption">
-            {lead.score ? `${lead.score}/100 — tap to re-score` : 'Estimate buyer intent with Claude'}
-          </Text>
+      <Card className="gap-3">
+        <View className="flex-row items-center gap-3">
+          <Ionicons name="sparkles" size={20} color={color.gold} />
+          <View className="flex-1">
+            <Text variant="title" className="text-[14px]">
+              Lead score
+            </Text>
+            <Text variant="caption">
+              {lead.score ? `${lead.score}/100` : 'Rank buyer intent — rules or AI'}
+            </Text>
+          </View>
+          <ScoreBandPill band={lead.score_band} score={lead.score} />
         </View>
-        <Button title={scoring ? '…' : 'Score'} variant="outline" loading={scoring} onPress={scoreWithAI} />
+        <View className="flex-row gap-2">
+          <Button
+            title={smartScore.isPending ? '…' : 'Smart score'}
+            variant="outline"
+            loading={smartScore.isPending}
+            onPress={scoreSmart}
+            className="flex-1"
+          />
+          <Button
+            title={scoring ? '…' : 'AI score'}
+            variant="outline"
+            loading={scoring}
+            onPress={scoreWithAI}
+            className="flex-1"
+          />
+        </View>
       </Card>
+
+      <DealCard
+        value={lead.value}
+        expectedClose={lead.expected_close}
+        onSave={(value, expected_close) =>
+          updateDeal
+            .mutateAsync({ id: lead.id, value, expected_close })
+            .catch((e) => Alert.alert('Could not save', errMessage(e)))
+        }
+        pending={updateDeal.isPending}
+      />
 
       <View>
         <Text variant="label" className="mb-2">
@@ -167,6 +220,71 @@ export default function LeadDetail() {
         } />
       </View>
     </Screen>
+  );
+}
+
+function DealCard({
+  value,
+  expectedClose,
+  onSave,
+  pending,
+}: {
+  value: number | null;
+  expectedClose: string | null;
+  onSave: (value: number | null, expectedClose: string | null) => void;
+  pending: boolean;
+}) {
+  const [raw, setRaw] = useState(value != null ? String(value) : '');
+  const [close, setClose] = useState<string | null>(expectedClose);
+
+  const closeChips = useMemo(() => {
+    const out: { label: string; iso: string }[] = [];
+    const mk = (d: Date) => d.toISOString().slice(0, 10);
+    const eom = new Date();
+    eom.setMonth(eom.getMonth() + 1, 0);
+    const eonm = new Date();
+    eonm.setMonth(eonm.getMonth() + 2, 0);
+    const q = new Date();
+    q.setDate(q.getDate() + 90);
+    out.push({ label: 'This month', iso: mk(eom) });
+    out.push({ label: 'Next month', iso: mk(eonm) });
+    out.push({ label: '+90 days', iso: mk(q) });
+    return out;
+  }, []);
+
+  function save() {
+    const trimmed = raw.trim();
+    const parsed = trimmed === '' ? null : money(trimmed).toDecimalPlaces(2).toNumber();
+    onSave(Number.isNaN(parsed as number) ? null : parsed, close);
+  }
+
+  return (
+    <Card className="gap-3">
+      <Text variant="title" className="text-[14px]">
+        Deal value & close
+      </Text>
+      <Input
+        placeholder="Expected value (₹)"
+        keyboardType="numeric"
+        value={raw}
+        onChangeText={setRaw}
+      />
+      {raw.trim() ? (
+        <Text variant="caption">{formatINR(money(raw.trim() || 0))}</Text>
+      ) : null}
+      <View className="flex-row flex-wrap gap-2">
+        {closeChips.map((c) => (
+          <Chip key={c.label} label={c.label} active={close === c.iso} onPress={() => setClose(c.iso)} />
+        ))}
+        {close ? <Chip label="Clear" active={false} onPress={() => setClose(null)} /> : null}
+      </View>
+      {close ? (
+        <Text variant="caption">
+          Expected close: {new Date(close).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+        </Text>
+      ) : null}
+      <Button title="Save deal" variant="outline" loading={pending} onPress={save} />
+    </Card>
   );
 }
 

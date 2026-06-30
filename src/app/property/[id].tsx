@@ -16,6 +16,7 @@ import { EmiCalculator } from '@/features/buyer/components/EmiCalculator';
 import { EnquirySheet } from '@/features/buyer/components/EnquirySheet';
 import { NearbyAmenities } from '@/features/buyer/components/NearbyAmenities';
 import { PropertyGallery } from '@/features/buyer/components/PropertyGallery';
+import { ReraBadge } from '@/features/buyer/components/ReraBadge';
 import { RoiCalculator } from '@/features/buyer/components/RoiCalculator';
 import { SiteVisitSheet } from '@/features/buyer/components/SiteVisitSheet';
 import { OfferSheet } from '@/features/offers/OfferSheet';
@@ -180,8 +181,13 @@ export default function PropertyDetail() {
         <MoneyText value={property.price} className="mt-1 text-[28px]" />
       </View>
 
-      {verifiedBadges.length > 0 ? (
+      {verifiedBadges.length > 0 || property.project?.rera_status ? (
         <View className="flex-row flex-wrap gap-2">
+          <ReraBadge
+            status={property.project?.rera_status}
+            validTill={property.project?.rera_valid_till}
+            number={property.project?.rera_number}
+          />
           {verifiedBadges.map((b) => (
             <View
               key={b.label}

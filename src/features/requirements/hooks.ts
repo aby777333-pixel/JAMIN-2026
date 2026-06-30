@@ -21,3 +21,16 @@ export function useDeleteRequirement() {
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['requirements'] }),
   });
 }
+
+export function useRequirementMatchCounts() {
+  return useQuery({ queryKey: ['requirement-matches'], queryFn: api.getMyRequirementMatchCounts });
+}
+
+export function useSetRequirementNotify() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, notify }: { id: string; notify: boolean }) =>
+      api.setRequirementNotify(id, notify),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['requirements'] }),
+  });
+}

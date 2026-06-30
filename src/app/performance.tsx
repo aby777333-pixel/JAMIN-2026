@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Button } from '@/components/ui/Button';
@@ -9,6 +9,8 @@ import { MoneyText } from '@/components/ui/MoneyText';
 import { Screen } from '@/components/ui/Screen';
 import { StatCard } from '@/components/ui/StatCard';
 import { Text } from '@/components/ui/Text';
+import { usePipelineSummary } from '@/features/leads/hooks';
+import { LEAD_STATUSES } from '@/features/leads/api';
 import { useTeamRoster, useTeamSummary } from '@/features/team/hooks';
 import { can } from '@/lib/access';
 import { useAuth } from '@/stores/auth';
@@ -18,6 +20,17 @@ export default function Performance() {
   const profile = useAuth((s) => s.profile);
   const { data: summary } = useTeamSummary();
   const { data: roster = [] } = useTeamRoster();
+  const { data: pipeline = [] } = usePipelineSummary();
+
+  const pipelineByStage = useMemo(() => {
+    const m = new Map(pipeline.map((p) => [p.status, p]));
+    return LEAD_STATUSES.map((status) => ({
+      status,
+      count: m.get(status)?.lead_count ?? 0,
+      value: m.get(status)?.total_value ?? 0,
+    }));
+  }, [pipeline]);
+  const pipelineHasData = pipeline.some((p) => p.lead_count > 0);
 
   const byRole = useMemo(() => {
     const m = new Map<string, { count: number; level: number }>();
@@ -110,6 +123,27 @@ export default function Performance() {
           )}
         </Card>
       ) : null}
+
+      <Card className="gap-2.5">
+        <View className="flex-row items-center justify-between">
+          <Text variant="label">Deal pipeline</Text>
+          <Pressable onPress={() => router.push('/leads/pipeline')} hitSlop={8}>
+            <Text variant="caption" className="text-red">Open board</Text>
+          </Pressable>
+        </View>
+        {pipelineHasData ? (
+          pipelineByStage.map((p) => (
+            <View key={p.status} className="flex-row items-center justify-between">
+              <Text variant="body" className="capitalize">
+                {p.status} <Text className="text-muted">· {p.count}</Text>
+              </Text>
+              <MoneyText value={String(p.value)} className="text-[13px]" />
+            </View>
+          ))
+        ) : (
+          <Text variant="caption">No leads in your pipeline yet.</Text>
+        )}
+      </Card>
 
       <Button title="View team members" variant="secondary" onPress={() => router.push('/(tabs)/network')} />
     </Screen>

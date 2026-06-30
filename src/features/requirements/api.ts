@@ -49,3 +49,19 @@ export async function deleteRequirement(id: string) {
   const { error } = await supabase.from('buyer_requirements').delete().eq('id', id);
   if (error) throw error;
 }
+
+export async function setRequirementNotify(id: string, notify: boolean) {
+  const { error } = await supabase.from('buyer_requirements').update({ notify }).eq('id', id);
+  if (error) throw error;
+}
+
+/** How many listings each of my saved searches has matched (new + price-drop). */
+export async function getMyRequirementMatchCounts(): Promise<Record<string, number>> {
+  const { data, error } = await supabase.from('requirement_matches').select('requirement_id');
+  if (error) throw error;
+  const out: Record<string, number> = {};
+  ((data ?? []) as { requirement_id: string }[]).forEach((r) => {
+    out[r.requirement_id] = (out[r.requirement_id] ?? 0) + 1;
+  });
+  return out;
+}

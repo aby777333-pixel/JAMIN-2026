@@ -4,6 +4,10 @@ export interface PropertyRef {
   name: string;
   code?: string;
   location?: string | null;
+  // RERA (migration 0047) — optional so existing selects stay valid.
+  rera_number?: string | null;
+  rera_status?: string | null;
+  rera_valid_till?: string | null;
 }
 
 export interface PropertyListItem {

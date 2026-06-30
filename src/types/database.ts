@@ -106,6 +106,41 @@ export type Database = {
           },
         ]
       }
+      agent_availability: {
+        Row: {
+          agent_id: string
+          created_at: string
+          end_time: string
+          id: string
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          end_time: string
+          id?: string
+          start_time: string
+          weekday: number
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_availability_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_generations: {
         Row: {
           created_at: string
@@ -1101,39 +1136,124 @@ export type Database = {
           },
         ]
       }
+      lead_score_factors: {
+        Row: {
+          band: string | null
+          computed_at: string
+          factors: Json
+          id: string
+          lead_id: string
+          model_version: string
+          score: number
+        }
+        Insert: {
+          band?: string | null
+          computed_at?: string
+          factors?: Json
+          id?: string
+          lead_id: string
+          model_version?: string
+          score: number
+        }
+        Update: {
+          band?: string | null
+          computed_at?: string
+          factors?: Json
+          id?: string
+          lead_id?: string
+          model_version?: string
+          score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_score_factors_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_stage_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          from_status: string | null
+          id: string
+          lead_id: string
+          to_status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          lead_id: string
+          to_status: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          lead_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_stage_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           contact: Json
           created_at: string
+          expected_close: string | null
           id: string
           owner_id: string
           property_id: string | null
           score: number
+          score_band: string | null
           source: string | null
+          stage_changed_at: string
           status: string
           updated_at: string
+          value: number | null
         }
         Insert: {
           contact?: Json
           created_at?: string
+          expected_close?: string | null
           id?: string
           owner_id: string
           property_id?: string | null
           score?: number
+          score_band?: string | null
           source?: string | null
+          stage_changed_at?: string
           status?: string
           updated_at?: string
+          value?: number | null
         }
         Update: {
           contact?: Json
           created_at?: string
+          expected_close?: string | null
           id?: string
           owner_id?: string
           property_id?: string | null
           score?: number
+          score_band?: string | null
           source?: string | null
+          stage_changed_at?: string
           status?: string
           updated_at?: string
+          value?: number | null
         }
         Relationships: [
           {
@@ -1496,6 +1616,12 @@ export type Database = {
           location: string | null
           media: Json
           name: string
+          rera_doc_path: string | null
+          rera_number: string | null
+          rera_status: string
+          rera_valid_till: string | null
+          rera_verified_at: string | null
+          rera_verified_by: string | null
           status: string
           updated_at: string
         }
@@ -1508,6 +1634,12 @@ export type Database = {
           location?: string | null
           media?: Json
           name: string
+          rera_doc_path?: string | null
+          rera_number?: string | null
+          rera_status?: string
+          rera_valid_till?: string | null
+          rera_verified_at?: string | null
+          rera_verified_by?: string | null
           status?: string
           updated_at?: string
         }
@@ -1520,6 +1652,12 @@ export type Database = {
           location?: string | null
           media?: Json
           name?: string
+          rera_doc_path?: string | null
+          rera_number?: string | null
+          rera_status?: string
+          rera_valid_till?: string | null
+          rera_verified_at?: string | null
+          rera_verified_by?: string | null
           status?: string
           updated_at?: string
         }
@@ -1876,6 +2014,45 @@ export type Database = {
         }
         Relationships: []
       }
+      requirement_matches: {
+        Row: {
+          created_at: string
+          id: string
+          property_id: string
+          reason: string
+          requirement_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          property_id: string
+          reason: string
+          requirement_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          property_id?: string
+          reason?: string
+          requirement_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requirement_matches_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requirement_matches_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "buyer_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roles: {
         Row: {
           created_at: string
@@ -1964,6 +2141,89 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_visits: {
+        Row: {
+          agent_id: string | null
+          buyer_contact: Json
+          buyer_id: string | null
+          checkin_at: string | null
+          checkin_distance_m: number | null
+          checkin_lat: number | null
+          checkin_lng: number | null
+          created_at: string
+          id: string
+          lead_id: string | null
+          notes: string | null
+          property_id: string
+          scheduled_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          buyer_contact?: Json
+          buyer_id?: string | null
+          checkin_at?: string | null
+          checkin_distance_m?: number | null
+          checkin_lat?: number | null
+          checkin_lng?: number | null
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          property_id: string
+          scheduled_at: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          buyer_contact?: Json
+          buyer_id?: string | null
+          checkin_at?: string | null
+          checkin_distance_m?: number | null
+          checkin_lat?: number | null
+          checkin_lng?: number | null
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          property_id?: string
+          scheduled_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_visits_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_visits_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_visits_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_visits_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -2244,7 +2504,20 @@ export type Database = {
       auth_is_admin: { Args: never; Returns: boolean }
       auth_role_slug: { Args: never; Returns: string }
       become_partner: { Args: never; Returns: string }
+      book_site_visit: {
+        Args: {
+          p_contact?: Json
+          p_note?: string
+          p_property: string
+          p_scheduled_at: string
+        }
+        Returns: string
+      }
       can_see_thread: { Args: { t: string }; Returns: boolean }
+      checkin_site_visit: {
+        Args: { p_lat: number; p_lng: number; p_visit: string }
+        Returns: Json
+      }
       claim_badge_bonus: { Args: { p_badge: string }; Returns: number }
       close_sale: { Args: { p_booking: string }; Returns: number }
       complete_onboarding: {
@@ -2277,6 +2550,7 @@ export type Database = {
         }[]
       }
       get_public_settings: { Args: never; Returns: Json }
+      lead_score_band: { Args: { p_score: number }; Returns: string }
       log_admin_action: {
         Args: {
           p_action: string
@@ -2322,6 +2596,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      pipeline_summary: {
+        Args: never
+        Returns: {
+          lead_count: number
+          status: string
+          total_value: number
+        }[]
+      }
       public_selectable_roles: {
         Args: never
         Returns: {
@@ -2331,10 +2613,22 @@ export type Database = {
           slug: string
         }[]
       }
+      radar_notify: {
+        Args: { p_property: string; p_reason: string }
+        Returns: undefined
+      }
       referral_funnel: { Args: { p_days?: number }; Returns: Json }
       request_withdrawal: {
         Args: { p_amount: number; p_rail?: string }
         Returns: string
+      }
+      requirement_demand: {
+        Args: never
+        Returns: {
+          location: string
+          requirement_count: number
+          with_budget: number
+        }[]
       }
       respond_offer: {
         Args: {
@@ -2358,6 +2652,7 @@ export type Database = {
         Args: { p_agent: string; p_property: string }
         Returns: number
       }
+      score_lead: { Args: { p_lead: string }; Returns: Json }
       seller_listing_stats: {
         Args: never
         Returns: {
@@ -2373,12 +2668,26 @@ export type Database = {
           views: number
         }[]
       }
+      set_site_visit_status: {
+        Args: { p_status: string; p_visit: string }
+        Returns: undefined
+      }
       submit_kyc: { Args: { p_data: Json }; Returns: undefined }
       switch_role: { Args: { p_slug: string }; Returns: string }
       team_member_stats: { Args: { p_member: string }; Returns: Json }
       team_summary: { Args: never; Returns: Json }
       text2ltree: { Args: { "": string }; Returns: unknown }
       uuid_label: { Args: { p: string }; Returns: string }
+      verify_rera: {
+        Args: {
+          p_doc_path?: string
+          p_number: string
+          p_project: string
+          p_status: string
+          p_valid_till?: string
+        }
+        Returns: undefined
+      }
       withdraw_offer: { Args: { p_offer: string }; Returns: undefined }
     }
     Enums: {

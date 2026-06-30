@@ -23,6 +23,7 @@ export function useUpdateLeadStatus() {
     onSuccess: (_d, v) => {
       void qc.invalidateQueries({ queryKey: ['leads'] });
       void qc.invalidateQueries({ queryKey: ['lead', v.id] });
+      void qc.invalidateQueries({ queryKey: ['pipeline-summary'] });
     },
   });
 }
@@ -50,5 +51,34 @@ export function useSetFollowUpStatus(leadId: string) {
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       api.setFollowUpStatus(id, status),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['followups', leadId] }),
+  });
+}
+
+export function usePipelineSummary() {
+  return useQuery({ queryKey: ['pipeline-summary'], queryFn: api.pipelineSummary });
+}
+
+export function useScoreLead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.scoreLead(id),
+    onSuccess: (_d, id) => {
+      void qc.invalidateQueries({ queryKey: ['leads'] });
+      void qc.invalidateQueries({ queryKey: ['lead', id] });
+      void qc.invalidateQueries({ queryKey: ['pipeline-summary'] });
+    },
+  });
+}
+
+export function useUpdateLeadDeal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...input }: { id: string; value?: number | null; expected_close?: string | null }) =>
+      api.updateLeadDeal(id, input),
+    onSuccess: (_d, v) => {
+      void qc.invalidateQueries({ queryKey: ['leads'] });
+      void qc.invalidateQueries({ queryKey: ['lead', v.id] });
+      void qc.invalidateQueries({ queryKey: ['pipeline-summary'] });
+    },
   });
 }

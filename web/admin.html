@@ -128,6 +128,7 @@
         <button class="nav-i" data-tab="config">⚙️ System config</button>
         <button class="nav-i" data-tab="offers">🤝 Offers</button>
         <button class="nav-i" data-tab="requirements">📍 Requirements</button>
+        <button class="nav-i" data-tab="visits">📅 Site visits</button>
         <button class="nav-i" data-tab="moderation">🛡️ Moderation</button>
         <button class="nav-i" data-tab="insights">📈 Insights</button>
         <button class="nav-i" data-tab="audit">🧾 Audit log</button>
@@ -156,6 +157,7 @@
         <div id="tabConfig" class="hidden"></div>
         <div id="tabOffers" class="hidden"></div>
         <div id="tabRequirements" class="hidden"></div>
+        <div id="tabVisits" class="hidden"></div>
         <div id="tabModeration" class="hidden"></div>
         <div id="tabInsights" class="hidden"></div>
         <div id="tabAudit" class="hidden"></div>
@@ -229,7 +231,7 @@
 
       // ─── Lookups ────────────────────────────────────────────────────────
       async function loadLookups() {
-        var p = await sb.from('projects').select('id,code,name,location,status').order('name');
+        var p = await sb.from('projects').select('id,code,name,location,status,rera_number,rera_status,rera_valid_till').order('name');
         var pl = await sb.from('plans').select('id,project_id,name');
         var t = await sb.from('property_types').select('id,slug,name,code_prefix').eq('active', true).order('name');
         var r = await sb.from('roles').select('id,slug,name,level').order('level');
@@ -244,7 +246,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'moderation', 'insights', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'moderation', 'insights', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -265,6 +267,7 @@
         if (tab === 'config') renderConfig();
         if (tab === 'offers') renderOffers();
         if (tab === 'requirements') renderRequirements();
+        if (tab === 'visits') renderVisits();
         if (tab === 'moderation') renderModeration();
         if (tab === 'insights') renderInsights();
         if (tab === 'audit') renderAudit();
@@ -643,14 +646,19 @@
           if (p.property_type_id) typeCount[p.property_type_id] = (typeCount[p.property_type_id] || 0) + 1;
         });
 
-        var projTable = state.projects.length ? '<table style="margin-top:10px"><thead><tr><th>Code</th><th>Name</th><th>Location</th><th>Properties</th><th></th></tr></thead><tbody>' +
+        var RERA_STATUSES = ['not_applicable', 'pending', 'registered', 'expired'];
+        var projTable = state.projects.length ? '<table style="margin-top:10px"><thead><tr><th>Code</th><th>Name</th><th>Location</th><th>Props</th><th>RERA no.</th><th>RERA status</th><th>Valid till</th><th></th></tr></thead><tbody>' +
           state.projects.map(function (p) {
+            var reraSel = RERA_STATUSES.map(function (s) { return '<option value="' + s + '"' + (s === (p.rera_status || 'not_applicable') ? ' selected' : '') + '>' + s + '</option>'; }).join('');
             return '<tr data-pid="' + p.id + '">' +
-              '<td><input class="inp pj_code" style="width:100px;height:34px" value="' + esc(p.code || '') + '" /></td>' +
-              '<td><input class="inp pj_name" style="width:180px;height:34px" value="' + esc(p.name) + '" /></td>' +
-              '<td><input class="inp pj_loc" style="width:160px;height:34px" value="' + esc(p.location || '') + '" /></td>' +
+              '<td><input class="inp pj_code" style="width:90px;height:34px" value="' + esc(p.code || '') + '" /></td>' +
+              '<td><input class="inp pj_name" style="width:150px;height:34px" value="' + esc(p.name) + '" /></td>' +
+              '<td><input class="inp pj_loc" style="width:130px;height:34px" value="' + esc(p.location || '') + '" /></td>' +
               '<td class="mono">' + (projCount[p.id] || 0) + '</td>' +
-              '<td class="row"><button class="btn btn-sm pj_save">Save</button><button class="btn-d btn-sm pj_del">Delete</button></td></tr>';
+              '<td><input class="inp pj_rera_no" style="width:140px;height:34px" value="' + esc(p.rera_number || '') + '" placeholder="RERA reg no." /></td>' +
+              '<td><select class="inp pj_rera_st" style="width:130px;height:34px">' + reraSel + '</select></td>' +
+              '<td><input class="inp pj_rera_till" type="date" style="width:140px;height:34px" value="' + (p.rera_valid_till || '') + '" /></td>' +
+              '<td class="row"><button class="btn btn-sm pj_save">Save</button><button class="btn-o btn-sm pj_rera">Verify RERA</button><button class="btn-d btn-sm pj_del">Delete</button></td></tr>';
           }).join('') + '</tbody></table>' : '<div class="muted" style="margin-top:8px">No projects yet.</div>';
 
         var planTable = state.plans.length ? '<table style="margin-top:10px"><thead><tr><th>Plan</th><th>Project</th><th></th></tr></thead><tbody>' +
@@ -712,6 +720,16 @@
             this.textContent = '…';
             var r = await sb.from('projects').update({ code: tr.querySelector('.pj_code').value.trim() || null, name: tr.querySelector('.pj_name').value.trim(), location: tr.querySelector('.pj_loc').value.trim() || null }).eq('id', id);
             this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+          tr.querySelector('.pj_rera').onclick = async function () {
+            this.textContent = '…';
+            var r = await sb.rpc('verify_rera', {
+              p_project: id,
+              p_number: tr.querySelector('.pj_rera_no').value.trim(),
+              p_status: tr.querySelector('.pj_rera_st').value,
+              p_valid_till: tr.querySelector('.pj_rera_till').value || null,
+            });
+            this.textContent = r.error ? 'Err' : 'Verified'; if (r.error) alert(r.error.message);
           };
           tr.querySelector('.pj_del').onclick = async function () {
             var n = projCount[id] || 0;
@@ -1156,24 +1174,52 @@
       async function renderCrm() {
         var el = $('tabCrm');
         el.innerHTML = '<div class="head"><h2>CRM / Leads</h2></div><div class="muted">Loading…</div>';
-        var q = await sb.from('leads').select('id,source,status,contact,score,created_at, owner:profiles!owner_id(full_name), property:properties(plot_code)').order('created_at', { ascending: false }).limit(300);
+        var q = await sb.from('leads').select('id,source,status,contact,score,score_band,value,expected_close,created_at, owner:profiles!owner_id(full_name), property:properties(plot_code)').order('created_at', { ascending: false }).limit(300);
         if (q.error) { el.innerHTML = '<div class="head"><h2>CRM / Leads</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
         var rows = q.data || [];
+        // Deal pipeline rollup (server-side, RLS-safe).
+        var pipe = await sb.rpc('pipeline_summary');
+        var pmap = {}; (pipe.data || []).forEach(function (p) { pmap[p.status] = p; });
+        var pipeHtml = '<div class="panel"><h3>Deal pipeline</h3><div class="stat-row">' +
+          LEAD_STATUSES.map(function (s) {
+            var p = pmap[s] || {};
+            return '<div class="stat"><div class="n">' + (p.lead_count || 0) + '</div><div class="l">' + s + '<br><span class="mono" style="font-size:11px">' + inr(p.total_value || 0) + '</span></div></div>';
+          }).join('') + '</div></div>';
         el.innerHTML = '<div class="head"><h2>CRM / Leads</h2></div>' +
           '<div class="stat-row"><div class="stat"><div class="n">' + rows.length + '</div><div class="l">Leads</div></div>' +
             '<div class="stat"><div class="n">' + rows.filter(function (l) { return l.status === 'won'; }).length + '</div><div class="l">Won</div></div></div>' +
-          (rows.length ? '<table><thead><tr><th>Contact</th><th>Owner</th><th>Property</th><th>Source</th><th>Score</th><th>Status</th></tr></thead><tbody>' +
+          pipeHtml +
+          (rows.length ? '<table><thead><tr><th>Contact</th><th>Owner</th><th>Property</th><th>Source</th><th>Score</th><th>Value (₹)</th><th>Close</th><th>Status</th><th></th></tr></thead><tbody>' +
           rows.map(function (l) {
             var c = l.contact || {};
+            var band = l.score_band ? '<br><span class="pill ' + (l.score_band === 'hot' ? 'available' : l.score_band === 'warm' ? 'reserved' : 'sold') + '">' + l.score_band + '</span>' : '';
             return '<tr data-id="' + l.id + '"><td>' + esc(c.name || c.full_name || '—') + (c.phone ? '<br><span class="muted">' + esc(c.phone) + '</span>' : '') + '</td>' +
               '<td>' + esc(l.owner ? l.owner.full_name : '—') + '</td><td class="mono">' + esc(l.property ? l.property.plot_code : '') + '</td>' +
-              '<td>' + esc(l.source || '') + '</td><td class="mono">' + (l.score == null ? '—' : l.score) + '</td>' +
-              '<td><select class="inp lead_status" style="width:130px;height:36px">' + LEAD_STATUSES.map(function (s) { return '<option value="' + s + '"' + (s === l.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></td></tr>';
+              '<td>' + esc(l.source || '') + '</td><td class="mono">' + (l.score == null ? '—' : l.score) + band + '</td>' +
+              '<td><input class="inp lead_value" type="number" step="0.01" style="width:120px;height:36px" value="' + (l.value == null ? '' : l.value) + '" /></td>' +
+              '<td><input class="inp lead_close" type="date" style="width:140px;height:36px" value="' + (l.expected_close || '') + '" /></td>' +
+              '<td><select class="inp lead_status" style="width:130px;height:36px">' + LEAD_STATUSES.map(function (s) { return '<option value="' + s + '"' + (s === l.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></td>' +
+              '<td><button class="btn-o btn-sm lead_smart">Smart score</button></td></tr>';
           }).join('') + '</tbody></table>' : '<div class="muted">No leads yet.</div>');
         el.querySelectorAll('tr[data-id]').forEach(function (tr) {
           tr.querySelector('.lead_status').onchange = async function () {
             var r = await sb.from('leads').update({ status: this.value }).eq('id', tr.dataset.id);
+            if (r.error) alert(r.error.message); else renderCrm();
+          };
+          tr.querySelector('.lead_value').onchange = async function () {
+            var v = this.value.trim();
+            var r = await sb.from('leads').update({ value: v === '' ? null : Number(v) }).eq('id', tr.dataset.id);
             if (r.error) alert(r.error.message);
+          };
+          tr.querySelector('.lead_close').onchange = async function () {
+            var r = await sb.from('leads').update({ expected_close: this.value || null }).eq('id', tr.dataset.id);
+            if (r.error) alert(r.error.message);
+          };
+          tr.querySelector('.lead_smart').onclick = async function () {
+            this.textContent = '…';
+            var r = await sb.rpc('score_lead', { p_lead: tr.dataset.id });
+            if (r.error) { this.textContent = 'Err'; alert(r.error.message); }
+            else { renderCrm(); }
           };
         });
       }
@@ -1607,8 +1653,19 @@
           .order('created_at', { ascending: false });
         if (q.error) { el.innerHTML = '<div class="head"><h2>Buyer requirements</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
         var rows = q.data || [];
+        // Demand rollup (top areas) + recent radar matches.
+        var dem = await sb.rpc('requirement_demand');
+        var demRows = dem.data || [];
+        var matchCount = await sb.from('requirement_matches').select('id', { count: 'exact', head: true });
+        var demHtml = '';
+        if (demRows.length) {
+          demHtml = '<div class="panel"><h3>Top demand by area</h3><table><thead><tr><th>Area</th><th>Requirements</th><th>With budget</th></tr></thead><tbody>' +
+            demRows.map(function (d) { return '<tr><td>' + esc(d.location) + '</td><td class="mono">' + d.requirement_count + '</td><td class="mono">' + d.with_budget + '</td></tr>'; }).join('') +
+            '</tbody></table></div>';
+        }
         el.innerHTML = '<div class="head"><h2>Buyer requirements (demand)</h2></div>' +
-          '<div class="muted" style="margin-bottom:10px">What buyers are looking for — useful for sourcing inventory. Buyers are auto-notified (Property Radar) when a matching listing is approved.</div>' +
+          '<div class="muted" style="margin-bottom:10px">What buyers are looking for — useful for sourcing inventory. Buyers are auto-notified (Property Radar) on a matching new listing <b>and on price drops</b>. Total alerts sent: <b>' + (matchCount.count || 0) + '</b>.</div>' +
+          demHtml +
           (rows.length ? '<table><thead><tr><th>Buyer</th><th>Location</th><th>Budget</th><th>Type</th><th>Purpose</th><th>Alerts</th></tr></thead><tbody>' +
             rows.map(function (r) {
               var budget = (r.budget_min || r.budget_max) ? (inr(r.budget_min || 0) + ' – ' + (r.budget_max ? inr(r.budget_max) : 'any')) : 'Any';
@@ -1616,6 +1673,43 @@
                 '<td class="mono">' + budget + '</td><td>' + esc(r.type ? r.type.name : 'Any') + '</td>' +
                 '<td>' + esc(r.purpose || '—') + '</td><td>' + (r.notify ? 'On' : 'Off') + '</td></tr>';
             }).join('') + '</tbody></table>' : '<div class="muted">No requirements yet.</div>');
+      }
+
+      // ─── Site visits (booking + geofenced check-in) ─────────────────────
+      var VISIT_STATUSES = ['requested', 'confirmed', 'checked_in', 'completed', 'no_show', 'cancelled'];
+      async function renderVisits() {
+        var el = $('tabVisits');
+        el.innerHTML = '<div class="head"><h2>Site visits</h2></div><div class="muted">Loading…</div>';
+        var cfg = await sb.from('system_config').select('value').eq('key', 'site_visit_geofence_m').maybeSingle();
+        var radius = (cfg.data && cfg.data.value != null) ? cfg.data.value : 150;
+        var q = await sb.from('site_visits')
+          .select('id,scheduled_at,status,checkin_at,checkin_distance_m,notes, property:properties(plot_code), buyer:profiles!site_visits_buyer_id_fkey(full_name), agent:profiles!site_visits_agent_id_fkey(full_name)')
+          .order('scheduled_at', { ascending: false }).limit(300);
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Site visits</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>Site visits</h2></div>' +
+          '<div class="panel"><h3>Geofence radius</h3><div class="row"><input id="sv_radius" class="inp" type="number" style="max-width:140px" value="' + radius + '" /> <span class="muted" style="align-self:center">metres — buyers must be within this of the plot to check in</span> <button id="sv_radius_save" class="btn btn-sm">Save</button></div></div>' +
+          (rows.length ? '<table><thead><tr><th>When</th><th>Property</th><th>Buyer</th><th>Agent</th><th>Check-in</th><th>Status</th></tr></thead><tbody>' +
+          rows.map(function (v) {
+            var ci = v.checkin_at ? ('✓ ' + (v.checkin_distance_m != null ? v.checkin_distance_m + ' m' : '')) : '—';
+            return '<tr data-id="' + v.id + '"><td class="muted" style="white-space:nowrap">' + esc(new Date(v.scheduled_at).toLocaleString()) + '</td>' +
+              '<td class="mono">' + esc(v.property ? v.property.plot_code : '') + '</td>' +
+              '<td>' + esc(v.buyer ? v.buyer.full_name : '—') + '</td>' +
+              '<td>' + esc(v.agent ? v.agent.full_name : '—') + '</td>' +
+              '<td>' + ci + '</td>' +
+              '<td><select class="inp sv_status" style="width:130px;height:36px">' + VISIT_STATUSES.map(function (s) { return '<option value="' + s + '"' + (s === v.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No site visits yet.</div>');
+        $('sv_radius_save').onclick = async function () {
+          var val = parseInt($('sv_radius').value, 10); if (isNaN(val) || val <= 0) return alert('Enter a positive number');
+          var r = await sb.from('system_config').update({ value: val }).eq('key', 'site_visit_geofence_m');
+          if (r.error) alert(r.error.message); else this.textContent = 'Saved';
+        };
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          tr.querySelector('.sv_status').onchange = async function () {
+            var r = await sb.rpc('set_site_visit_status', { p_visit: tr.dataset.id, p_status: this.value });
+            if (r.error) alert(r.error.message); else renderVisits();
+          };
+        });
       }
 
       // ─── Moderation & safety (contact visibility + disputes) ────────────

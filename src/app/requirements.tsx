@@ -14,6 +14,8 @@ import {
   useCreateRequirement,
   useDeleteRequirement,
   useMyRequirements,
+  useRequirementMatchCounts,
+  useSetRequirementNotify,
 } from '@/features/requirements/hooks';
 import { color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
@@ -23,8 +25,10 @@ const PURPOSES = ['Investment', 'Residential'];
 export default function Requirements() {
   const { data: types = [] } = usePropertyTypes();
   const { data: reqs = [], isLoading } = useMyRequirements();
+  const { data: matchCounts = {} } = useRequirementMatchCounts();
   const create = useCreateRequirement();
   const del = useDeleteRequirement();
+  const setNotify = useSetRequirementNotify();
 
   const [location, setLocation] = useState('');
   const [bmin, setBmin] = useState('');
@@ -56,7 +60,8 @@ export default function Requirements() {
     <Screen contentClassName="pb-12 gap-4" keyboardAvoiding>
       <BackHeader title="Property requirements" />
       <Text variant="caption">
-        Tell us what you’re looking for — Property Radar notifies you the moment a new matching listing goes live.
+        Tell us what you’re looking for — Property Radar notifies you the moment a new matching listing goes live,
+        and again whenever a matching property drops in price.
       </Text>
 
       <Card className="gap-3">
@@ -105,7 +110,22 @@ export default function Requirements() {
                   : 'Any budget'}
                 {r.purpose ? ` · ${r.purpose}` : ''}
               </Text>
+              {matchCounts[r.id] ? (
+                <Text variant="caption" className="mt-0.5 text-success">
+                  {matchCounts[r.id]} match{matchCounts[r.id] === 1 ? '' : 'es'} so far
+                </Text>
+              ) : null}
             </View>
+            <Pressable
+              onPress={() => setNotify.mutate({ id: r.id, notify: !r.notify })}
+              hitSlop={10}
+              className="h-9 w-9 items-center justify-center rounded-full bg-paper">
+              <Ionicons
+                name={r.notify ? 'notifications' : 'notifications-off-outline'}
+                size={17}
+                color={r.notify ? color.red : color.muted}
+              />
+            </Pressable>
             <Pressable onPress={() => del.mutate(r.id)} hitSlop={10}>
               <Ionicons name="trash-outline" size={18} color={color.muted} />
             </Pressable>

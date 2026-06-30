@@ -8,12 +8,17 @@ import { StatCard } from '@/components/ui/StatCard';
 import { Text } from '@/components/ui/Text';
 import { useAdminStats, useAudit } from '@/features/admin/hooks';
 import { useLeaderboard } from '@/features/gamification/api';
+import { usePipelineSummary } from '@/features/leads/hooks';
+import { LEAD_STATUSES } from '@/features/leads/api';
 import { color } from '@/theme/tokens';
 
 export default function AdminAnalytics() {
   const { data: s } = useAdminStats();
   const { data: top = [], isLoading } = useLeaderboard('earnings');
   const { data: audit = [] } = useAudit();
+  const { data: pipeline = [] } = usePipelineSummary();
+  const pipelineMap = new Map(pipeline.map((p) => [p.status, p]));
+  const pipelineHasData = pipeline.some((p) => p.lead_count > 0);
 
   return (
     <Screen contentClassName="pb-10 gap-4">
@@ -30,6 +35,27 @@ export default function AdminAnalytics() {
           <Text className="font-mono-bold text-[20px] text-ink">{s?.leads ?? '—'}</Text>
         </StatCard>
       </View>
+
+      <Text variant="label">Deal pipeline (all leads)</Text>
+      <Card className="gap-2">
+        {pipelineHasData ? (
+          LEAD_STATUSES.map((status) => {
+            const row = pipelineMap.get(status);
+            return (
+              <View key={status} className="flex-row items-center justify-between">
+                <Text variant="body" className="capitalize">
+                  {status} <Text className="text-muted">· {row?.lead_count ?? 0}</Text>
+                </Text>
+                <MoneyText value={String(row?.total_value ?? 0)} className="text-[13px]" />
+              </View>
+            );
+          })
+        ) : (
+          <Text variant="body" className="text-muted">
+            No leads recorded yet.
+          </Text>
+        )}
+      </Card>
 
       <Text variant="label">Top performers (earnings)</Text>
       {isLoading ? (

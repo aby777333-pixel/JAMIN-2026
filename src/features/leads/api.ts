@@ -10,6 +10,10 @@ export interface Lead {
   contact: { name?: string; phone?: string; [k: string]: unknown };
   property_id: string | null;
   score: number;
+  score_band: string | null;
+  value: number | null;
+  expected_close: string | null;
+  stage_changed_at: string | null;
   created_at: string;
   owner_id: string;
   property: { plot_code: string; project: { name: string } | null } | null;
@@ -24,7 +28,7 @@ export interface FollowUp {
 }
 
 const LEAD_SELECT =
-  'id, status, source, contact, property_id, score, created_at, owner_id, property:properties(plot_code, project:projects(name))';
+  'id, status, source, contact, property_id, score, score_band, value, expected_close, stage_changed_at, created_at, owner_id, property:properties(plot_code, project:projects(name))';
 
 export async function listLeads(status?: string): Promise<Lead[]> {
   let q = supabase.from('leads').select(LEAD_SELECT).order('created_at', { ascending: false });
@@ -73,4 +77,42 @@ export async function setFollowUpStatus(id: string, status: string) {
 export async function setLeadScore(id: string, score: number) {
   const { error } = await supabase.from('leads').update({ score }).eq('id', id);
   if (error) throw error;
+}
+
+export async function updateLeadDeal(id: string, input: { value?: number | null; expected_close?: string | null }) {
+  const patch: { value?: number | null; expected_close?: string | null } = {};
+  if ('value' in input) patch.value = input.value;
+  if ('expected_close' in input) patch.expected_close = input.expected_close;
+  const { error } = await supabase.from('leads').update(patch).eq('id', id);
+  if (error) throw error;
+}
+
+export interface LeadScoreResult {
+  score: number;
+  band: 'hot' | 'warm' | 'cold';
+  factors: Record<string, number>;
+}
+
+/** Deterministic, explainable smart score (mirrors features/leads/scoring.ts). */
+export async function scoreLead(id: string): Promise<LeadScoreResult> {
+  const { data, error } = await supabase.rpc('score_lead', { p_lead: id });
+  if (error) throw error;
+  return data as unknown as LeadScoreResult;
+}
+
+export interface PipelineStage {
+  status: string;
+  lead_count: number;
+  total_value: number;
+}
+
+/** Pipeline rollup for the leads the caller can see (own / subtree / admin via RLS). */
+export async function pipelineSummary(): Promise<PipelineStage[]> {
+  const { data, error } = await supabase.rpc('pipeline_summary');
+  if (error) throw error;
+  return ((data ?? []) as { status: string; lead_count: number; total_value: number }[]).map((r) => ({
+    status: r.status,
+    lead_count: Number(r.lead_count ?? 0),
+    total_value: Number(r.total_value ?? 0),
+  }));
 }
