@@ -679,6 +679,9 @@
               '<td class="row"><button class="btn btn-sm pj_save">Save</button><button class="btn-o btn-sm pj_rera">Verify RERA</button><button class="btn-d btn-sm pj_del">Delete</button></td></tr>';
           }).join('') + '</tbody></table>' : '<div class="muted" style="margin-top:8px">No projects yet.</div>';
 
+        // Neighborhood scorecard dimensions — keep in sync with src/features/buyer/components/NeighborhoodScores.tsx
+        var NB_KEYS = ['schools', 'healthcare', 'medical_stores', 'markets', 'banks', 'restaurants', 'parks', 'walkability', 'safety', 'utilities', 'connectivity', 'bus_stand', 'railway', 'airport', 'taxi', 'autorickshaw', 'highway', 'temples', 'churches', 'mosques'];
+
         var planTable = state.plans.length ? '<table style="margin-top:10px"><thead><tr><th>Plan</th><th>Project</th><th></th></tr></thead><tbody>' +
           state.plans.map(function (p) {
             var sel = state.projects.map(function (pr) { return '<option value="' + pr.id + '"' + (pr.id === p.project_id ? ' selected' : '') + '>' + esc(pr.name) + '</option>'; }).join('');
@@ -707,9 +710,9 @@
             '<button id="c_padd" class="btn btn-sm">Add project</button></div>' + projTable + '</div>' +
           '<div class="panel"><h3>Neighborhood scores (0–5)</h3>' +
             '<div class="muted" style="font-size:12px;margin-bottom:8px">Set per-project liveability scores shown to buyers.</div>' +
-            '<div class="row"><select id="nb_proj" class="inp" style="max-width:220px">' + opt(state.projects, null, function (x) { return esc(x.name); }) + '</select>' +
-            ['schools', 'healthcare', 'connectivity', 'safety', 'utilities'].map(function (k) {
-              return '<input class="inp nb_' + k + '" type="number" min="0" max="5" step="0.5" style="max-width:110px" placeholder="' + k + '" />';
+            '<div class="row" style="flex-wrap:wrap"><select id="nb_proj" class="inp" style="max-width:220px">' + opt(state.projects, null, function (x) { return esc(x.name); }) + '</select>' +
+            NB_KEYS.map(function (k) {
+              return '<input class="inp nb_' + k + '" type="number" min="0" max="5" step="0.5" style="max-width:150px" placeholder="' + k.replace(/_/g, ' ') + '" />';
             }).join('') +
             '<button id="nb_save" class="btn btn-sm">Save scores</button></div></div>' +
           '<div class="panel"><h3>Plans</h3>' +
@@ -728,7 +731,6 @@
           if (r.error) return alert(r.error.message); renderCatalog();
         };
         // Neighborhood scores: load selected project's values, save back to projects.neighborhood.
-        var NB_KEYS = ['schools', 'healthcare', 'connectivity', 'safety', 'utilities'];
         function nbLoad() {
           var proj = (state.projects || []).find(function (x) { return x.id === $('nb_proj').value; });
           var nb = (proj && proj.neighborhood) || {};

@@ -5,13 +5,35 @@ import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
 import { color } from '@/theme/tokens';
 
-/** Canonical scorecard dimensions (0–5). Admin-set per project (projects.neighborhood). */
+/**
+ * Canonical scorecard dimensions (0–5). Admin-set per project (projects.neighborhood).
+ * Original keys (schools/healthcare/connectivity/safety/utilities) are preserved so
+ * existing data keeps rendering; new POI categories are additive.
+ */
 export const NEIGHBORHOOD_DIMENSIONS: { key: string; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  // Daily needs & living
   { key: 'schools', label: 'Schools', icon: 'school' },
-  { key: 'healthcare', label: 'Healthcare', icon: 'medkit' },
-  { key: 'connectivity', label: 'Connectivity', icon: 'bus' },
+  { key: 'healthcare', label: 'Hospitals', icon: 'medkit' },
+  { key: 'medical_stores', label: 'Medical stores', icon: 'medical' },
+  { key: 'markets', label: 'Markets & shopping', icon: 'cart' },
+  { key: 'banks', label: 'Banks & ATMs', icon: 'card' },
+  { key: 'restaurants', label: 'Restaurants', icon: 'restaurant' },
+  { key: 'parks', label: 'Parks', icon: 'leaf' },
+  { key: 'walkability', label: 'Walkability', icon: 'walk' },
   { key: 'safety', label: 'Safety', icon: 'shield-checkmark' },
   { key: 'utilities', label: 'Water & power', icon: 'water' },
+  // Transit & connectivity
+  { key: 'connectivity', label: 'Commute', icon: 'navigate' },
+  { key: 'bus_stand', label: 'Bus stand', icon: 'bus' },
+  { key: 'railway', label: 'Railway station', icon: 'train' },
+  { key: 'airport', label: 'Airport', icon: 'airplane' },
+  { key: 'taxi', label: 'Taxi stand', icon: 'car' },
+  { key: 'autorickshaw', label: 'Auto-rickshaw', icon: 'car-sport' },
+  { key: 'highway', label: 'Highway access', icon: 'trail-sign' },
+  // Places of worship
+  { key: 'temples', label: 'Temples', icon: 'flame' },
+  { key: 'churches', label: 'Churches', icon: 'business' },
+  { key: 'mosques', label: 'Mosques', icon: 'moon' },
 ];
 
 export function NeighborhoodScores({ scores }: { scores?: Record<string, number> | null }) {
