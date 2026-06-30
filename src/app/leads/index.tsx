@@ -26,13 +26,18 @@ export default function LeadsList() {
         <BackHeader
           title="Leads"
           right={
-            <Pressable
-              onPress={() => router.push('/leads/pipeline')}
-              hitSlop={10}
-              className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5">
-              <Ionicons name="git-branch" size={14} color={color.red} />
-              <Text className="text-[12px] font-semibold text-ink">Pipeline</Text>
-            </Pressable>
+            <View className="flex-row items-center gap-2">
+              <Pressable onPress={() => router.push('/cobroke')} hitSlop={10}>
+                <Ionicons name="git-network" size={18} color={color.ink} />
+              </Pressable>
+              <Pressable
+                onPress={() => router.push('/leads/pipeline')}
+                hitSlop={10}
+                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5">
+                <Ionicons name="git-branch" size={14} color={color.red} />
+                <Text className="text-[12px] font-semibold text-ink">Pipeline</Text>
+              </Pressable>
+            </View>
           }
         />
       </View>

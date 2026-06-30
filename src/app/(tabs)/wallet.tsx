@@ -15,6 +15,8 @@ import { Text } from '@/components/ui/Text';
 import { Sheet } from '@/features/buyer/components/EnquirySheet';
 import { useRequestWithdrawal, useWalletSummary, useWithdrawals } from '@/features/wallet/hooks';
 import type { LedgerEntry, Withdrawal } from '@/features/wallet/api';
+import { exportCommissionStatement } from '@/features/wallet/statement';
+import { useAuth } from '@/stores/auth';
 import { formatINR, money } from '@/lib/money';
 import { errMessage } from '@/lib/errors';
 
@@ -22,7 +24,17 @@ export default function Wallet() {
   const { t } = useTranslation();
   const { data: summary } = useWalletSummary();
   const { data: withdrawals = [] } = useWithdrawals();
+  const agentName = useAuth((s) => s.profile?.full_name) ?? 'Agent';
   const [sheet, setSheet] = useState(false);
+
+  async function downloadStatement() {
+    if (!summary) return;
+    try {
+      await exportCommissionStatement(summary, agentName);
+    } catch (e) {
+      Alert.alert('Could not export', errMessage(e));
+    }
+  }
 
   const balance = summary?.balance ?? '0';
 
@@ -50,6 +62,14 @@ export default function Wallet() {
           </View>
         </View>
       </Card>
+
+      {summary && summary.ledger.length > 0 ? (
+        <Button
+          title="Download statement (PDF)"
+          variant="outline"
+          onPress={downloadStatement}
+        />
+      ) : null}
 
       <View>
         <Text variant="label" className="mb-2">

@@ -826,6 +826,93 @@ export type Database = {
           },
         ]
       }
+      cobroke_interests: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          listing_id: string
+          message: string | null
+          status: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          listing_id: string
+          message?: string | null
+          status?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          listing_id?: string
+          message?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cobroke_interests_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobroke_interests_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "cobroke_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cobroke_listings: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          posted_by: string
+          property_id: string
+          split_pct: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          posted_by: string
+          property_id: string
+          split_pct: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          posted_by?: string
+          property_id?: string
+          split_pct?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cobroke_listings_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobroke_listings_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commission_ledger: {
         Row: {
           amount: number
@@ -2784,6 +2871,7 @@ export type Database = {
       auth_hierarchy_path: { Args: never; Returns: unknown }
       auth_is_admin: { Args: never; Returns: boolean }
       auth_role_slug: { Args: never; Returns: string }
+      auto_assign_lead: { Args: { p_lead: string }; Returns: string }
       become_partner: { Args: never; Returns: string }
       book_site_visit: {
         Args: {
@@ -2819,6 +2907,10 @@ export type Database = {
         Returns: number
       }
       evaluate_badges: { Args: { p_user: string }; Returns: undefined }
+      express_cobroke_interest: {
+        Args: { p_listing: string; p_message?: string }
+        Returns: string
+      }
       gen_referral_code: { Args: never; Returns: string }
       get_leaderboard: {
         Args: { p_limit?: number; p_metric?: string }
@@ -2920,6 +3012,10 @@ export type Database = {
           with_budget: number
         }[]
       }
+      respond_cobroke_interest: {
+        Args: { p_decision: string; p_interest: string }
+        Returns: undefined
+      }
       respond_offer: {
         Args: {
           p_counter_amount?: number
@@ -2927,6 +3023,10 @@ export type Database = {
           p_decision: string
           p_offer: string
         }
+        Returns: undefined
+      }
+      route_lead: {
+        Args: { p_agent: string; p_lead: string }
         Returns: undefined
       }
       rule_matches: {

@@ -27,6 +27,7 @@ import { SiteVisitSheet } from '@/features/buyer/components/SiteVisitSheet';
 import { StampDutyCalculator } from '@/features/buyer/components/StampDutyCalculator';
 import { ReviewsPanel } from '@/features/reviews/ReviewsPanel';
 import { AddToShortlistSheet } from '@/features/shortlists/AddToShortlistSheet';
+import { CobrokeSheet } from '@/features/cobroke/CobrokeSheet';
 import { OfferSheet } from '@/features/offers/OfferSheet';
 import { ReportSheet } from '@/features/offers/ReportSheet';
 import {
@@ -60,6 +61,7 @@ export default function PropertyDetail() {
   const [report, setReport] = useState(false);
   const [qr, setQr] = useState(false);
   const [shortlist, setShortlist] = useState(false);
+  const [cobroke, setCobroke] = useState(false);
 
   async function onSuggestPhoto() {
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -324,6 +326,9 @@ export default function PropertyDetail() {
         <Button title="Enquire now" onPress={() => setEnquiry(true)} />
         <Button title="Book a site visit" variant="outline" onPress={() => setVisit(true)} />
         <Button title="Add to shared shortlist" variant="outline" left={<Ionicons name="people" size={16} color={color.ink} />} onPress={() => setShortlist(true)} />
+        {isPartner ? (
+          <Button title="Offer for co-broking" variant="outline" left={<Ionicons name="git-network" size={16} color={color.ink} />} onPress={() => setCobroke(true)} />
+        ) : null}
         {property.status === 'available' && property.seller_id !== myId ? (
           <Button title="Make an offer" variant="outline" onPress={() => setOffer(true)} />
         ) : null}
@@ -341,6 +346,7 @@ export default function PropertyDetail() {
       <ReportSheet visible={report} onClose={() => setReport(false)} propertyId={property.id} propertyLabel={label} />
       <ListingQrSheet visible={qr} onClose={() => setQr(false)} propertyId={property.id} propertyLabel={label} />
       <AddToShortlistSheet visible={shortlist} onClose={() => setShortlist(false)} propertyId={property.id} />
+      <CobrokeSheet visible={cobroke} onClose={() => setCobroke(false)} propertyId={property.id} propertyLabel={label} />
     </Screen>
   );
 }

@@ -23,9 +23,28 @@ export default function MyListings() {
   const { data, isLoading, refetch, isRefetching } = useMyListingStats();
   const listings = data ?? [];
 
+  const inv = {
+    total: listings.length,
+    available: listings.filter((l) => l.status === 'available').length,
+    reserved: listings.filter((l) => l.status === 'reserved').length,
+    sold: listings.filter((l) => l.status === 'sold').length,
+  };
+
   return (
     <Screen contentClassName="pb-12 gap-4">
       <BackHeader title="My listings" />
+
+      {listings.length > 0 ? (
+        <Card className="gap-2">
+          <Text variant="label">Inventory</Text>
+          <View className="flex-row">
+            <InvStat label="Total" value={inv.total} />
+            <InvStat label="Available" value={inv.available} tone="text-success" />
+            <InvStat label="Reserved" value={inv.reserved} tone="text-gold-deep" />
+            <InvStat label="Sold" value={inv.sold} tone="text-danger" />
+          </View>
+        </Card>
+      ) : null}
 
       <Button
         title="List a new property"
@@ -83,6 +102,15 @@ function Stat({ label, value }: { label: string; value: number }) {
   return (
     <View className="w-1/4 items-center">
       <Text className="font-mono-bold text-[18px] text-ink">{value}</Text>
+      <Text variant="caption">{label}</Text>
+    </View>
+  );
+}
+
+function InvStat({ label, value, tone }: { label: string; value: number; tone?: string }) {
+  return (
+    <View className="w-1/4 items-center">
+      <Text className={`font-mono-bold text-[20px] ${tone ?? 'text-ink'}`}>{value}</Text>
       <Text variant="caption">{label}</Text>
     </View>
   );
