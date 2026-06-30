@@ -17,6 +17,7 @@ import { logBrochure, useBrochureTemplate } from '@/features/marketing/brochures
 import { logArtifactShare, referralUrl, shareImageFile } from '@/features/marketing/share';
 import { useAuth } from '@/stores/auth';
 import { BRAND, color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 export default function BrochurePreview() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -55,7 +56,7 @@ export default function BrochurePreview() {
       await logBrochure({ templateId: tpl!.id });
       return uri;
     } catch (e) {
-      Alert.alert('Render failed', e instanceof Error ? e.message : String(e));
+      Alert.alert('Render failed', errMessage(e));
       return null;
     }
   }
@@ -108,7 +109,7 @@ export default function BrochurePreview() {
           Alert.alert('PDF ready', 'Saved to the app cache.');
         }
       } catch (e) {
-        Alert.alert('PDF failed', e instanceof Error ? e.message : String(e));
+        Alert.alert('PDF failed', errMessage(e));
       }
     }
     setBusy(false);

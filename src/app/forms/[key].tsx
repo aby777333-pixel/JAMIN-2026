@@ -9,6 +9,7 @@ import { DynamicForm } from '@/features/forms/DynamicForm';
 import { useFormDef, useSubmitForm } from '@/features/forms/api';
 import type { FormValues } from '@/features/forms/types';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 /** Generic submission screen for ANY dynamic form — fields come from form_definitions. */
 export default function DynamicFormScreen() {
@@ -25,7 +26,7 @@ export default function DynamicFormScreen() {
       );
       router.back();
     } catch (e) {
-      Alert.alert('Could not submit', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not submit', errMessage(e));
     }
   }
 

@@ -11,6 +11,7 @@ import { Text } from '@/components/ui/Text';
 import type { UserMedia } from '@/features/media/api';
 import { useDeleteMedia, useMyMedia, useUploadMedia } from '@/features/media/hooks';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 /** "My Images" — the user's personal library: upload, download/share, delete (own-only). */
 export default function MyMedia() {
@@ -29,7 +30,7 @@ export default function MyMedia() {
       try {
         await upload.mutateAsync({ uri: a.uri, name: a.fileName, mimeType: a.mimeType });
       } catch (e) {
-        Alert.alert('Upload failed', e instanceof Error ? e.message : String(e));
+        Alert.alert('Upload failed', errMessage(e));
       }
     }
   }
@@ -41,7 +42,7 @@ export default function MyMedia() {
       if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(dl.uri);
       else Alert.alert('Downloaded', 'Image saved to the app cache.');
     } catch (e) {
-      Alert.alert('Could not download', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not download', errMessage(e));
     }
   }
 

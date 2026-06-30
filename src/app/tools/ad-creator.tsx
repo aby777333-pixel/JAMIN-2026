@@ -24,6 +24,7 @@ import { logArtifactShare, shareImageFile } from '@/features/marketing/share';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 interface Capture {
   uri: string;
@@ -65,7 +66,7 @@ export default function AdCreator() {
         Alert.alert('Enhanced ✨', 'Your photo has been sharpened and upscaled by AI.');
       }
     } catch (e) {
-      Alert.alert('Enhance failed', e instanceof Error ? e.message : String(e));
+      Alert.alert('Enhance failed', errMessage(e));
     } finally {
       setEnhancing(false);
     }
@@ -121,7 +122,7 @@ export default function AdCreator() {
         );
       return uri;
     } catch (e) {
-      Alert.alert('Render failed', e instanceof Error ? e.message : String(e));
+      Alert.alert('Render failed', errMessage(e));
       return null;
     }
   }

@@ -13,6 +13,7 @@ import { completeProfile } from '@/features/auth/api';
 import { useSelectableRoles } from '@/features/roles/hooks';
 import { switchRole } from '@/features/roles/api';
 import { useAuth } from '@/stores/auth';
+import { errMessage } from '@/lib/errors';
 
 const ROLE_HINT: Record<string, string> = {
   buyer: 'Browse & buy properties',
@@ -59,7 +60,7 @@ export default function Onboarding() {
       await refreshProfile();
       router.replace('/(tabs)');
     } catch (e) {
-      Alert.alert('Setup failed', e instanceof Error ? e.message : String(e));
+      Alert.alert('Setup failed', errMessage(e));
     } finally {
       setLoading(false);
     }

@@ -16,6 +16,7 @@ import {
   useMyRequirements,
 } from '@/features/requirements/hooks';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 const PURPOSES = ['Investment', 'Residential'];
 
@@ -47,7 +48,7 @@ export default function Requirements() {
       setPurpose(null);
       Alert.alert('Saved', 'We’ll notify you when a matching property is listed.');
     } catch (e) {
-      Alert.alert('Could not save', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not save', errMessage(e));
     }
   }
 

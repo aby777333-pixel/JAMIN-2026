@@ -12,6 +12,7 @@ import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { sendEmailOtp, signInWithPassword } from '@/features/auth/api';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -35,7 +36,7 @@ export default function Login() {
       await sendEmailOtp(email);
       router.push({ pathname: '/(auth)/verify', params: { email: email.trim().toLowerCase() } });
     } catch (e) {
-      Alert.alert(t('auth.checkEmail'), e instanceof Error ? e.message : String(e));
+      Alert.alert(t('auth.checkEmail'), errMessage(e));
     } finally {
       setLoading(false);
     }
@@ -57,7 +58,7 @@ export default function Login() {
       // Mirror the OTP path — the index gate routes onward once the session is set.
       router.replace('/');
     } catch (e) {
-      Alert.alert('Sign-in failed', e instanceof Error ? e.message : String(e));
+      Alert.alert('Sign-in failed', errMessage(e));
     } finally {
       setLoading(false);
     }

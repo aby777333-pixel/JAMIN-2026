@@ -12,6 +12,7 @@ import { Text } from '@/components/ui/Text';
 import { updateMyProfile } from '@/features/auth/api';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 /**
  * Edit profile (§6) — the fields shown on the Digital Business Card and brochures:
@@ -35,7 +36,7 @@ export default function EditProfile() {
       Alert.alert('Saved', 'Your profile is updated — it now shows on your card.');
       router.back();
     } catch (e) {
-      Alert.alert('Could not save', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not save', errMessage(e));
     } finally {
       setSaving(false);
     }

@@ -17,6 +17,7 @@ import {
 import type { BookingWithPayments } from '@/features/payments/api';
 import { formatINR } from '@/lib/money';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 export default function Payments() {
   const { data: bookings = [], isLoading, refetch, isRefetching } = useMyBookings();
@@ -53,7 +54,7 @@ export default function Payments() {
         Alert.alert('Complete your payment', 'After paying, pull down to refresh the status.');
       }
     } catch (e) {
-      Alert.alert('Payment', e instanceof Error ? e.message : String(e));
+      Alert.alert('Payment', errMessage(e));
     } finally {
       setBusyId(null);
     }

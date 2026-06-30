@@ -12,6 +12,7 @@ import { shareReferral } from '@/features/share/referral';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 const BENEFITS: { icon: keyof typeof Ionicons.glyphMap; text: string }[] = [
   { icon: 'cash', text: 'Earn commission on every sale you close' },
@@ -38,7 +39,7 @@ export default function BecomePartner() {
         { text: 'Get started', onPress: () => router.replace('/(tabs)') },
       ]);
     } catch (e) {
-      Alert.alert('Could not join', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not join', errMessage(e));
     } finally {
       setBusy(false);
     }

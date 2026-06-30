@@ -14,6 +14,7 @@ import type { FormValues } from '@/features/forms/types';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 export default function Kyc() {
   const profile = useAuth((s) => s.profile);
@@ -34,7 +35,7 @@ export default function Kyc() {
       Alert.alert('Submitted', 'Your KYC is under review.');
       router.back();
     } catch (e) {
-      Alert.alert('Could not submit', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not submit', errMessage(e));
     } finally {
       setBusy(false);
     }

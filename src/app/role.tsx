@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/Text';
 import { useSelectableRoles, useSwitchRole } from '@/features/roles/hooks';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 const DESC: Record<string, string> = {
   buyer: 'Browse & buy properties',
@@ -35,7 +36,7 @@ export default function RoleSwitch() {
       Alert.alert('Role updated', 'Your role has been switched — your tools update right away.');
       router.back();
     } catch (e) {
-      Alert.alert('Could not switch', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not switch', errMessage(e));
     }
   }
 

@@ -16,6 +16,7 @@ import { Sheet } from '@/features/buyer/components/EnquirySheet';
 import { useRequestWithdrawal, useWalletSummary, useWithdrawals } from '@/features/wallet/hooks';
 import type { LedgerEntry, Withdrawal } from '@/features/wallet/api';
 import { formatINR, money } from '@/lib/money';
+import { errMessage } from '@/lib/errors';
 
 export default function Wallet() {
   const { t } = useTranslation();
@@ -160,7 +161,7 @@ function WithdrawSheet({
       setAmount('');
       Alert.alert('Request submitted', 'Your withdrawal is pending approval.');
     } catch (e) {
-      Alert.alert('Could not request', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not request', errMessage(e));
     }
   }
 

@@ -31,6 +31,7 @@ import { useSubmitPhotos } from '@/features/submissions/hooks';
 import { SITE_URL } from '@/lib/site';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 export default function PropertyDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -63,7 +64,7 @@ export default function PropertyDetail() {
       });
       Alert.alert('Submitted', `${n} photo${n === 1 ? '' : 's'} sent for admin review.`);
     } catch (e) {
-      Alert.alert('Could not submit', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not submit', errMessage(e));
     }
   }
 
@@ -129,7 +130,7 @@ export default function PropertyDetail() {
           reserve
             .mutateAsync({ propertyId: property!.id, amount: property!.price })
             .then(() => Alert.alert('Reserved', 'Our team will follow up to confirm.'))
-            .catch((e) => Alert.alert('Could not reserve', e instanceof Error ? e.message : String(e))),
+            .catch((e) => Alert.alert('Could not reserve', errMessage(e))),
       },
     ]);
   }

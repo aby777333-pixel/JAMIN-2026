@@ -14,6 +14,7 @@ import { useForms, useSaveFormFields } from '@/features/admin/hooks';
 import { DynamicForm } from '@/features/forms/DynamicForm';
 import { FIELD_TYPES, type FieldType, type FormField } from '@/features/forms/types';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 export default function FormBuilder() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -60,7 +61,7 @@ export default function FormBuilder() {
       await save.mutateAsync({ id: form.id, fields });
       Alert.alert('Saved', 'Form updated. It applies everywhere instantly.');
     } catch (e) {
-      Alert.alert('Save failed', e instanceof Error ? e.message : String(e));
+      Alert.alert('Save failed', errMessage(e));
     }
   }
 

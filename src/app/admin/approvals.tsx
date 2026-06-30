@@ -15,6 +15,7 @@ import {
 } from '@/features/admin/hooks';
 import { formatINR } from '@/lib/money';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 export default function AdminApprovals() {
   const { data: withdrawals = [], isLoading: lw } = usePendingWithdrawals();
@@ -31,7 +32,7 @@ export default function AdminApprovals() {
           closeSale
             .mutateAsync(id)
             .then((total) => Alert.alert('Sale closed', `Commissions paid: ${formatINR(total)}`))
-            .catch((e) => Alert.alert('Failed', e instanceof Error ? e.message : String(e))),
+            .catch((e) => Alert.alert('Failed', errMessage(e))),
       },
     ]);
   }

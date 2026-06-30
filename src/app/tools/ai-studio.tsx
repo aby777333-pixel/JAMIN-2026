@@ -13,6 +13,7 @@ import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { useAIGenerate, type AIFeature } from '@/features/ai/api';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 const FEATURES: { key: AIFeature; label: string }[] = [
   { key: 'description', label: 'Listing description' },
@@ -46,7 +47,7 @@ export default function AiStudio() {
       });
       setOutput(res.output);
     } catch (e) {
-      Alert.alert('AI', e instanceof Error ? e.message : String(e));
+      Alert.alert('AI', errMessage(e));
     }
   }
 

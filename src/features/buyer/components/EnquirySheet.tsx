@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { useAuth } from '@/stores/auth';
 import { useBuyerForm, useCreateEnquiry } from '../hooks';
+import { errMessage } from '@/lib/errors';
 
 /** Enquiry uses the DYNAMIC buyer form (form_definitions) — no hardcoded fields (§11/§13). */
 export function EnquirySheet({
@@ -40,7 +41,7 @@ export function EnquirySheet({
       onClose();
       Alert.alert('Enquiry sent', `Our team will contact you about ${propertyLabel}.`);
     } catch (e) {
-      Alert.alert('Could not send', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not send', errMessage(e));
     }
   }
 

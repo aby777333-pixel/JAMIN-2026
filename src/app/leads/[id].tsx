@@ -22,6 +22,7 @@ import {
   useUpdateLeadStatus,
 } from '@/features/leads/hooks';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 export default function LeadDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -50,7 +51,7 @@ export default function LeadDetail() {
       }
       Alert.alert(`AI score: ${res.score ?? '—'}/100`, res.output);
     } catch (e) {
-      Alert.alert('AI', e instanceof Error ? e.message : String(e));
+      Alert.alert('AI', errMessage(e));
     } finally {
       setScoring(false);
     }
@@ -161,7 +162,7 @@ export default function LeadDetail() {
         ))}
         <AddFollowUp pending={createFollowUp.isPending} onAdd={(dueAt, note) =>
           createFollowUp.mutateAsync({ dueAt, note }).catch((e) =>
-            Alert.alert('Could not add', e instanceof Error ? e.message : String(e)),
+            Alert.alert('Could not add', errMessage(e)),
           )
         } />
       </View>

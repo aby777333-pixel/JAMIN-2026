@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { Sheet } from '@/features/buyer/components/EnquirySheet';
 import { useRaiseDispute } from './hooks';
+import { errMessage } from '@/lib/errors';
 
 export function ReportSheet({
   visible,
@@ -34,7 +35,7 @@ export function ReportSheet({
       setDetails('');
       Alert.alert('Reported', 'Thanks — our team will review this and follow up.');
     } catch (e) {
-      Alert.alert('Could not submit', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not submit', errMessage(e));
     }
   }
 

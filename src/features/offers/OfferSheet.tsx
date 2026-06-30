@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { Sheet } from '@/features/buyer/components/EnquirySheet';
 import { useMakeOffer } from './hooks';
+import { errMessage } from '@/lib/errors';
 
 export function OfferSheet({
   visible,
@@ -37,7 +38,7 @@ export function OfferSheet({
       setMessage('');
       Alert.alert('Offer sent', 'The seller has been notified. Track it under My offers.');
     } catch (e) {
-      Alert.alert('Could not send offer', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not send offer', errMessage(e));
     }
   }
 

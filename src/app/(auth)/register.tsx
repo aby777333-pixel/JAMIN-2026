@@ -12,6 +12,7 @@ import { Text } from '@/components/ui/Text';
 import { signUpWithPassword } from '@/features/auth/api';
 import { useSelectableRoles } from '@/features/roles/hooks';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -58,7 +59,7 @@ export default function Register() {
         );
       }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = errMessage(e);
       Alert.alert('Could not register', /already registered|exists/i.test(msg) ? 'This email is already registered — sign in instead.' : msg);
     } finally {
       setLoading(false);

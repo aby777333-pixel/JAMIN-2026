@@ -52,11 +52,11 @@ export default function AdminUsers() {
               </View>
             </View>
 
-            {u.kyc_status === 'pending' ? (
+            {u.kyc_status !== 'verified' ? (
               <View className="flex-row gap-3">
                 <View className="flex-1">
                   <Button
-                    title="Approve KYC"
+                    title="Verify KYC"
                     variant="secondary"
                     onPress={() => setKyc.mutate({ userId: u.id, status: 'verified' })}
                   />

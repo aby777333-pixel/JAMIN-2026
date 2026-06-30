@@ -776,7 +776,7 @@
               '<td><select class="inp uu_terr" style="width:140px;height:36px">' + terrSel + '</select></td>' +
               '<td><span class="pill ' + (u.kyc_status || 'neutral') + '">' + esc(u.kyc_status) + '</span></td>' +
               '<td class="row"><button class="btn btn-sm uu_save">Save</button>' +
-                (u.kyc_status === 'pending' ? '<button class="btn-g btn-sm uu_kok">Approve KYC</button><button class="btn-d btn-sm uu_kno">Reject</button>' : '') +
+                (u.kyc_status !== 'verified' ? '<button class="btn-g btn-sm uu_kok">Verify KYC</button><button class="btn-d btn-sm uu_kno">Reject</button>' : '<span class="muted" style="font-size:11px">Verified ✓</span>') +
               '</td></tr>';
           }).join('') + '</tbody></table>';
         el.querySelectorAll('tr[data-id]').forEach(function (tr) {
@@ -811,16 +811,21 @@
               return '<tr data-lid="' + p.id + '"><td class="mono">' + esc(p.plot_code) + '</td><td>' + esc(p.project ? p.project.name : '—') + '</td><td>' + esc(p.type ? p.type.name : '—') + '</td><td class="mono">' + inr(p.price) + '</td><td>' + esc(p.seller ? p.seller.full_name : '—') + '</td>' +
                 '<td class="row"><button class="btn-g btn-sm la_set" data-s="approved">Approve</button><button class="btn-d btn-sm la_set" data-s="rejected">Reject</button></td></tr>';
             }).join('') + '</tbody></table>' : '<div class="muted">No listings awaiting approval.</div>');
-        // Members with KYC awaiting review (also approvable in Users & roles / Form submissions).
-        var kq = await sb.from('profiles').select('id,full_name,email, role:roles(name)').eq('kyc_status', 'pending').order('created_at');
+        // Members awaiting KYC verification — both those who submitted documents
+        // (kyc_status 'pending') and those still 'unverified' / 'rejected'. The owner
+        // can verify anyone here; the status column shows who actually submitted.
+        var kq = await sb.from('profiles').select('id,full_name,email,kyc_status, role:roles(name)').neq('kyc_status', 'verified').order('kyc_status').order('created_at');
         var kyc = kq.data || [];
         var kycHTML = '<div class="head"><h2>KYC approvals</h2></div>' +
-          '<div class="muted" style="margin-bottom:10px">Members who submitted KYC. Approve to mark them verified and unlock payouts in the app.</div>' +
-          (kyc.length ? '<table><thead><tr><th>Member</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead><tbody>' +
+          '<div class="muted" style="margin-bottom:10px">Every member not yet verified. <b>Submitted</b> = uploaded KYC documents; <b>Registered</b> = signed up but not submitted yet. Verify to mark them verified and unlock payouts in the app.</div>' +
+          (kyc.length ? '<table><thead><tr><th>Member</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody>' +
             kyc.map(function (u) {
-              return '<tr data-kid="' + u.id + '"><td>' + esc(u.full_name || '—') + '</td><td>' + esc(u.email || '') + '</td><td>' + esc(u.role ? u.role.name : '—') + '</td>' +
-                '<td class="row"><button class="btn-g btn-sm ky_set" data-s="verified">Approve</button><button class="btn-d btn-sm ky_set" data-s="rejected">Reject</button></td></tr>';
-            }).join('') + '</tbody></table>' : '<div class="muted">No pending KYC.</div>');
+              var st = u.kyc_status === 'pending' ? '<span class="pill pending">Submitted</span>'
+                : u.kyc_status === 'rejected' ? '<span class="pill rejected">Rejected</span>'
+                : '<span class="pill neutral">Registered</span>';
+              return '<tr data-kid="' + u.id + '"><td>' + esc(u.full_name || '—') + '</td><td>' + esc(u.email || '') + '</td><td>' + esc(u.role ? u.role.name : '—') + '</td><td>' + st + '</td>' +
+                '<td class="row"><button class="btn-g btn-sm ky_set" data-s="verified">Verify</button><button class="btn-d btn-sm ky_set" data-s="rejected">Reject</button></td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">All members are verified.</div>');
         // Applications from potential clients (non-KYC form submissions awaiting review).
         var aq = await sb.from('form_submissions').select('id,form_key,data,created_at, user:profiles(full_name)').neq('form_key', 'kyc').eq('status', 'submitted').order('created_at');
         var apps = aq.data || [];

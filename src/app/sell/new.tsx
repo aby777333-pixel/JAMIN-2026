@@ -11,6 +11,7 @@ import { Text } from '@/components/ui/Text';
 import { useProjects, usePropertyTypes } from '@/features/buyer/hooks';
 import { useCreateListing } from '@/features/seller/hooks';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 export default function NewListing() {
   const { data: projects, isLoading: projLoading } = useProjects();
@@ -56,7 +57,7 @@ export default function NewListing() {
       );
       router.replace('/sell');
     } catch (e) {
-      Alert.alert('Could not submit', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not submit', errMessage(e));
     }
   }
 

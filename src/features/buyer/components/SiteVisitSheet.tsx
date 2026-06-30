@@ -6,6 +6,7 @@ import { Chip } from '@/components/ui/Chip';
 import { Text } from '@/components/ui/Text';
 import { useBookSiteVisit } from '../hooks';
 import { Sheet } from './EnquirySheet';
+import { errMessage } from '@/lib/errors';
 
 const SLOTS = [
   { label: 'Morning · 10:00', hour: 10 },
@@ -49,7 +50,7 @@ export function SiteVisitSheet({
       onClose();
       Alert.alert('Visit booked', `${propertyLabel} · ${days[dayIdx].label}, ${SLOTS[slotIdx].label}`);
     } catch (e) {
-      Alert.alert('Could not book', e instanceof Error ? e.message : String(e));
+      Alert.alert('Could not book', errMessage(e));
     }
   }
 

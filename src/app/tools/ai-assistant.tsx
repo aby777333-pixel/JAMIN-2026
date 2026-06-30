@@ -16,6 +16,7 @@ import { Text } from '@/components/ui/Text';
 import { callAI } from '@/features/ai/api';
 import { cn } from '@/lib/cn';
 import { color } from '@/theme/tokens';
+import { errMessage } from '@/lib/errors';
 
 interface Msg {
   role: 'user' | 'assistant';
@@ -42,7 +43,7 @@ export default function AiAssistant() {
       const res = await callAI('assistant', { messages: next });
       setMessages((m) => [...m, { role: 'assistant', content: res.output }]);
     } catch (e) {
-      setMessages((m) => [...m, { role: 'assistant', content: `⚠️ ${e instanceof Error ? e.message : String(e)}` }]);
+      setMessages((m) => [...m, { role: 'assistant', content: `⚠️ ${errMessage(e)}` }]);
     } finally {
       setBusy(false);
       setTimeout(() => scroller.current?.scrollToEnd({ animated: true }), 50);

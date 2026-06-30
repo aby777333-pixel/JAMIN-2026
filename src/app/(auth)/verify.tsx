@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { sendEmailOtp, verifyEmailOtp } from '@/features/auth/api';
+import { errMessage } from '@/lib/errors';
 
 export default function Verify() {
   const { t } = useTranslation();
@@ -29,7 +30,7 @@ export default function Verify() {
       // Auth store picks up the new session; index gate routes onward.
       router.replace('/');
     } catch (e) {
-      Alert.alert(t('auth.invalidCode'), e instanceof Error ? e.message : String(e));
+      Alert.alert(t('auth.invalidCode'), errMessage(e));
     } finally {
       setLoading(false);
     }
