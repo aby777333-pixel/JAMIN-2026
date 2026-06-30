@@ -54,6 +54,10 @@ export function useSetFollowUpStatus(leadId: string) {
   });
 }
 
+export function useMyOpenFollowUps() {
+  return useQuery({ queryKey: ['my-followups'], queryFn: api.listMyOpenFollowUps });
+}
+
 export function usePipelineSummary() {
   return useQuery({ queryKey: ['pipeline-summary'], queryFn: api.pipelineSummary });
 }

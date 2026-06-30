@@ -15,6 +15,7 @@ import { color } from '@/theme/tokens';
 const ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string; href: string }[] = [
   { icon: 'person-circle', label: 'Edit profile', sub: 'Name, phone, designation, photo', href: '/profile' },
   { icon: 'calendar', label: 'My site visits', sub: 'Bookings & check-in', href: '/visits' },
+  { icon: 'calendar-number', label: 'My agenda', sub: 'Visits & follow-ups in one view', href: '/agenda' },
   { icon: 'people', label: 'Shared shortlists', sub: 'Decide together with family', href: '/shortlists' },
   { icon: 'trending-up', label: 'Market insights', sub: 'Trends, hotspots, leaderboard', href: '/tools/insights' },
   { icon: 'school', label: 'Training Academy', sub: 'Courses, quizzes & certificates', href: '/academy' },

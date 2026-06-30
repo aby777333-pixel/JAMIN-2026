@@ -59,6 +59,26 @@ export async function listFollowUps(leadId: string): Promise<FollowUp[]> {
   return (data ?? []) as FollowUp[];
 }
 
+export interface AgendaFollowUp {
+  id: string;
+  due_at: string;
+  note: string | null;
+  status: string;
+  lead_id: string;
+  lead: { contact: { name?: string } | null; property: { plot_code: string } | null } | null;
+}
+
+/** All my pending follow-ups (across leads) for the unified agent calendar. */
+export async function listMyOpenFollowUps(): Promise<AgendaFollowUp[]> {
+  const { data, error } = await supabase
+    .from('follow_ups')
+    .select('id, due_at, note, status, lead_id, lead:leads(contact, property:properties(plot_code))')
+    .eq('status', 'pending')
+    .order('due_at', { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as unknown as AgendaFollowUp[];
+}
+
 export async function createFollowUp(input: { leadId: string; dueAt: string; note: string }) {
   const { error } = await supabase.from('follow_ups').insert({
     lead_id: input.leadId,

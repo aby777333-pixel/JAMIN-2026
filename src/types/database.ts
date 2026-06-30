@@ -704,6 +704,45 @@ export type Database = {
           },
         ]
       }
+      buyer_journeys: {
+        Row: {
+          id: string
+          property_id: string
+          steps: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          property_id: string
+          steps?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          property_id?: string
+          steps?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buyer_journeys_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "buyer_journeys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       buyer_requirements: {
         Row: {
           budget_max: number | null
@@ -2401,6 +2440,42 @@ export type Database = {
           },
         ]
       }
+      property_watches: {
+        Row: {
+          created_at: string
+          id: string
+          property_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          property_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          property_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_watches_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_watches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_tokens: {
         Row: {
           platform: string | null
@@ -3219,6 +3294,10 @@ export type Database = {
           p_scheduled_at: string
         }
         Returns: string
+      }
+      broadcast_notification: {
+        Args: { p_body: string; p_segment: string; p_title: string }
+        Returns: number
       }
       can_see_thread: { Args: { t: string }; Returns: boolean }
       checkin_site_visit: {

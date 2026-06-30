@@ -29,6 +29,8 @@ import { ReviewsPanel } from '@/features/reviews/ReviewsPanel';
 import { AddToShortlistSheet } from '@/features/shortlists/AddToShortlistSheet';
 import { CobrokeSheet } from '@/features/cobroke/CobrokeSheet';
 import { AiPropertyPanel } from '@/features/ai/AiPropertyPanel';
+import { JourneyTracker } from '@/features/journey/JourneyTracker';
+import { useMyWatchIds, useToggleWatch } from '@/features/watch/hooks';
 import { OfferSheet } from '@/features/offers/OfferSheet';
 import { ReportSheet } from '@/features/offers/ReportSheet';
 import {
@@ -49,6 +51,8 @@ export default function PropertyDetail() {
   const { data: property, isLoading } = useProperty(id);
   useLogPropertyView(id);
   const { data: saved } = useWishlistIds();
+  const { data: watchIds } = useMyWatchIds();
+  const toggleWatch = useToggleWatch();
   const role = useAuth((s) => s.profile?.role_slug);
   const myId = useAuth((s) => s.profile?.id);
   const isPartner = !!role && role !== 'buyer';
@@ -101,6 +105,7 @@ export default function PropertyDetail() {
   }
 
   const isSaved = saved?.has(property.id) ?? false;
+  const isWatching = watchIds?.has(property.id) ?? false;
   const label = `${property.project?.name ?? 'Property'} · ${property.plot_code}`;
 
   // Tours are data-driven: the admin sets URLs on the property's attrs.
@@ -166,6 +171,11 @@ export default function PropertyDetail() {
             </Pressable>
             <Pressable onPress={() => setQr(true)} hitSlop={10}>
               <Ionicons name="qr-code-outline" size={22} color={color.ink} />
+            </Pressable>
+            <Pressable
+              onPress={() => toggleWatch.mutate({ propertyId: property.id, watching: isWatching })}
+              hitSlop={10}>
+              <Ionicons name={isWatching ? 'eye' : 'eye-outline'} size={22} color={isWatching ? color.red : color.ink} />
             </Pressable>
             <Pressable onPress={() => toggle.mutate({ propertyId: property.id, saved: isSaved })} hitSlop={10}>
               <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={24} color={isSaved ? color.red : color.ink} />
@@ -336,6 +346,8 @@ export default function PropertyDetail() {
         }}
         description={description}
       />
+
+      <JourneyTracker propertyId={property.id} />
 
       {property.project_id ? <ReviewsPanel projectId={property.project_id} /> : null}
 

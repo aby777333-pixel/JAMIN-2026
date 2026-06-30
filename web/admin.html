@@ -135,6 +135,8 @@
         <button class="nav-i" data-tab="academy">🎓 Academy</button>
         <button class="nav-i" data-tab="loans">🏦 Home loans</button>
         <button class="nav-i" data-tab="documents">📁 Documents</button>
+        <button class="nav-i" data-tab="duplicates">🧬 Duplicates</button>
+        <button class="nav-i" data-tab="campaigns">📣 Campaigns</button>
         <button class="nav-i" data-tab="moderation">🛡️ Moderation</button>
         <button class="nav-i" data-tab="insights">📈 Insights</button>
         <button class="nav-i" data-tab="audit">🧾 Audit log</button>
@@ -170,6 +172,8 @@
         <div id="tabAcademy" class="hidden"></div>
         <div id="tabLoans" class="hidden"></div>
         <div id="tabDocuments" class="hidden"></div>
+        <div id="tabDuplicates" class="hidden"></div>
+        <div id="tabCampaigns" class="hidden"></div>
         <div id="tabModeration" class="hidden"></div>
         <div id="tabInsights" class="hidden"></div>
         <div id="tabAudit" class="hidden"></div>
@@ -258,7 +262,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'moderation', 'insights', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'moderation', 'insights', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -286,6 +290,8 @@
         if (tab === 'academy') renderAcademy();
         if (tab === 'loans') renderLoans();
         if (tab === 'documents') renderDocuments();
+        if (tab === 'duplicates') renderDuplicates();
+        if (tab === 'campaigns') renderCampaigns();
         if (tab === 'moderation') renderModeration();
         if (tab === 'insights') renderInsights();
         if (tab === 'audit') renderAudit();
@@ -2026,6 +2032,60 @@
             if (r.error) alert(r.error.message); else renderDocuments();
           };
         });
+      }
+
+      // ─── Duplicate-listing guard ────────────────────────────────────────
+      async function renderDuplicates() {
+        var el = $('tabDuplicates');
+        el.innerHTML = '<div class="head"><h2>Duplicates</h2></div><div class="muted">Scanning…</div>';
+        var q = await sb.from('properties').select('id,plot_code,price,status,coordinates, project:projects(name)').limit(2000);
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Duplicates</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        // Group by a signature: same plot_code, OR same coords+price.
+        var byCode = {}, byGeo = {};
+        rows.forEach(function (p) {
+          if (p.plot_code) { (byCode[p.plot_code] = byCode[p.plot_code] || []).push(p); }
+          var c = p.coordinates || {};
+          if (c.lat != null && c.lng != null) {
+            var k = Number(c.lat).toFixed(4) + ',' + Number(c.lng).toFixed(4) + '@' + (p.price || 0);
+            (byGeo[k] = byGeo[k] || []).push(p);
+          }
+        });
+        function groups(obj, labeler) {
+          return Object.keys(obj).filter(function (k) { return obj[k].length > 1; }).map(function (k) {
+            return '<div class="panel"><h3>' + labeler(k) + ' — ' + obj[k].length + ' listings</h3>' +
+              '<table><thead><tr><th>Plot</th><th>Project</th><th>Price</th><th>Status</th></tr></thead><tbody>' +
+              obj[k].map(function (p) { return '<tr><td class="mono">' + esc(p.plot_code) + '</td><td>' + esc(p.project ? p.project.name : '—') + '</td><td class="mono">' + inr(p.price) + '</td><td>' + esc(p.status) + '</td></tr>'; }).join('') +
+              '</tbody></table></div>';
+          });
+        }
+        var codeDupes = groups(byCode, function (k) { return 'Plot code ' + esc(k); });
+        var geoDupes = groups(byGeo, function (k) { return 'Same location & price'; });
+        el.innerHTML = '<div class="head"><h2>Duplicate-listing guard</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">Suspected duplicates by repeated plot code, or identical coordinates + price. Review and remove/merge in Properties.</div>' +
+          (codeDupes.length || geoDupes.length ? (codeDupes.join('') + geoDupes.join('')) : '<div class="muted">No duplicates detected. ✅</div>');
+      }
+
+      // ─── Push campaigns (broadcast notification) ────────────────────────
+      async function renderCampaigns() {
+        var el = $('tabCampaigns');
+        el.innerHTML = '<div class="head"><h2>Push campaigns</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">Send a notification to everyone’s in-app feed (and push, where enabled).</div>' +
+          '<div class="panel"><h3>New broadcast</h3>' +
+            '<div class="row"><input id="bc_title" class="inp" style="max-width:320px" placeholder="Title" /></div>' +
+            '<div class="row" style="margin-top:8px"><textarea id="bc_body" class="inp" style="max-width:480px;min-height:70px" placeholder="Message (optional)"></textarea></div>' +
+            '<div class="row" style="margin-top:8px"><select id="bc_seg" class="inp" style="max-width:200px"><option value="all">Everyone</option><option value="buyers">Buyers</option><option value="partners">Partners (agents+)</option></select>' +
+            '<button id="bc_send" class="btn btn-sm">Send broadcast</button></div>' +
+            '<div id="bc_msg" class="muted" style="margin-top:8px"></div></div>';
+        $('bc_send').onclick = async function () {
+          var title = $('bc_title').value.trim(); if (!title) return alert('Title required');
+          if (!confirm('Send this broadcast to "' + $('bc_seg').value + '"?')) return;
+          this.textContent = 'Sending…';
+          var r = await sb.rpc('broadcast_notification', { p_title: title, p_body: $('bc_body').value.trim(), p_segment: $('bc_seg').value });
+          this.textContent = 'Send broadcast';
+          if (r.error) { $('bc_msg').textContent = 'Error: ' + r.error.message; }
+          else { $('bc_msg').textContent = '✅ Sent to ' + r.data + ' user(s).'; $('bc_title').value = ''; $('bc_body').value = ''; }
+        };
       }
 
       // ─── Moderation & safety (contact visibility + disputes) ────────────
