@@ -238,6 +238,25 @@ export async function createEnquiry(input: {
   if (error) throw error;
 }
 
+export interface PricePoint {
+  id: string;
+  old_price: number | null;
+  new_price: number;
+  changed_at: string;
+}
+
+/** Price-change history for a listing (newest first). */
+export async function getPriceHistory(propertyId: string): Promise<PricePoint[]> {
+  const { data, error } = await supabase
+    .from('price_history')
+    .select('id, old_price, new_price, changed_at')
+    .eq('property_id', propertyId)
+    .order('changed_at', { ascending: false })
+    .limit(20);
+  if (error) throw error;
+  return (data ?? []) as unknown as PricePoint[];
+}
+
 export async function bookSiteVisit(input: { propertyId: string; scheduledAt: string }) {
   const buyer_id = await currentUserId();
   const { error } = await supabase.from('bookings').insert({

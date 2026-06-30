@@ -1521,6 +1521,41 @@ export type Database = {
         }
         Relationships: []
       }
+      price_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          new_price: number
+          old_price: number | null
+          property_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_price: number
+          old_price?: number | null
+          property_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_price?: number
+          old_price?: number | null
+          property_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_history_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -1819,6 +1854,57 @@ export type Database = {
           {
             foreignKeyName: "property_media_submissions_submitted_by_fkey"
             columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_reviews: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          project_id: string
+          rating: number
+          status: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          project_id: string
+          rating: number
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          project_id?: string
+          rating?: number
+          status?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_reviews_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_reviews_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2602,6 +2688,13 @@ export type Database = {
           lead_count: number
           status: string
           total_value: number
+        }[]
+      }
+      project_rating: {
+        Args: { p_project: string }
+        Returns: {
+          avg_rating: number
+          review_count: number
         }[]
       }
       public_selectable_roles: {

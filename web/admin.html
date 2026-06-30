@@ -129,6 +129,7 @@
         <button class="nav-i" data-tab="offers">🤝 Offers</button>
         <button class="nav-i" data-tab="requirements">📍 Requirements</button>
         <button class="nav-i" data-tab="visits">📅 Site visits</button>
+        <button class="nav-i" data-tab="reviews">⭐ Reviews</button>
         <button class="nav-i" data-tab="moderation">🛡️ Moderation</button>
         <button class="nav-i" data-tab="insights">📈 Insights</button>
         <button class="nav-i" data-tab="audit">🧾 Audit log</button>
@@ -158,6 +159,7 @@
         <div id="tabOffers" class="hidden"></div>
         <div id="tabRequirements" class="hidden"></div>
         <div id="tabVisits" class="hidden"></div>
+        <div id="tabReviews" class="hidden"></div>
         <div id="tabModeration" class="hidden"></div>
         <div id="tabInsights" class="hidden"></div>
         <div id="tabAudit" class="hidden"></div>
@@ -246,7 +248,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'moderation', 'insights', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'moderation', 'insights', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -268,6 +270,7 @@
         if (tab === 'offers') renderOffers();
         if (tab === 'requirements') renderRequirements();
         if (tab === 'visits') renderVisits();
+        if (tab === 'reviews') renderReviews();
         if (tab === 'moderation') renderModeration();
         if (tab === 'insights') renderInsights();
         if (tab === 'audit') renderAudit();
@@ -1708,6 +1711,40 @@
           tr.querySelector('.sv_status').onchange = async function () {
             var r = await sb.rpc('set_site_visit_status', { p_visit: tr.dataset.id, p_status: this.value });
             if (r.error) alert(r.error.message); else renderVisits();
+          };
+        });
+      }
+
+      // ─── Reviews & ratings (moderation) ─────────────────────────────────
+      async function renderReviews() {
+        var el = $('tabReviews');
+        el.innerHTML = '<div class="head"><h2>Reviews</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('property_reviews')
+          .select('id,rating,title,body,status,created_at, user:profiles!property_reviews_user_id_fkey(full_name), project:projects(name)')
+          .order('created_at', { ascending: false }).limit(300);
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Reviews</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>Reviews &amp; ratings</h2></div>' +
+          (rows.length ? '<table><thead><tr><th>Project</th><th>By</th><th>Rating</th><th>Review</th><th>Status</th><th></th></tr></thead><tbody>' +
+          rows.map(function (r) {
+            return '<tr data-id="' + r.id + '"><td>' + esc(r.project ? r.project.name : '—') + '</td>' +
+              '<td>' + esc(r.user ? r.user.full_name : '—') + '</td>' +
+              '<td class="mono">' + '★'.repeat(r.rating) + '</td>' +
+              '<td>' + (r.title ? '<b>' + esc(r.title) + '</b><br>' : '') + esc(r.body || '') + '</td>' +
+              '<td><span class="pill ' + (r.status === 'published' ? 'available' : 'sold') + '">' + r.status + '</span></td>' +
+              '<td class="row"><button class="btn-o btn-sm rv_tog">' + (r.status === 'published' ? 'Hide' : 'Publish') + '</button><button class="btn-d btn-sm rv_del">Delete</button></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No reviews yet.</div>');
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          tr.querySelector('.rv_tog').onclick = async function () {
+            var to = this.textContent === 'Hide' ? 'hidden' : 'published';
+            var r = await sb.from('property_reviews').update({ status: to }).eq('id', id);
+            if (r.error) alert(r.error.message); else renderReviews();
+          };
+          tr.querySelector('.rv_del').onclick = async function () {
+            if (!confirm('Delete this review?')) return;
+            var r = await sb.from('property_reviews').delete().eq('id', id);
+            if (r.error) alert(r.error.message); else renderReviews();
           };
         });
       }

@@ -12,13 +12,19 @@ import { MoneyText } from '@/components/ui/MoneyText';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { CommissionPreview } from '@/features/commission/components/CommissionPreview';
+import { AffordabilityCalculator } from '@/features/buyer/components/AffordabilityCalculator';
 import { EmiCalculator } from '@/features/buyer/components/EmiCalculator';
 import { EnquirySheet } from '@/features/buyer/components/EnquirySheet';
+import { ListingQrSheet } from '@/features/buyer/components/ListingQrSheet';
 import { NearbyAmenities } from '@/features/buyer/components/NearbyAmenities';
+import { PriceHistoryPanel } from '@/features/buyer/components/PriceHistoryPanel';
 import { PropertyGallery } from '@/features/buyer/components/PropertyGallery';
+import { RentVsBuyCalculator } from '@/features/buyer/components/RentVsBuyCalculator';
 import { ReraBadge } from '@/features/buyer/components/ReraBadge';
 import { RoiCalculator } from '@/features/buyer/components/RoiCalculator';
 import { SiteVisitSheet } from '@/features/buyer/components/SiteVisitSheet';
+import { StampDutyCalculator } from '@/features/buyer/components/StampDutyCalculator';
+import { ReviewsPanel } from '@/features/reviews/ReviewsPanel';
 import { OfferSheet } from '@/features/offers/OfferSheet';
 import { ReportSheet } from '@/features/offers/ReportSheet';
 import {
@@ -50,6 +56,7 @@ export default function PropertyDetail() {
   const [visit, setVisit] = useState(false);
   const [offer, setOffer] = useState(false);
   const [report, setReport] = useState(false);
+  const [qr, setQr] = useState(false);
 
   async function onSuggestPhoto() {
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -150,6 +157,9 @@ export default function PropertyDetail() {
               }
               hitSlop={10}>
               <Ionicons name="share-social-outline" size={22} color={color.ink} />
+            </Pressable>
+            <Pressable onPress={() => setQr(true)} hitSlop={10}>
+              <Ionicons name="qr-code-outline" size={22} color={color.ink} />
             </Pressable>
             <Pressable onPress={() => toggle.mutate({ propertyId: property.id, saved: isSaved })} hitSlop={10}>
               <Ionicons name={isSaved ? 'heart' : 'heart-outline'} size={24} color={isSaved ? color.red : color.ink} />
@@ -295,8 +305,15 @@ export default function PropertyDetail() {
 
       {hasCoords ? <NearbyAmenities lat={lat as number} lng={lng as number} /> : null}
 
+      <PriceHistoryPanel propertyId={property.id} />
+
       <EmiCalculator price={property.price} />
+      <StampDutyCalculator price={property.price} />
+      <AffordabilityCalculator price={property.price} />
+      <RentVsBuyCalculator price={property.price} />
       <RoiCalculator price={property.price} />
+
+      {property.project_id ? <ReviewsPanel projectId={property.project_id} /> : null}
 
       <View className="gap-3">
         <Button title="Enquire now" onPress={() => setEnquiry(true)} />
@@ -316,6 +333,7 @@ export default function PropertyDetail() {
       <SiteVisitSheet visible={visit} onClose={() => setVisit(false)} propertyId={property.id} propertyLabel={label} />
       <OfferSheet visible={offer} onClose={() => setOffer(false)} propertyId={property.id} propertyLabel={label} listPrice={property.price} />
       <ReportSheet visible={report} onClose={() => setReport(false)} propertyId={property.id} propertyLabel={label} />
+      <ListingQrSheet visible={qr} onClose={() => setQr(false)} propertyId={property.id} propertyLabel={label} />
     </Screen>
   );
 }
