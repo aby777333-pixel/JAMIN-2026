@@ -23,12 +23,18 @@ interface AuthState {
   /** App-lock: true when a biometric unlock is required before showing content. */
   locked: boolean;
   biometricEnabled: boolean;
+  /** Admin "preview as role": the role slug being previewed (UI-only, never persisted to DB). */
+  previewRole: string | null;
+  /** The caller's REAL admin status (survives preview so the exit affordance always shows). */
+  isRealAdmin: boolean;
   init: () => Promise<void>;
   setSession: (session: Session | null) => Promise<void>;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
   unlock: () => Promise<void>;
   setBiometric: (on: boolean) => Promise<boolean>;
+  /** Super-admin only: preview the app as any role (null = exit preview, restore real role). */
+  setPreviewRole: (slug: string | null) => Promise<void>;
 }
 
 export const useAuth = create<AuthState>((set, get) => ({
@@ -38,6 +44,8 @@ export const useAuth = create<AuthState>((set, get) => ({
   needsOnboarding: false,
   locked: false,
   biometricEnabled: false,
+  previewRole: null,
+  isRealAdmin: false,
 
   init: async () => {
     const bio = (await SecureStore.getItemAsync(BIOMETRIC_FLAG_KEY).catch(() => null)) === 'on';
@@ -68,7 +76,7 @@ export const useAuth = create<AuthState>((set, get) => ({
       await get().refreshProfile();
     } else {
       await SecureStore.deleteItemAsync(BIOMETRIC_TOKEN_KEY).catch(() => {});
-      set({ profile: null, needsOnboarding: false, locked: false });
+      set({ profile: null, needsOnboarding: false, locked: false, previewRole: null, isRealAdmin: false });
     }
   },
 
@@ -86,7 +94,7 @@ export const useAuth = create<AuthState>((set, get) => ({
           role?: { slug?: string; is_admin?: boolean; level?: number } | null;
         })
       | null;
-    const profile = row
+    let profile = row
       ? ({
           ...row,
           role_slug: row.role?.slug ?? null,
@@ -94,8 +102,30 @@ export const useAuth = create<AuthState>((set, get) => ({
           role_level: row.role?.level ?? null,
         } as unknown as Profile)
       : null;
+    const isRealAdmin = !!row?.role?.is_admin;
+
+    // Re-apply an active admin preview so a background refresh doesn't drop it.
+    const preview = get().previewRole;
+    if (profile && preview && isRealAdmin) {
+      const { data: r } = await supabase
+        .from('roles')
+        .select('slug, is_admin, level')
+        .eq('slug', preview)
+        .maybeSingle();
+      const pr = r as { slug?: string; is_admin?: boolean; level?: number } | null;
+      if (pr) {
+        profile = {
+          ...profile,
+          role_slug: pr.slug ?? preview,
+          role_is_admin: !!pr.is_admin,
+          role_level: pr.level ?? null,
+        } as Profile;
+      }
+    }
+
     set({
       profile,
+      isRealAdmin,
       needsOnboarding: !profile || !profile.full_name,
     });
   },
@@ -103,7 +133,36 @@ export const useAuth = create<AuthState>((set, get) => ({
   signOut: async () => {
     await supabase.auth.signOut();
     await SecureStore.deleteItemAsync(BIOMETRIC_TOKEN_KEY).catch(() => {});
-    set({ session: null, profile: null, needsOnboarding: false, locked: false });
+    set({ session: null, profile: null, needsOnboarding: false, locked: false, previewRole: null, isRealAdmin: false });
+  },
+
+  setPreviewRole: async (slug) => {
+    // Exit preview → reload the real role from the DB.
+    if (!slug) {
+      set({ previewRole: null });
+      await get().refreshProfile();
+      return;
+    }
+    // Only a real admin may preview; never persisted server-side.
+    if (!get().isRealAdmin) return;
+    const profile = get().profile;
+    if (!profile) return;
+    const { data } = await supabase
+      .from('roles')
+      .select('slug, is_admin, level')
+      .eq('slug', slug)
+      .maybeSingle();
+    const r = data as { slug?: string; is_admin?: boolean; level?: number } | null;
+    if (!r) return;
+    set({
+      previewRole: slug,
+      profile: {
+        ...profile,
+        role_slug: r.slug ?? slug,
+        role_is_admin: !!r.is_admin,
+        role_level: r.level ?? null,
+      } as Profile,
+    });
   },
 
   unlock: async () => {

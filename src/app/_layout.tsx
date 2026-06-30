@@ -23,6 +23,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { queryClient } from '@/lib/query';
 import '@/lib/i18n';
 import { LockGate } from '@/components/LockGate';
+import { RolePreviewBar } from '@/components/RolePreviewBar';
 import { NotificationsBridge } from '@/features/notifications/Bridge';
 import { useAuth } from '@/stores/auth';
 
@@ -114,6 +115,7 @@ export default function RootLayout() {
             <Stack.Screen name="settings/notifications" />
             <Stack.Screen name="settings/security" />
             <Stack.Screen name="profile" />
+            <Stack.Screen name="role-preview" />
             <Stack.Screen name="support" />
             <Stack.Screen name="media" />
             <Stack.Screen name="submissions" />
@@ -122,6 +124,7 @@ export default function RootLayout() {
             <Stack.Screen name="onboarding" options={{ presentation: 'modal' }} />
           </Stack>
           <LockGate />
+          <RolePreviewBar />
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

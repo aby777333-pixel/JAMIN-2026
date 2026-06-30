@@ -35,6 +35,7 @@ const ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string;
 export default function Settings() {
   const version = (Constants.expoConfig?.version as string) ?? '1.0.0';
   const profile = useAuth((s) => s.profile);
+  const isRealAdmin = useAuth((s) => s.isRealAdmin);
 
   async function shareMyPage() {
     if (!profile?.referral_code) return;
@@ -60,6 +61,22 @@ export default function Settings() {
   return (
     <Screen contentClassName="pb-10 gap-3" backdrop={<ImageBackdrop source={BG.waterfall} height={240} />}>
       <BackHeader title="Settings" />
+
+      {isRealAdmin ? (
+        <Pressable onPress={() => router.push('/role-preview')}>
+          <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
+            <View className="h-10 w-10 items-center justify-center rounded-xl bg-gold/20">
+              <Ionicons name="eye" size={18} color={color.goldDeep} />
+            </View>
+            <View className="flex-1">
+              <Text variant="title">Preview as role</Text>
+              <Text variant="caption">See the app as any role — test buyer, agent, admin…</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={color.muted} />
+          </Card>
+        </Pressable>
+      ) : null}
+
       {ITEMS.map((it) => (
         <Pressable key={it.href} onPress={() => router.push(it.href as never)}>
           <Card className="flex-row items-center gap-3">
