@@ -3,6 +3,8 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, TextInput, View } from 'react-native';
 
+import { BG } from '@/components/brand/backgrounds';
+import { ImageBackdrop } from '@/components/brand/ImageBackdrop';
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -67,7 +69,7 @@ export default function Register() {
   }
 
   return (
-    <Screen scroll keyboardAvoiding contentClassName="pb-12 gap-4">
+    <Screen scroll keyboardAvoiding backdrop={<ImageBackdrop source={BG.register} height={300} />} contentClassName="pb-12 gap-4">
       <BackHeader title="Create your account" />
       <Text variant="caption">Join JAMIN Properties. Pick the role that fits you — you can switch anytime.</Text>
 

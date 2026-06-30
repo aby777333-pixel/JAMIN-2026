@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, View } from 'react-native';
 
+import { BG } from '@/components/brand/backgrounds';
+import { ImageBackdrop } from '@/components/brand/ImageBackdrop';
 import { Logo } from '@/components/brand/Logo';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -37,7 +39,7 @@ export default function Verify() {
   }
 
   return (
-    <Screen scroll keyboardAvoiding contentClassName="grow justify-center gap-8">
+    <Screen scroll keyboardAvoiding backdrop={<ImageBackdrop source={BG.verify} height={360} />} contentClassName="grow justify-center gap-8">
       <View className="items-center">
         <Logo width={200} />
       </View>

@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, TextInput, View } from 'react-native';
 
-import { FieldsBackdrop } from '@/components/brand/FieldsBackdrop';
+import { BG } from '@/components/brand/backgrounds';
+import { ImageBackdrop } from '@/components/brand/ImageBackdrop';
 import { Logo } from '@/components/brand/Logo';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -68,7 +69,7 @@ export default function Login() {
     <Screen
       scroll
       keyboardAvoiding
-      backdrop={<FieldsBackdrop />}
+      backdrop={<ImageBackdrop source={BG.opening} height={480} />}
       contentClassName="grow justify-center gap-8 py-8">
       <View className="items-center gap-3">
         <Logo width={260} showTagline />

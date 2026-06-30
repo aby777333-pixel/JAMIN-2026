@@ -3,6 +3,8 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { Pressable, Share, View } from 'react-native';
 
+import { BG } from '@/components/brand/backgrounds';
+import { ImageBackdrop } from '@/components/brand/ImageBackdrop';
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
@@ -56,7 +58,7 @@ export default function Settings() {
   }
 
   return (
-    <Screen contentClassName="pb-10 gap-3">
+    <Screen contentClassName="pb-10 gap-3" backdrop={<ImageBackdrop source={BG.waterfall} height={240} />}>
       <BackHeader title="Settings" />
       {ITEMS.map((it) => (
         <Pressable key={it.href} onPress={() => router.push(it.href as never)}>

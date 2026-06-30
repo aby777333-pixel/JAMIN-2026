@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, KeyboardAvoidingView, Platform, View } from 'react-native';
 
+import { BG } from '@/components/brand/backgrounds';
+import { ImageBackdrop } from '@/components/brand/ImageBackdrop';
 import { Logo } from '@/components/brand/Logo';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -67,7 +69,7 @@ export default function Onboarding() {
   }
 
   return (
-    <Screen contentClassName="py-4" keyboardAvoiding>
+    <Screen contentClassName="py-4" keyboardAvoiding backdrop={<ImageBackdrop source={BG.onboarding} height={300} />}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View className="items-center py-2">
           <Logo width={180} />
