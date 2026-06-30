@@ -195,6 +195,11 @@ export default function PropertyDetail() {
           </View>
         ) : null}
         <MoneyText value={property.price} className="mt-1 text-[28px]" />
+        {property.created_at ? (
+          <Text variant="caption">
+            On market {Math.max(0, Math.floor((Date.now() - new Date(property.created_at).getTime()) / 86400000))} days
+          </Text>
+        ) : null}
       </View>
 
       {verifiedBadges.length > 0 || property.project?.rera_status ? (

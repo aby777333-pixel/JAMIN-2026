@@ -17,6 +17,169 @@ export type Database = {
   }
   public: {
     Tables: {
+      academy_courses: {
+        Row: {
+          category: string
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_published: boolean
+          level: string
+          pass_mark: number
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          level?: string
+          pass_mark?: number
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          level?: string
+          pass_mark?: number
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      academy_enrollments: {
+        Row: {
+          certified: boolean
+          certified_at: string | null
+          course_id: string
+          created_at: string
+          id: string
+          progress: number
+          score: number | null
+          user_id: string
+        }
+        Insert: {
+          certified?: boolean
+          certified_at?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          progress?: number
+          score?: number | null
+          user_id: string
+        }
+        Update: {
+          certified?: boolean
+          certified_at?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          progress?: number
+          score?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_enrollments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_lessons: {
+        Row: {
+          content: string | null
+          course_id: string
+          created_at: string
+          id: string
+          sort_order: number
+          title: string
+          video_url: string | null
+        }
+        Insert: {
+          content?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          title: string
+          video_url?: string | null
+        }
+        Update: {
+          content?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          title?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_quiz: {
+        Row: {
+          correct_index: number
+          course_id: string
+          id: string
+          options: Json
+          question: string
+          sort_order: number
+        }
+        Insert: {
+          correct_index?: number
+          course_id: string
+          id?: string
+          options?: Json
+          question: string
+          sort_order?: number
+        }
+        Update: {
+          correct_index?: number
+          course_id?: string
+          id?: string
+          options?: Json
+          question?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_quiz_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "academy_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_creatives: {
         Row: {
           captured_at: string | null
@@ -1000,6 +1163,77 @@ export type Database = {
         }
         Relationships: []
       }
+      deal_documents: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          doc_path: string | null
+          doc_url: string
+          id: string
+          kind: string
+          lead_id: string | null
+          owner_id: string
+          property_id: string | null
+          sign_status: string
+          title: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          doc_path?: string | null
+          doc_url: string
+          id?: string
+          kind?: string
+          lead_id?: string | null
+          owner_id: string
+          property_id?: string | null
+          sign_status?: string
+          title: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          doc_path?: string | null
+          doc_url?: string
+          id?: string
+          kind?: string
+          lead_id?: string | null
+          owner_id?: string
+          property_id?: string | null
+          sign_status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_documents_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_documents_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_documents_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_documents_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       disputes: {
         Row: {
           created_at: string
@@ -1355,6 +1589,106 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lenders: {
+        Row: {
+          active: boolean
+          blurb: string | null
+          created_at: string
+          id: string
+          interest_from: number | null
+          logo_url: string | null
+          max_tenure_years: number | null
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          blurb?: string | null
+          created_at?: string
+          id?: string
+          interest_from?: number | null
+          logo_url?: string | null
+          max_tenure_years?: number | null
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          blurb?: string | null
+          created_at?: string
+          id?: string
+          interest_from?: number | null
+          logo_url?: string | null
+          max_tenure_years?: number | null
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      loan_applications: {
+        Row: {
+          amount: number | null
+          created_at: string
+          id: string
+          lender_id: string | null
+          monthly_income: number | null
+          note: string | null
+          property_id: string | null
+          status: string
+          tenure_years: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          id?: string
+          lender_id?: string | null
+          monthly_income?: number | null
+          note?: string | null
+          property_id?: string | null
+          status?: string
+          tenure_years?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          id?: string
+          lender_id?: string | null
+          monthly_income?: number | null
+          note?: string | null
+          property_id?: string | null
+          status?: string
+          tenure_years?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_applications_lender_id_fkey"
+            columns: ["lender_id"]
+            isOneToOne: false
+            referencedRelation: "lenders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loan_applications_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loan_applications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2927,6 +3261,15 @@ export type Database = {
         }[]
       }
       get_public_settings: { Args: never; Returns: Json }
+      get_quiz: {
+        Args: { p_course: string }
+        Returns: {
+          id: string
+          options: Json
+          question: string
+          sort_order: number
+        }[]
+      }
       investment_hotspots: {
         Args: never
         Returns: {
@@ -3098,6 +3441,10 @@ export type Database = {
       }
       shortlist_id_for_item: { Args: { p_item: string }; Returns: string }
       submit_kyc: { Args: { p_data: Json }; Returns: undefined }
+      submit_quiz: {
+        Args: { p_answers: Json; p_course: string }
+        Returns: Json
+      }
       switch_role: { Args: { p_slug: string }; Returns: string }
       team_member_stats: { Args: { p_member: string }; Returns: Json }
       team_summary: { Args: never; Returns: Json }

@@ -132,6 +132,9 @@
         <button class="nav-i" data-tab="reviews">⭐ Reviews</button>
         <button class="nav-i" data-tab="cobroke">🤝 Co-broking</button>
         <button class="nav-i" data-tab="shortlists">📋 Shortlists</button>
+        <button class="nav-i" data-tab="academy">🎓 Academy</button>
+        <button class="nav-i" data-tab="loans">🏦 Home loans</button>
+        <button class="nav-i" data-tab="documents">📁 Documents</button>
         <button class="nav-i" data-tab="moderation">🛡️ Moderation</button>
         <button class="nav-i" data-tab="insights">📈 Insights</button>
         <button class="nav-i" data-tab="audit">🧾 Audit log</button>
@@ -164,6 +167,9 @@
         <div id="tabReviews" class="hidden"></div>
         <div id="tabCobroke" class="hidden"></div>
         <div id="tabShortlists" class="hidden"></div>
+        <div id="tabAcademy" class="hidden"></div>
+        <div id="tabLoans" class="hidden"></div>
+        <div id="tabDocuments" class="hidden"></div>
         <div id="tabModeration" class="hidden"></div>
         <div id="tabInsights" class="hidden"></div>
         <div id="tabAudit" class="hidden"></div>
@@ -252,7 +258,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'moderation', 'insights', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'moderation', 'insights', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -277,6 +283,9 @@
         if (tab === 'reviews') renderReviews();
         if (tab === 'cobroke') renderCobroke();
         if (tab === 'shortlists') renderShortlists();
+        if (tab === 'academy') renderAcademy();
+        if (tab === 'loans') renderLoans();
+        if (tab === 'documents') renderDocuments();
         if (tab === 'moderation') renderModeration();
         if (tab === 'insights') renderInsights();
         if (tab === 'audit') renderAudit();
@@ -1864,6 +1873,155 @@
             if (!confirm('Delete this shortlist for everyone?')) return;
             var r = await sb.from('shortlists').delete().eq('id', tr.dataset.id);
             if (r.error) alert(r.error.message); else renderShortlists();
+          };
+        });
+      }
+
+      // ─── Training Academy (courses / lessons / quiz) ────────────────────
+      async function renderAcademy() {
+        var el = $('tabAcademy');
+        el.innerHTML = '<div class="head"><h2>Training Academy</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('academy_courses').select('id,title,category,level,is_published,pass_mark,created_at, academy_lessons(count), academy_quiz(count)').order('sort_order');
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Training Academy</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>Training Academy</h2></div>' +
+          '<div class="panel"><h3>Add course</h3><div class="row">' +
+            '<input id="ac_title" class="inp" style="max-width:240px" placeholder="Course title" />' +
+            '<input id="ac_cat" class="inp" style="max-width:140px" placeholder="category" />' +
+            '<input id="ac_level" class="inp" style="max-width:120px" placeholder="level" />' +
+            '<button id="ac_add" class="btn btn-sm">Add</button></div></div>' +
+          (rows.length ? '<table><thead><tr><th>Course</th><th>Level</th><th>Lessons</th><th>Quiz</th><th>Published</th><th>Actions</th></tr></thead><tbody>' +
+          rows.map(function (c) {
+            return '<tr data-id="' + c.id + '"><td>' + esc(c.title) + '<br><span class="muted" style="font-size:11px">' + esc(c.category) + ' · pass ' + c.pass_mark + '%</span></td>' +
+              '<td>' + esc(c.level) + '</td>' +
+              '<td class="mono">' + ((c.academy_lessons && c.academy_lessons[0] && c.academy_lessons[0].count) || 0) + '</td>' +
+              '<td class="mono">' + ((c.academy_quiz && c.academy_quiz[0] && c.academy_quiz[0].count) || 0) + '</td>' +
+              '<td><span class="pill ' + (c.is_published ? 'available' : 'sold') + '">' + (c.is_published ? 'live' : 'draft') + '</span></td>' +
+              '<td class="row"><button class="btn-o btn-sm ac_pub">' + (c.is_published ? 'Unpublish' : 'Publish') + '</button>' +
+                '<button class="btn-o btn-sm ac_lesson">+ Lesson</button><button class="btn-o btn-sm ac_quiz">+ Quiz</button>' +
+                '<button class="btn-d btn-sm ac_del">Delete</button></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No courses yet.</div>');
+        $('ac_add').onclick = async function () {
+          var t = $('ac_title').value.trim(); if (!t) return alert('Title required');
+          var r = await sb.from('academy_courses').insert({ title: t, category: $('ac_cat').value.trim() || 'general', level: $('ac_level').value.trim() || 'beginner' });
+          if (r.error) return alert(r.error.message); renderAcademy();
+        };
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          tr.querySelector('.ac_pub').onclick = async function () {
+            var pub = this.textContent === 'Publish';
+            var r = await sb.from('academy_courses').update({ is_published: pub }).eq('id', id);
+            if (r.error) alert(r.error.message); else renderAcademy();
+          };
+          tr.querySelector('.ac_del').onclick = async function () {
+            if (!confirm('Delete this course and its lessons/quiz?')) return;
+            var r = await sb.from('academy_courses').delete().eq('id', id);
+            if (r.error) alert(r.error.message); else renderAcademy();
+          };
+          tr.querySelector('.ac_lesson').onclick = async function () {
+            var title = prompt('Lesson title:'); if (!title) return;
+            var content = prompt('Lesson content (optional):') || null;
+            var video = prompt('Video URL (optional):') || null;
+            var r = await sb.from('academy_lessons').insert({ course_id: id, title: title, content: content, video_url: video });
+            if (r.error) alert(r.error.message); else renderAcademy();
+          };
+          tr.querySelector('.ac_quiz').onclick = async function () {
+            var question = prompt('Question:'); if (!question) return;
+            var opts = prompt('Options (comma-separated):'); if (!opts) return;
+            var arr = opts.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+            var ci = parseInt(prompt('Correct option number (1-' + arr.length + '):') || '1', 10) - 1;
+            if (isNaN(ci) || ci < 0 || ci >= arr.length) return alert('Invalid correct option');
+            var r = await sb.from('academy_quiz').insert({ course_id: id, question: question, options: arr, correct_index: ci });
+            if (r.error) alert(r.error.message); else renderAcademy();
+          };
+        });
+      }
+
+      // ─── Home loans (lenders + applications) ────────────────────────────
+      async function renderLoans() {
+        var el = $('tabLoans');
+        el.innerHTML = '<div class="head"><h2>Home loans</h2></div><div class="muted">Loading…</div>';
+        var lq = await sb.from('lenders').select('id,name,interest_from,max_tenure_years,blurb,active').order('sort_order');
+        var aq = await sb.from('loan_applications').select('id,amount,tenure_years,monthly_income,status,created_at, user:profiles!loan_applications_user_id_fkey(full_name), lender:lenders(name)').order('created_at', { ascending: false }).limit(300);
+        if (lq.error) { el.innerHTML = '<div class="head"><h2>Home loans</h2></div><div class="muted">' + esc(lq.error.message) + '</div>'; return; }
+        var lenders = lq.data || [], apps = aq.data || [];
+        var STAT = ['submitted', 'contacted', 'approved', 'rejected'];
+        el.innerHTML = '<div class="head"><h2>Home loans</h2></div>' +
+          '<div class="panel"><h3>Add lender</h3><div class="row">' +
+            '<input id="ld_name" class="inp" style="max-width:200px" placeholder="Lender name" />' +
+            '<input id="ld_int" class="inp" type="number" step="0.01" style="max-width:120px" placeholder="from %" />' +
+            '<input id="ld_ten" class="inp" type="number" style="max-width:120px" placeholder="max yrs" />' +
+            '<input id="ld_blurb" class="inp" style="max-width:240px" placeholder="short blurb" />' +
+            '<button id="ld_add" class="btn btn-sm">Add</button></div></div>' +
+          (lenders.length ? '<table><thead><tr><th>Lender</th><th>From %</th><th>Max yrs</th><th>Active</th><th></th></tr></thead><tbody>' +
+            lenders.map(function (l) {
+              return '<tr data-lid="' + l.id + '"><td>' + esc(l.name) + (l.blurb ? '<br><span class="muted" style="font-size:11px">' + esc(l.blurb) + '</span>' : '') + '</td>' +
+                '<td class="mono">' + (l.interest_from == null ? '—' : l.interest_from) + '</td><td class="mono">' + (l.max_tenure_years || '—') + '</td>' +
+                '<td><span class="pill ' + (l.active ? 'available' : 'sold') + '">' + (l.active ? 'on' : 'off') + '</span></td>' +
+                '<td class="row"><button class="btn-o btn-sm ld_tog">' + (l.active ? 'Disable' : 'Enable') + '</button><button class="btn-d btn-sm ld_del">Delete</button></td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No lenders yet.</div>') +
+          '<div class="head" style="margin-top:18px"><h2>Pre-approval requests</h2></div>' +
+          (apps.length ? '<table><thead><tr><th>Buyer</th><th>Amount</th><th>Tenure</th><th>Income</th><th>Lender</th><th>Status</th></tr></thead><tbody>' +
+            apps.map(function (a) {
+              return '<tr data-aid="' + a.id + '"><td>' + esc(a.user ? a.user.full_name : '—') + '</td>' +
+                '<td class="mono">' + (a.amount != null ? inr(a.amount) : '—') + '</td><td class="mono">' + (a.tenure_years || '—') + '</td>' +
+                '<td class="mono">' + (a.monthly_income != null ? inr(a.monthly_income) : '—') + '</td>' +
+                '<td>' + esc(a.lender ? a.lender.name : 'Any') + '</td>' +
+                '<td><select class="inp la_status" style="width:130px;height:34px">' + STAT.map(function (s) { return '<option value="' + s + '"' + (s === a.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No requests yet.</div>');
+        $('ld_add').onclick = async function () {
+          var n = $('ld_name').value.trim(); if (!n) return alert('Name required');
+          var r = await sb.from('lenders').insert({ name: n, interest_from: $('ld_int').value ? Number($('ld_int').value) : null, max_tenure_years: $('ld_ten').value ? parseInt($('ld_ten').value, 10) : null, blurb: $('ld_blurb').value.trim() || null });
+          if (r.error) return alert(r.error.message); renderLoans();
+        };
+        el.querySelectorAll('tr[data-lid]').forEach(function (tr) {
+          var id = tr.dataset.lid;
+          tr.querySelector('.ld_tog').onclick = async function () {
+            var on = this.textContent === 'Enable';
+            var r = await sb.from('lenders').update({ active: on }).eq('id', id);
+            if (r.error) alert(r.error.message); else renderLoans();
+          };
+          tr.querySelector('.ld_del').onclick = async function () {
+            if (!confirm('Delete this lender?')) return;
+            var r = await sb.from('lenders').delete().eq('id', id);
+            if (r.error) alert(r.error.message); else renderLoans();
+          };
+        });
+        el.querySelectorAll('tr[data-aid]').forEach(function (tr) {
+          tr.querySelector('.la_status').onchange = async function () {
+            var r = await sb.from('loan_applications').update({ status: this.value }).eq('id', tr.dataset.aid);
+            if (r.error) alert(r.error.message);
+          };
+        });
+      }
+
+      // ─── Document vault (oversight) ─────────────────────────────────────
+      async function renderDocuments() {
+        var el = $('tabDocuments');
+        el.innerHTML = '<div class="head"><h2>Documents</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('deal_documents').select('id,title,kind,doc_url,sign_status,created_at, owner:profiles!deal_documents_owner_id_fkey(full_name)').order('created_at', { ascending: false }).limit(300);
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Documents</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        var SS = ['none', 'requested', 'signed'];
+        el.innerHTML = '<div class="head"><h2>Document vault</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">Documents members have stored. ' + rows.length + ' total.</div>' +
+          (rows.length ? '<table><thead><tr><th>Title</th><th>Owner</th><th>Kind</th><th>File</th><th>e-Sign</th><th></th></tr></thead><tbody>' +
+          rows.map(function (d) {
+            return '<tr data-id="' + d.id + '"><td>' + esc(d.title) + '</td><td>' + esc(d.owner ? d.owner.full_name : '—') + '</td>' +
+              '<td>' + esc(d.kind) + '</td><td><a href="' + esc(d.doc_url) + '" target="_blank" rel="noopener" class="mono" style="font-size:12px">open</a></td>' +
+              '<td><select class="inp ds_sign" style="width:120px;height:34px">' + SS.map(function (s) { return '<option value="' + s + '"' + (s === d.sign_status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></td>' +
+              '<td><button class="btn-d btn-sm ds_del">Delete</button></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No documents yet.</div>');
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          tr.querySelector('.ds_sign').onchange = async function () {
+            var r = await sb.from('deal_documents').update({ sign_status: this.value }).eq('id', id);
+            if (r.error) alert(r.error.message);
+          };
+          tr.querySelector('.ds_del').onclick = async function () {
+            if (!confirm('Delete this document?')) return;
+            var r = await sb.from('deal_documents').delete().eq('id', id);
+            if (r.error) alert(r.error.message); else renderDocuments();
           };
         });
       }

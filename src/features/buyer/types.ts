@@ -28,6 +28,7 @@ export interface PropertyListItem {
   verified_location?: boolean;
   is_premium?: boolean;
   seller_id?: string | null;
+  created_at?: string;
 }
 
 export interface PropertyDetail extends PropertyListItem {
