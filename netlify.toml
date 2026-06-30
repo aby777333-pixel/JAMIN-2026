@@ -19,6 +19,12 @@
   to = "/ad.html"
   status = 200
 
+# Per-agent public landing pages (/a/<referral_code>) → agent listings page.
+[[redirects]]
+  from = "/a/*"
+  to = "/agent.html"
+  status = 200
+
 # Single-page site: serve existing files (logo.jpg, etc.), otherwise the page.
 [[redirects]]
   from = "/*"

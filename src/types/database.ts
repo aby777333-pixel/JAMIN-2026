@@ -2858,6 +2858,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      agent_public_profile: { Args: { p_code: string }; Returns: Json }
       app_audit: {
         Args: {
           p_action: string
@@ -2923,6 +2924,16 @@ export type Database = {
         }[]
       }
       get_public_settings: { Args: never; Returns: Json }
+      investment_hotspots: {
+        Args: never
+        Returns: {
+          avg_price: number
+          demand: number
+          location: string
+          score: number
+          supply: number
+        }[]
+      }
       is_shortlist_member: { Args: { p_sl: string }; Returns: boolean }
       join_shortlist: { Args: { p_token: string }; Returns: string }
       lead_score_band: { Args: { p_score: number }; Returns: string }
@@ -2959,6 +2970,16 @@ export type Database = {
       make_offer: {
         Args: { p_amount: number; p_message?: string; p_property: string }
         Returns: string
+      }
+      market_trends: {
+        Args: never
+        Returns: {
+          available: number
+          avg_price: number
+          listings: number
+          location: string
+          sold: number
+        }[]
       }
       next_plot_code: { Args: { p_type: string }; Returns: string }
       notify: {
@@ -3043,6 +3064,16 @@ export type Database = {
         Returns: number
       }
       score_lead: { Args: { p_lead: string }; Returns: Json }
+      season_leaderboard: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          earnings: number
+          full_name: string
+          rank: number
+          role_name: string
+          user_id: string
+        }[]
+      }
       seller_listing_stats: {
         Args: never
         Returns: {

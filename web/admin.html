@@ -1910,7 +1910,24 @@
           '<div class="panel"><h3>Average price by project</h3>' +
             (projRows.length ? '<table><thead><tr><th>Project</th><th>Listings</th><th>Avg price</th></tr></thead><tbody>' +
               projRows.slice(0, 15).map(function (r) { return '<tr><td>' + esc(r.name) + '</td><td class="mono">' + r.count + '</td><td class="mono">' + inr(Math.round(r.avg)) + '</td></tr>'; }).join('') + '</tbody></table>' : '<div class="muted">No listings yet.</div>') +
-          '</div>';
+          '</div>' +
+          '<div class="panel" id="seasonPanel"><h3>This month — top earners</h3><div class="muted">Loading…</div></div>';
+
+        // Seasonal leaderboard (this calendar month) via the season_leaderboard RPC.
+        (function () {
+          var now = new Date();
+          var from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+          var to = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+          sb.rpc('season_leaderboard', { p_from: from, p_to: to }).then(function (r) {
+            var panel = $('seasonPanel'); if (!panel) return;
+            if (r.error) { panel.innerHTML = '<h3>This month — top earners</h3><div class="muted">' + esc(r.error.message) + '</div>'; return; }
+            var rows = r.data || [];
+            panel.innerHTML = '<h3>This month — top earners</h3>' +
+              (rows.length ? '<table><thead><tr><th>#</th><th>Member</th><th>Role</th><th>Earnings</th></tr></thead><tbody>' +
+                rows.slice(0, 15).map(function (x) { return '<tr><td class="mono">' + x.rank + '</td><td>' + esc(x.full_name || 'Member') + '</td><td>' + esc(x.role_name || '') + '</td><td class="mono">' + inr(x.earnings) + '</td></tr>'; }).join('') + '</tbody></table>'
+                : '<div class="muted">No commission credited this month yet.</div>');
+          });
+        })();
       }
 
       // ─── Audit log ──────────────────────────────────────────────────────
