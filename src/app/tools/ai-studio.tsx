@@ -79,6 +79,19 @@ export default function AiStudio() {
         </Card>
       </Pressable>
 
+      <Pressable onPress={() => router.push('/tools/staging')}>
+        <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
+          <View className="h-11 w-11 items-center justify-center rounded-xl bg-gold/20">
+            <Ionicons name="color-wand" size={22} color={color.goldDeep} />
+          </View>
+          <View className="flex-1">
+            <Text variant="title" className="text-[14px]">AI Virtual Staging</Text>
+            <Text variant="caption">Furnish an empty-room photo with AI</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={color.muted} />
+        </Card>
+      </Pressable>
+
       <View className="flex-row flex-wrap gap-2">
         {FEATURES.map((f) => (
           <Chip key={f.key} label={f.label} active={feature === f.key} onPress={() => setFeature(f.key)} />

@@ -1327,6 +1327,125 @@ export type Database = {
           },
         ]
       }
+      drip_enrollments: {
+        Row: {
+          created_at: string
+          current_index: number
+          id: string
+          lead_id: string
+          next_due_at: string | null
+          owner_id: string | null
+          sequence_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          current_index?: number
+          id?: string
+          lead_id: string
+          next_due_at?: string | null
+          owner_id?: string | null
+          sequence_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          current_index?: number
+          id?: string
+          lead_id?: string
+          next_due_at?: string | null
+          owner_id?: string | null
+          sequence_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drip_enrollments_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drip_enrollments_sequence_id_fkey"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "drip_sequences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drip_sequences: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          steps: Json
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          steps?: Json
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          steps?: Json
+        }
+        Relationships: []
+      }
+      escrow_milestones: {
+        Row: {
+          amount: number
+          booking_id: string
+          created_at: string
+          due_date: string | null
+          funded_at: string | null
+          id: string
+          released_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          booking_id: string
+          created_at?: string
+          due_date?: string | null
+          funded_at?: string | null
+          id?: string
+          released_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          created_at?: string
+          due_date?: string | null
+          funded_at?: string | null
+          id?: string
+          released_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escrow_milestones_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follow_ups: {
         Row: {
           created_at: string
@@ -2323,6 +2442,51 @@ export type Database = {
           },
         ]
       }
+      property_reels: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          poster_url: string | null
+          property_id: string | null
+          user_id: string
+          video_url: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          poster_url?: string | null
+          property_id?: string | null
+          user_id: string
+          video_url: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          poster_url?: string | null
+          property_id?: string | null
+          user_id?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_reels_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_reels_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       property_reviews: {
         Row: {
           body: string | null
@@ -3270,6 +3434,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_escrow_milestone: {
+        Args: {
+          p_amount: number
+          p_booking: string
+          p_due?: string
+          p_title: string
+        }
+        Returns: string
+      }
       agent_public_profile: { Args: { p_code: string }; Returns: Json }
       app_audit: {
         Args: {
@@ -3322,6 +3495,10 @@ export type Database = {
           p_stage: string
         }
         Returns: number
+      }
+      enroll_drip: {
+        Args: { p_lead: string; p_sequence: string }
+        Returns: string
       }
       evaluate_badges: { Args: { p_user: string }; Returns: undefined }
       express_cobroke_interest: {
@@ -3425,6 +3602,7 @@ export type Database = {
           total_value: number
         }[]
       }
+      process_due_drips: { Args: never; Returns: number }
       project_rating: {
         Args: { p_project: string }
         Returns: {
@@ -3513,6 +3691,10 @@ export type Database = {
           status: string
           views: number
         }[]
+      }
+      set_escrow_status: {
+        Args: { p_milestone: string; p_status: string }
+        Returns: undefined
       }
       set_site_visit_status: {
         Args: { p_status: string; p_visit: string }

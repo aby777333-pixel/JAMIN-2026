@@ -17,6 +17,8 @@ const ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string;
   { icon: 'calendar', label: 'My site visits', sub: 'Bookings & check-in', href: '/visits' },
   { icon: 'calendar-number', label: 'My agenda', sub: 'Visits & follow-ups in one view', href: '/agenda' },
   { icon: 'people', label: 'Shared shortlists', sub: 'Decide together with family', href: '/shortlists' },
+  { icon: 'play-circle', label: 'Reels', sub: 'Short property videos', href: '/reels' },
+  { icon: 'lock-closed', label: 'Escrow & milestones', sub: 'Staged booking payments', href: '/escrow' },
   { icon: 'trending-up', label: 'Market insights', sub: 'Trends, hotspots, leaderboard', href: '/tools/insights' },
   { icon: 'school', label: 'Training Academy', sub: 'Courses, quizzes & certificates', href: '/academy' },
   { icon: 'cash', label: 'Home loans', sub: 'Compare lenders, get pre-approved', href: '/loans' },

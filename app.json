@@ -83,7 +83,8 @@
           "savePhotosPermission": "JAMIN saves generated ads, brochures and your business card to your photo library."
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,

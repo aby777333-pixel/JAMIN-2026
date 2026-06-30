@@ -24,6 +24,7 @@ import {
   useUpdateLeadStatus,
 } from '@/features/leads/hooks';
 import { ScoreBandPill } from '@/features/leads/ScoreBandPill';
+import { useEnrollDrip, useSequences } from '@/features/drips/hooks';
 import { formatINR, money } from '@/lib/money';
 import { color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
@@ -202,6 +203,8 @@ export default function LeadDetail() {
         </View>
       </View>
 
+      <DripCard leadId={lead.id} />
+
       <View className="gap-2">
         <Text variant="label">Follow-ups</Text>
         {followUps.map((f) => (
@@ -220,6 +223,32 @@ export default function LeadDetail() {
         } />
       </View>
     </Screen>
+  );
+}
+
+function DripCard({ leadId }: { leadId: string }) {
+  const { data: sequences = [] } = useSequences();
+  const enroll = useEnrollDrip();
+  if (sequences.length === 0) return null;
+  return (
+    <Card className="gap-2">
+      <Text variant="title" className="text-[14px]">Nurture sequence</Text>
+      <Text variant="caption">Auto-schedules follow-up reminders for this lead.</Text>
+      <View className="flex-row flex-wrap gap-2">
+        {sequences.map((s) => (
+          <Chip
+            key={s.id}
+            label={enroll.isPending ? '…' : s.name}
+            onPress={() =>
+              enroll
+                .mutateAsync({ leadId, sequenceId: s.id })
+                .then(() => Alert.alert('Enrolled', `“${s.name}” will drip follow-ups for this lead.`))
+                .catch((e) => Alert.alert('Could not enroll', errMessage(e)))
+            }
+          />
+        ))}
+      </View>
+    </Card>
   );
 }
 

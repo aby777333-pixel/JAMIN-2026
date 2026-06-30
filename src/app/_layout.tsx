@@ -83,6 +83,9 @@ export default function RootLayout() {
             <Stack.Screen name="loans/index" />
             <Stack.Screen name="documents/index" />
             <Stack.Screen name="agenda/index" />
+            <Stack.Screen name="reels/index" />
+            <Stack.Screen name="escrow/index" />
+            <Stack.Screen name="tools/staging" />
             <Stack.Screen name="team/[id]" />
             <Stack.Screen name="recruit" />
             <Stack.Screen name="referrals" />

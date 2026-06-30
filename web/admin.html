@@ -137,6 +137,10 @@
         <button class="nav-i" data-tab="documents">📁 Documents</button>
         <button class="nav-i" data-tab="duplicates">🧬 Duplicates</button>
         <button class="nav-i" data-tab="campaigns">📣 Campaigns</button>
+        <button class="nav-i" data-tab="escrow">🔒 Escrow</button>
+        <button class="nav-i" data-tab="drips">📨 Drips</button>
+        <button class="nav-i" data-tab="reels">🎬 Reels</button>
+        <button class="nav-i" data-tab="whatsapp">🟢 WhatsApp</button>
         <button class="nav-i" data-tab="moderation">🛡️ Moderation</button>
         <button class="nav-i" data-tab="insights">📈 Insights</button>
         <button class="nav-i" data-tab="audit">🧾 Audit log</button>
@@ -174,6 +178,10 @@
         <div id="tabDocuments" class="hidden"></div>
         <div id="tabDuplicates" class="hidden"></div>
         <div id="tabCampaigns" class="hidden"></div>
+        <div id="tabEscrow" class="hidden"></div>
+        <div id="tabDrips" class="hidden"></div>
+        <div id="tabReels" class="hidden"></div>
+        <div id="tabWhatsapp" class="hidden"></div>
         <div id="tabModeration" class="hidden"></div>
         <div id="tabInsights" class="hidden"></div>
         <div id="tabAudit" class="hidden"></div>
@@ -262,7 +270,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'moderation', 'insights', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'moderation', 'insights', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -292,6 +300,10 @@
         if (tab === 'documents') renderDocuments();
         if (tab === 'duplicates') renderDuplicates();
         if (tab === 'campaigns') renderCampaigns();
+        if (tab === 'escrow') renderEscrow();
+        if (tab === 'drips') renderDrips();
+        if (tab === 'reels') renderReelsAdmin();
+        if (tab === 'whatsapp') renderWhatsapp();
         if (tab === 'moderation') renderModeration();
         if (tab === 'insights') renderInsights();
         if (tab === 'audit') renderAudit();
@@ -2085,6 +2097,135 @@
           this.textContent = 'Send broadcast';
           if (r.error) { $('bc_msg').textContent = 'Error: ' + r.error.message; }
           else { $('bc_msg').textContent = '✅ Sent to ' + r.data + ' user(s).'; $('bc_title').value = ''; $('bc_body').value = ''; }
+        };
+      }
+
+      // ─── Escrow milestones ──────────────────────────────────────────────
+      var ESCROW_STAT = ['pending', 'funded', 'released', 'refunded'];
+      async function renderEscrow() {
+        var el = $('tabEscrow');
+        el.innerHTML = '<div class="head"><h2>Escrow</h2></div><div class="muted">Loading…</div>';
+        var bk = await sb.from('bookings').select('id, property:properties(plot_code)').order('created_at', { ascending: false }).limit(300);
+        var ms = await sb.from('escrow_milestones').select('id,title,amount,status,due_date, booking:bookings(property:properties(plot_code))').order('created_at', { ascending: false }).limit(500);
+        if (ms.error) { el.innerHTML = '<div class="head"><h2>Escrow</h2></div><div class="muted">' + esc(ms.error.message) + '</div>'; return; }
+        var bookings = bk.data || [], rows = ms.data || [];
+        var bkOpts = bookings.map(function (b) { return '<option value="' + b.id + '">' + esc(b.property ? b.property.plot_code : b.id.slice(0, 8)) + '</option>'; }).join('');
+        el.innerHTML = '<div class="head"><h2>Escrow &amp; milestones</h2></div>' +
+          '<div class="panel"><h3>Add milestone</h3><div class="row">' +
+            '<select id="es_bk" class="inp" style="max-width:180px">' + bkOpts + '</select>' +
+            '<input id="es_title" class="inp" style="max-width:200px" placeholder="Title (e.g. Token)" />' +
+            '<input id="es_amt" class="inp" type="number" style="max-width:140px" placeholder="Amount ₹" />' +
+            '<input id="es_due" class="inp" type="date" style="max-width:150px" />' +
+            '<button id="es_add" class="btn btn-sm">Add</button></div></div>' +
+          (rows.length ? '<table><thead><tr><th>Property</th><th>Milestone</th><th>Amount</th><th>Due</th><th>Status</th></tr></thead><tbody>' +
+            rows.map(function (m) {
+              return '<tr data-id="' + m.id + '"><td class="mono">' + esc(m.booking && m.booking.property ? m.booking.property.plot_code : '—') + '</td>' +
+                '<td>' + esc(m.title) + '</td><td class="mono">' + inr(m.amount) + '</td><td class="muted">' + (m.due_date || '—') + '</td>' +
+                '<td><select class="inp es_status" style="width:130px;height:34px">' + ESCROW_STAT.map(function (s) { return '<option value="' + s + '"' + (s === m.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No milestones yet.</div>');
+        $('es_add').onclick = async function () {
+          if (!$('es_bk').value || !$('es_title').value.trim()) return alert('Pick a booking and enter a title.');
+          var r = await sb.rpc('add_escrow_milestone', { p_booking: $('es_bk').value, p_title: $('es_title').value.trim(), p_amount: Number($('es_amt').value) || 0, p_due: $('es_due').value || null });
+          if (r.error) return alert(r.error.message); renderEscrow();
+        };
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          tr.querySelector('.es_status').onchange = async function () {
+            var r = await sb.rpc('set_escrow_status', { p_milestone: tr.dataset.id, p_status: this.value });
+            if (r.error) alert(r.error.message);
+          };
+        });
+      }
+
+      // ─── Drip sequences ─────────────────────────────────────────────────
+      async function renderDrips() {
+        var el = $('tabDrips');
+        el.innerHTML = '<div class="head"><h2>Drips</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('drip_sequences').select('id,name,active,steps,created_at, drip_enrollments(count)').order('created_at');
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Drips</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>Automated drips</h2><button id="dr_run" class="btn-o btn-sm">▶ Run due now</button></div>' +
+          '<div class="muted" style="margin-bottom:10px">Each due step creates a follow-up for the lead and notifies the agent. (SMS/WhatsApp delivery can be added behind a provider key.)</div>' +
+          '<div class="panel"><h3>New sequence</h3><div class="row"><input id="dr_name" class="inp" style="max-width:260px" placeholder="Sequence name" /><button id="dr_add" class="btn btn-sm">Create</button></div></div>' +
+          (rows.length ? rows.map(function (s) {
+            var steps = s.steps || [];
+            return '<div class="panel" data-id="' + s.id + '"><h3>' + esc(s.name) + ' <span class="pill ' + (s.active ? 'available' : 'sold') + '">' + (s.active ? 'on' : 'off') + '</span> <span class="muted" style="font-size:11px">' + ((s.drip_enrollments && s.drip_enrollments[0] && s.drip_enrollments[0].count) || 0) + ' enrolled</span></h3>' +
+              (steps.length ? '<table><thead><tr><th>#</th><th>After (days)</th><th>Title</th><th>Body</th></tr></thead><tbody>' + steps.map(function (st, i) { return '<tr><td>' + (i + 1) + '</td><td class="mono">' + (st.offset_days || 0) + '</td><td>' + esc(st.title || '') + '</td><td class="muted">' + esc(st.body || '') + '</td></tr>'; }).join('') + '</tbody></table>' : '<div class="muted">No steps yet.</div>') +
+              '<div class="row" style="margin-top:8px"><button class="btn-o btn-sm dr_step">+ Step</button><button class="btn-o btn-sm dr_tog">' + (s.active ? 'Disable' : 'Enable') + '</button><button class="btn-d btn-sm dr_del">Delete</button></div></div>';
+          }).join('') : '<div class="muted">No sequences yet.</div>');
+        $('dr_run').onclick = async function () {
+          this.textContent = '…'; var r = await sb.rpc('process_due_drips');
+          this.textContent = '▶ Run due now'; if (r.error) alert(r.error.message); else alert('Processed ' + (r.data || 0) + ' due step(s).');
+        };
+        $('dr_add').onclick = async function () {
+          var n = $('dr_name').value.trim(); if (!n) return; var r = await sb.from('drip_sequences').insert({ name: n, steps: [] });
+          if (r.error) return alert(r.error.message); renderDrips();
+        };
+        el.querySelectorAll('.panel[data-id]').forEach(function (p) {
+          var id = p.dataset.id;
+          var st = p.querySelector('.dr_step'); if (st) st.onclick = async function () {
+            var off = parseInt(prompt('Send after how many days?') || '0', 10) || 0;
+            var title = prompt('Step title:'); if (!title) return;
+            var body = prompt('Step message:') || '';
+            var cur = (rows.find(function (x) { return x.id === id; }) || {}).steps || [];
+            var next = cur.concat([{ offset_days: off, title: title, body: body }]);
+            var r = await sb.from('drip_sequences').update({ steps: next }).eq('id', id);
+            if (r.error) alert(r.error.message); else renderDrips();
+          };
+          p.querySelector('.dr_tog').onclick = async function () {
+            var on = this.textContent === 'Enable';
+            var r = await sb.from('drip_sequences').update({ active: on }).eq('id', id);
+            if (r.error) alert(r.error.message); else renderDrips();
+          };
+          p.querySelector('.dr_del').onclick = async function () {
+            if (!confirm('Delete this sequence?')) return;
+            var r = await sb.from('drip_sequences').delete().eq('id', id);
+            if (r.error) alert(r.error.message); else renderDrips();
+          };
+        });
+      }
+
+      // ─── Reels (moderation) ─────────────────────────────────────────────
+      async function renderReelsAdmin() {
+        var el = $('tabReels');
+        el.innerHTML = '<div class="head"><h2>Reels</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('property_reels').select('id,video_url,poster_url,caption,created_at, user:profiles!property_reels_user_id_fkey(full_name), property:properties(plot_code)').order('created_at', { ascending: false }).limit(300);
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Reels</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>Property reels</h2></div>' +
+          (rows.length ? '<table><thead><tr><th>Preview</th><th>By</th><th>Property</th><th>Caption</th><th></th></tr></thead><tbody>' +
+            rows.map(function (r) {
+              return '<tr data-id="' + r.id + '"><td>' + (r.poster_url ? '<a href="' + esc(r.video_url) + '" target="_blank" rel="noopener"><img src="' + esc(r.poster_url) + '" style="height:54px;width:40px;object-fit:cover;border-radius:6px" /></a>' : '<a href="' + esc(r.video_url) + '" target="_blank" rel="noopener" class="mono" style="font-size:11px">video</a>') + '</td>' +
+                '<td>' + esc(r.user ? r.user.full_name : '—') + '</td><td class="mono">' + esc(r.property ? r.property.plot_code : '—') + '</td><td>' + esc(r.caption || '') + '</td>' +
+                '<td><button class="btn-d btn-sm rl_del">Delete</button></td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No reels yet.</div>');
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          tr.querySelector('.rl_del').onclick = async function () {
+            if (!confirm('Delete this reel?')) return;
+            var r = await sb.from('property_reels').delete().eq('id', tr.dataset.id);
+            if (r.error) alert(r.error.message); else renderReelsAdmin();
+          };
+        });
+      }
+
+      // ─── WhatsApp inbound (config / status) ─────────────────────────────
+      async function renderWhatsapp() {
+        var el = $('tabWhatsapp');
+        var hook = 'https://oaqwnjgaypmuafvnfhxv.supabase.co/functions/v1/wa-webhook';
+        var cfg = await sb.from('system_config').select('value').eq('key', 'wa_default_owner').maybeSingle();
+        var owner = (cfg.data && cfg.data.value) ? cfg.data.value : '';
+        var users = await sb.from('profiles').select('id,full_name').order('full_name').limit(500);
+        var opts = '<option value="">— auto (an admin) —</option>' + (users.data || []).map(function (u) { return '<option value="' + u.id + '"' + (u.id === owner ? ' selected' : '') + '>' + esc(u.full_name || u.id.slice(0, 8)) + '</option>'; }).join('');
+        el.innerHTML = '<div class="head"><h2>WhatsApp lead-capture</h2></div>' +
+          '<div class="panel"><h3>Setup</h3><div class="muted" style="font-size:13px;line-height:1.6">' +
+            '1. In Meta WhatsApp Cloud API, set the webhook URL to:<br><span class="mono" style="font-size:12px">' + hook + '</span><br>' +
+            '2. Set a verify token and add it as the <span class="mono">WA_VERIFY_TOKEN</span> Edge Function secret in Supabase.<br>' +
+            '3. Subscribe to the <span class="mono">messages</span> field. Inbound messages then create leads automatically.</div></div>' +
+          '<div class="panel"><h3>Default lead owner</h3><div class="row"><select id="wa_owner" class="inp" style="max-width:280px">' + opts + '</select><button id="wa_save" class="btn btn-sm">Save</button></div>' +
+            '<div class="muted" style="font-size:12px;margin-top:6px">New WhatsApp leads are assigned here (then you can re-route from CRM).</div></div>';
+        $('wa_save').onclick = async function () {
+          var val = $('wa_owner').value || null;
+          var r = await sb.from('system_config').upsert({ key: 'wa_default_owner', value: val }, { onConflict: 'key' });
+          if (r.error) alert(r.error.message); else this.textContent = 'Saved';
         };
       }
 
