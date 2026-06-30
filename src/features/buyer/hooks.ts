@@ -22,6 +22,10 @@ export function useRecentlyViewed(limit = 12) {
   return useQuery({ queryKey: ['recently-viewed', limit], queryFn: () => api.getRecentlyViewed(limit) });
 }
 
+export function useRecommended(limit = 8) {
+  return useQuery({ queryKey: ['recommended', limit], queryFn: () => api.getRecommended(limit) });
+}
+
 export function usePriceHistory(propertyId: string | undefined) {
   return useQuery({
     queryKey: ['price-history', propertyId],

@@ -14,6 +14,7 @@ import {
   useProperties,
   useProjects,
   usePropertyTypes,
+  useRecommended,
   useToggleWishlist,
   useWishlistIds,
 } from '@/features/buyer/hooks';
@@ -34,9 +35,13 @@ export default function Properties() {
   const { data: projects = [] } = useProjects();
   const { data: saved } = useWishlistIds();
   const { data: properties = [], isLoading, isError, refetch, isRefetching } = useProperties(filters);
+  const { data: recommended = [] } = useRecommended();
   const toggle = useToggleWishlist();
 
   const patch = (p: Partial<PropertyFilters>) => setFilters((f) => ({ ...f, ...p }));
+  // Only surface "For you" on the unfiltered default view.
+  const showForYou =
+    recommended.length > 0 && !filters.search && !filters.projectId && !filters.savedOnly && !filters.propertyTypeId;
 
   return (
     <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
@@ -82,6 +87,34 @@ export default function Properties() {
               onChangeText={(v) => patch({ search: v })}
             />
             <FilterBar types={types} projects={projects} filters={filters} onChange={patch} />
+            {showForYou ? (
+              <View className="gap-2">
+                <View className="flex-row items-center gap-1.5">
+                  <Ionicons name="sparkles" size={14} color={color.gold} />
+                  <Text variant="label">For you</Text>
+                </View>
+                <FlatList
+                  horizontal
+                  data={recommended}
+                  keyExtractor={(p) => `rec-${p.id}`}
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerClassName="gap-3 pr-2"
+                  renderItem={({ item }) => (
+                    <Pressable onPress={() => router.push(`/property/${item.id}`)} className="w-44">
+                      <View className="overflow-hidden rounded-2xl border border-line bg-surface">
+                        <View className="h-24 bg-paper items-center justify-center">
+                          <Ionicons name="home" size={22} color={color.line} />
+                        </View>
+                        <View className="gap-0.5 p-2.5">
+                          <Text className="font-mono-bold text-[12px] text-gold-deep" numberOfLines={1}>{item.plot_code}</Text>
+                          <Text variant="caption" numberOfLines={1}>{item.project?.name ?? 'Property'}</Text>
+                        </View>
+                      </View>
+                    </Pressable>
+                  )}
+                />
+              </View>
+            ) : null}
             {!isLoading ? (
               <View className="flex-row items-center justify-between">
                 <Text variant="caption">

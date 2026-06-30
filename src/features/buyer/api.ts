@@ -238,6 +238,44 @@ export async function createEnquiry(input: {
   if (error) throw error;
 }
 
+/**
+ * Personalized "For you" feed — ranks available listings by similarity to what the
+ * buyer has recently viewed (type, price band, location). Pure, on-device ranking
+ * (no PII leaves the client). Returns [] for a cold-start user.
+ */
+export async function getRecommended(limit = 8): Promise<PropertyListItem[]> {
+  const recent = await getRecentlyViewed(20);
+  if (recent.length === 0) return [];
+  const viewed = new Set(recent.map((r) => r.id));
+
+  const typeCount = new Map<string, number>();
+  const locations = new Set<string>();
+  let priceSum = 0;
+  recent.forEach((r) => {
+    if (r.type?.slug) typeCount.set(r.type.slug, (typeCount.get(r.type.slug) ?? 0) + 1);
+    if (r.project?.location) locations.add(r.project.location.toLowerCase());
+    priceSum += Number(r.price ?? 0);
+  });
+  const topType = [...typeCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  const avgPrice = priceSum / recent.length;
+
+  const pool = await listProperties({ status: 'available' });
+  const scored = pool
+    .filter((p) => !viewed.has(p.id))
+    .map((p) => {
+      let score = 0;
+      if (topType && p.type?.slug === topType) score += 3;
+      if (avgPrice > 0 && Math.abs(Number(p.price) - avgPrice) <= avgPrice * 0.25) score += 2;
+      if (p.project?.location && locations.has(p.project.location.toLowerCase())) score += 1;
+      return { p, score };
+    })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((x) => x.p);
+  return scored;
+}
+
 export interface PricePoint {
   id: string;
   old_price: number | null;

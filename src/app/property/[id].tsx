@@ -28,6 +28,7 @@ import { StampDutyCalculator } from '@/features/buyer/components/StampDutyCalcul
 import { ReviewsPanel } from '@/features/reviews/ReviewsPanel';
 import { AddToShortlistSheet } from '@/features/shortlists/AddToShortlistSheet';
 import { CobrokeSheet } from '@/features/cobroke/CobrokeSheet';
+import { AiPropertyPanel } from '@/features/ai/AiPropertyPanel';
 import { OfferSheet } from '@/features/offers/OfferSheet';
 import { ReportSheet } from '@/features/offers/ReportSheet';
 import {
@@ -319,6 +320,17 @@ export default function PropertyDetail() {
       <AffordabilityCalculator price={property.price} />
       <RentVsBuyCalculator price={property.price} />
       <RoiCalculator price={property.price} />
+
+      <AiPropertyPanel
+        ctx={{
+          title: customTitle,
+          project: property.project?.name,
+          location: property.project?.location,
+          price: property.price,
+          type: property.type?.name,
+        }}
+        description={description}
+      />
 
       {property.project_id ? <ReviewsPanel projectId={property.project_id} /> : null}
 
