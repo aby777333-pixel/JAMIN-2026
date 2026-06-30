@@ -66,6 +66,19 @@ export default function AiStudio() {
         Generate branded marketing copy with Claude. Pick a type, add a few details, and go.
       </Text>
 
+      <Pressable onPress={() => router.push('/tools/poster')}>
+        <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
+          <View className="h-11 w-11 items-center justify-center rounded-xl bg-gold/20">
+            <Ionicons name="image" size={22} color={color.goldDeep} />
+          </View>
+          <View className="flex-1">
+            <Text variant="title" className="text-[14px]">Poster / Banner Maker</Text>
+            <Text variant="caption">Turn a photo or video + details into a share-ready ad</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={color.muted} />
+        </Card>
+      </Pressable>
+
       <View className="flex-row flex-wrap gap-2">
         {FEATURES.map((f) => (
           <Chip key={f.key} label={f.label} active={feature === f.key} onPress={() => setFeature(f.key)} />
