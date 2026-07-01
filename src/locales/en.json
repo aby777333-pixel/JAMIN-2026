@@ -122,7 +122,12 @@
     "about": "About this property",
     "onMarket": "On market {{days}} days",
     "toursLocation": "Tours & location",
-    "detail": { "type": "Type", "plan": "Plan", "projectCode": "Project code", "location": "Location" },
+    "detail": {
+      "type": "Type",
+      "plan": "Plan",
+      "projectCode": "Project code",
+      "location": "Location"
+    },
     "badges": {
       "verifiedSeller": "Verified Seller",
       "verifiedDocs": "Verified Docs",
@@ -147,7 +152,11 @@
     "reserved": "Reserved",
     "reservedBody": "Our team will follow up to confirm.",
     "couldNotReserve": "Could not reserve",
-    "trust": { "freeVisit": "Free site visit", "noObligation": "No obligation", "escrow": "Escrow-protected" },
+    "trust": {
+      "freeVisit": "Free site visit",
+      "noObligation": "No obligation",
+      "escrow": "Escrow-protected"
+    },
     "cta": {
       "enquire": "Enquire now",
       "bookVisit": "Book a site visit",
@@ -311,27 +320,90 @@
     "mulankLabel": "Mulank {{n}} · {{ruler}}",
     "muhuratHeading": "AUSPICIOUS TIMING (MUHURAT)",
     "disclaimer": "Shared as cultural guidance only. Please consult a qualified Vastu expert or family priest for important decisions — JAMIN Properties makes no religious or financial guarantee.",
-    "ratings": { "auspicious": "auspicious", "neutral": "neutral", "caution": "careful" },
+    "ratings": {
+      "auspicious": "auspicious",
+      "neutral": "neutral",
+      "caution": "careful"
+    },
     "directions": {
-      "north_east": { "name": "North-East (Ishanya)", "deity": "Ishvara — water", "note": "The most auspicious corner. Ideal for the main entrance, pooja room and water source. Keep it open, clean and light." },
-      "north": { "name": "North (Kubera)", "deity": "Kubera — wealth", "note": "Governs wealth and career growth. A north-facing plot or entrance is highly sought after." },
-      "east": { "name": "East (Surya)", "deity": "Surya — the Sun", "note": "Brings health, vitality and prosperity. East-facing entrances catch the morning sun — very favourable." },
-      "west": { "name": "West (Varuna)", "deity": "Varuna — rain", "note": "Balanced and stable. Good for those later in their career; suitable with the right internal layout." },
-      "south_east": { "name": "South-East (Agni)", "deity": "Agni — fire", "note": "The fire corner — best for the kitchen. Avoid placing the main entrance or water tank here." },
-      "north_west": { "name": "North-West (Vayu)", "deity": "Vayu — wind", "note": "Movement and relationships. Good for guest rooms and stores; keep it lighter than the south-west." },
-      "south": { "name": "South (Yama)", "deity": "Yama — discipline", "note": "Needs careful planning. Keep this side heavier/taller and avoid large openings for balance." },
-      "south_west": { "name": "South-West (Nairutya)", "deity": "Nairutya — stability", "note": "Should be the heaviest, highest zone — ideal for the master bedroom. Avoid the main entrance or slopes here." }
+      "north_east": {
+        "name": "North-East (Ishanya)",
+        "deity": "Ishvara — water",
+        "note": "The most auspicious corner. Ideal for the main entrance, pooja room and water source. Keep it open, clean and light."
+      },
+      "north": {
+        "name": "North (Kubera)",
+        "deity": "Kubera — wealth",
+        "note": "Governs wealth and career growth. A north-facing plot or entrance is highly sought after."
+      },
+      "east": {
+        "name": "East (Surya)",
+        "deity": "Surya — the Sun",
+        "note": "Brings health, vitality and prosperity. East-facing entrances catch the morning sun — very favourable."
+      },
+      "west": {
+        "name": "West (Varuna)",
+        "deity": "Varuna — rain",
+        "note": "Balanced and stable. Good for those later in their career; suitable with the right internal layout."
+      },
+      "south_east": {
+        "name": "South-East (Agni)",
+        "deity": "Agni — fire",
+        "note": "The fire corner — best for the kitchen. Avoid placing the main entrance or water tank here."
+      },
+      "north_west": {
+        "name": "North-West (Vayu)",
+        "deity": "Vayu — wind",
+        "note": "Movement and relationships. Good for guest rooms and stores; keep it lighter than the south-west."
+      },
+      "south": {
+        "name": "South (Yama)",
+        "deity": "Yama — discipline",
+        "note": "Needs careful planning. Keep this side heavier/taller and avoid large openings for balance."
+      },
+      "south_west": {
+        "name": "South-West (Nairutya)",
+        "deity": "Nairutya — stability",
+        "note": "Should be the heaviest, highest zone — ideal for the master bedroom. Avoid the main entrance or slopes here."
+      }
     },
     "mulank": {
-      "1": { "ruler": "Sun", "vibe": "Leadership, independence and a strong new beginning." },
-      "2": { "ruler": "Moon", "vibe": "Harmony, family bonding and emotional comfort." },
-      "3": { "ruler": "Jupiter", "vibe": "Growth, wisdom and prosperity — considered very lucky." },
-      "4": { "ruler": "Rahu", "vibe": "Stability through effort; plan finances carefully." },
-      "5": { "ruler": "Mercury", "vibe": "Business, communication and quick fortune — highly favourable." },
-      "6": { "ruler": "Venus", "vibe": "Luxury, love and domestic bliss — excellent for family homes." },
-      "7": { "ruler": "Ketu", "vibe": "Peace and spirituality; steady rather than flashy gains." },
-      "8": { "ruler": "Saturn", "vibe": "Rewards after patience and discipline; mixed but powerful." },
-      "9": { "ruler": "Mars", "vibe": "Energy, courage and drive — a strong, action-oriented number." }
+      "1": {
+        "ruler": "Sun",
+        "vibe": "Leadership, independence and a strong new beginning."
+      },
+      "2": {
+        "ruler": "Moon",
+        "vibe": "Harmony, family bonding and emotional comfort."
+      },
+      "3": {
+        "ruler": "Jupiter",
+        "vibe": "Growth, wisdom and prosperity — considered very lucky."
+      },
+      "4": {
+        "ruler": "Rahu",
+        "vibe": "Stability through effort; plan finances carefully."
+      },
+      "5": {
+        "ruler": "Mercury",
+        "vibe": "Business, communication and quick fortune — highly favourable."
+      },
+      "6": {
+        "ruler": "Venus",
+        "vibe": "Luxury, love and domestic bliss — excellent for family homes."
+      },
+      "7": {
+        "ruler": "Ketu",
+        "vibe": "Peace and spirituality; steady rather than flashy gains."
+      },
+      "8": {
+        "ruler": "Saturn",
+        "vibe": "Rewards after patience and discipline; mixed but powerful."
+      },
+      "9": {
+        "ruler": "Mars",
+        "vibe": "Energy, courage and drive — a strong, action-oriented number."
+      }
     },
     "muhuratTips": [
       "Griha Pravesh (house-warming) is traditionally done in the months of Magha, Phalguna, Vaishakha and Jyeshtha.",
@@ -369,6 +441,161 @@
       "tomorrow": "Tomorrow",
       "inDays": "in {{count}} days",
       "explore": "Explore auspicious plots"
+    },
+    "engine": {
+      "planet": {
+        "Sun": {
+          "name": "Sun",
+          "graha": "Surya",
+          "gift": "radiant success, authority and a bright rise in status"
+        },
+        "Moon": {
+          "name": "Moon",
+          "graha": "Chandra",
+          "gift": "peace of mind, a nurturing home and emotional wealth"
+        },
+        "Mars": {
+          "name": "Mars",
+          "graha": "Mangal",
+          "gift": "courage, decisive action and strong property gains"
+        },
+        "Mercury": {
+          "name": "Mercury",
+          "graha": "Budh",
+          "gift": "sharp business sense and quick, steady prosperity"
+        },
+        "Jupiter": {
+          "name": "Jupiter",
+          "graha": "Guru (Brihaspati)",
+          "gift": "wisdom, expansion and the abundant blessings of Lakshmi"
+        },
+        "Venus": {
+          "name": "Venus",
+          "graha": "Shukra",
+          "gift": "comfort, luxury and harmonious family fortune"
+        },
+        "Saturn": {
+          "name": "Saturn",
+          "graha": "Shani",
+          "gift": "discipline and lasting, well-rooted wealth"
+        },
+        "Rahu": {
+          "name": "Rahu",
+          "graha": "Rahu",
+          "gift": "bold ambition and welcome, unexpected windfalls"
+        },
+        "Ketu": {
+          "name": "Ketu",
+          "graha": "Ketu",
+          "gift": "contentment and quiet, hidden treasures"
+        }
+      },
+      "gem": {
+        "Sun": "Ruby (Manik)",
+        "Moon": "Pearl (Moti)",
+        "Mars": "Red Coral (Moonga)",
+        "Mercury": "Emerald (Panna)",
+        "Jupiter": "Yellow Sapphire (Pukhraj)",
+        "Venus": "Diamond (Heera)",
+        "Saturn": "Blue Sapphire (Neelam)",
+        "Rahu": "Hessonite (Gomed)",
+        "Ketu": "Cat's Eye (Lehsunia)"
+      },
+      "yoga": {
+        "dhan": "Dhan Yoga — a combination for wealth",
+        "lakshmi": "Lakshmi Yoga — fortune and grace",
+        "gajaKesari": "Gaja Kesari Yoga — fame and success",
+        "raj": "Raj Yoga — royal, rising prosperity",
+        "kubera": "Kubera Yoga — treasure and abundance",
+        "budhaditya": "Budhaditya Yoga — intellect meets prosperity",
+        "chandraMangal": "Chandra-Mangal Yoga — flowing financial gains"
+      },
+      "element": {
+        "prithvi": "Prithvi (Earth)",
+        "jala": "Jala (Water)",
+        "agni": "Agni (Fire)",
+        "vayu": "Vayu (Air)",
+        "akasha": "Akasha (Ether)"
+      },
+      "direction": {
+        "northEast": "North-East (Ishanya)",
+        "north": "North (Kubera)",
+        "east": "East (Surya)"
+      },
+      "nakshatra": {
+        "pushya": "Pushya",
+        "rohini": "Rohini",
+        "anuradha": "Anuradha",
+        "hasta": "Hasta",
+        "revati": "Revati",
+        "shravana": "Shravana",
+        "uttaraPhalguni": "Uttara Phalguni",
+        "ashwini": "Ashwini"
+      },
+      "color": {
+        "gold": "Gold",
+        "saffron": "Saffron",
+        "emeraldGreen": "Emerald Green",
+        "royalBlue": "Royal Blue",
+        "ivoryWhite": "Ivory White",
+        "auspiciousRed": "Auspicious Red",
+        "silver": "Silver"
+      },
+      "band": {
+        "exceptional": "Exceptionally Auspicious",
+        "high": "Highly Auspicious",
+        "blessed": "Blessed & Favourable",
+        "fortunate": "Fortunate"
+      },
+      "mulank": {
+        "1": "leadership and a strong, independent start",
+        "2": "harmony, partnership and a happy home",
+        "3": "growth, optimism and Guru’s blessings",
+        "4": "stability and a firm foundation",
+        "5": "luck in business and quick prosperity",
+        "6": "love, luxury and domestic bliss",
+        "7": "peace, depth and spiritual richness",
+        "8": "ambition rewarded with lasting success",
+        "9": "energy, completion and abundant returns"
+      },
+      "rashi": {
+        "mesha": "bold pioneers who turn land into legacy",
+        "vrishabha": "steady builders who love enduring assets",
+        "mithuna": "quick minds who spot rising value early",
+        "karka": "family-hearted owners who create warm homes",
+        "simha": "natural leaders drawn to premium address",
+        "kanya": "careful planners who invest with wisdom",
+        "tula": "balance-seekers who value harmony and beauty",
+        "vrishchika": "determined investors who commit fully",
+        "dhanu": "optimists who grow wealth with vision",
+        "makara": "disciplined achievers who build for the long run",
+        "kumbha": "forward-thinkers who back tomorrow’s hotspots",
+        "meena": "intuitive souls who feel a place’s good fortune"
+      },
+      "rashiName": {
+        "mesha": "Mesha",
+        "vrishabha": "Vrishabha",
+        "mithuna": "Mithuna",
+        "karka": "Karka",
+        "simha": "Simha",
+        "kanya": "Kanya",
+        "tula": "Tula",
+        "vrishchika": "Vrishchika",
+        "dhanu": "Dhanu",
+        "makara": "Makara",
+        "kumbha": "Kumbha",
+        "meena": "Meena"
+      },
+      "blessing": "Guided by {{graha}}, {{place}} carries {{gift}}.",
+      "highlight": {
+        "yoga": "{{yoga}} favours this plot.",
+        "mulank": "Prosperity number {{n}} brings {{gift}}.",
+        "element": "{{element}} energy supports those who invest here.",
+        "direction": "Aligned with {{direction}} — a wealth-drawing direction."
+      },
+      "thisLand": "this land",
+      "rashiHarmony": "{{name}} natives are {{trait}} — {{graha}}'s energy here works beautifully in your favour.",
+      "rashiYou": "You"
     }
   }
 }

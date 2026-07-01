@@ -7,7 +7,8 @@ import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { Text } from '@/components/ui/Text';
 import { color } from '@/theme/tokens';
-import { propertyFortune, rashiHarmony, RASHIS, type FortuneInput } from './engine';
+import { propertyFortune, RASHIS, type FortuneInput } from './engine';
+import { localizeFortune, localizeRashiHarmony } from './localize';
 
 /**
  * "Auspicious Insights" — a positive-only, feel-good astrological reading for a
@@ -18,15 +19,16 @@ export function FortunePanel({ property }: { property: FortuneInput }) {
   const [rashi, setRashi] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const f = useMemo(() => propertyFortune(property), [property]);
+  const lf = useMemo(() => localizeFortune(f, t), [f, t]);
 
   const facets: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string }[] = [
-    { icon: 'planet', label: t('astro.fortune.rulingPlanet'), value: `${f.planet} (${f.graha})` },
-    { icon: 'flame', label: t('astro.fortune.element'), value: f.element.split(' — ')[0] },
-    { icon: 'diamond', label: t('astro.fortune.luckyGem'), value: f.gem },
-    { icon: 'compass', label: t('astro.fortune.wealthDirection'), value: f.direction.split(' — ')[0] },
-    { icon: 'star', label: t('astro.fortune.birthStar'), value: f.nakshatra.split(' — ')[0] },
+    { icon: 'planet', label: t('astro.fortune.rulingPlanet'), value: `${lf.planetName} (${lf.graha})` },
+    { icon: 'flame', label: t('astro.fortune.element'), value: lf.elementName },
+    { icon: 'diamond', label: t('astro.fortune.luckyGem'), value: lf.gem },
+    { icon: 'compass', label: t('astro.fortune.wealthDirection'), value: lf.directionName },
+    { icon: 'star', label: t('astro.fortune.birthStar'), value: lf.nakshatraName },
     { icon: 'sparkles', label: t('astro.fortune.prosperityNo'), value: String(f.mulank) },
-    { icon: 'color-palette', label: t('astro.fortune.luckyColour'), value: f.color },
+    { icon: 'color-palette', label: t('astro.fortune.luckyColour'), value: lf.color },
   ];
 
   return (
@@ -43,11 +45,11 @@ export function FortunePanel({ property }: { property: FortuneInput }) {
       </View>
 
       <View className="self-start rounded-full bg-gold/25 px-3 py-1">
-        <Text className="text-[12px] font-semibold text-gold-deep">{f.band}</Text>
+        <Text className="text-[12px] font-semibold text-gold-deep">{lf.band}</Text>
       </View>
 
       <Text variant="body" className="text-ink">
-        {f.blessing}
+        {lf.blessing}
       </Text>
 
       {/* Facet grid */}
@@ -67,13 +69,13 @@ export function FortunePanel({ property }: { property: FortuneInput }) {
       <View className="flex-row items-center gap-2 rounded-2xl bg-surface/70 p-3">
         <Ionicons name="ribbon" size={16} color={color.red} />
         <Text variant="body" className="flex-1 text-ink">
-          {f.yoga}
+          {lf.yoga}
         </Text>
       </View>
 
       {/* Positive highlights */}
       <View className="gap-1.5">
-        {f.highlights.map((h) => (
+        {lf.highlights.map((h) => (
           <View key={h} className="flex-row gap-2">
             <Ionicons name="checkmark-circle" size={15} color={color.success} style={{ marginTop: 2 }} />
             <Text variant="caption" className="flex-1 text-ink">
@@ -97,7 +99,7 @@ export function FortunePanel({ property }: { property: FortuneInput }) {
               {RASHIS.map((r) => (
                 <Chip
                   key={r.key}
-                  label={`${r.name}`}
+                  label={t(`astro.engine.rashiName.${r.key}`)}
                   active={rashi === r.key}
                   onPress={() => setRashi(r.key)}
                 />
@@ -106,7 +108,7 @@ export function FortunePanel({ property }: { property: FortuneInput }) {
             {rashi ? (
               <View className="rounded-2xl bg-surface/80 p-3">
                 <Text variant="body" className="text-ink">
-                  {rashiHarmony(rashi, f)}
+                  {localizeRashiHarmony(rashi, f, t)}
                 </Text>
               </View>
             ) : (

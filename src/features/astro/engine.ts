@@ -56,6 +56,25 @@ export interface Fortune {
   blessing: string;
   /** 3–4 positive talking points. */
   highlights: string[];
+  /**
+   * Stable, language-independent keys for every picked facet. The English
+   * fields above stay the canonical default; the UI can rebuild a localized
+   * reading from these via `localizeFortune()` (see localize.ts). Additive —
+   * the English output is unchanged.
+   */
+  keys: {
+    planet: Planet;
+    yoga: string;
+    element: string;
+    direction: string;
+    nakshatra: string;
+    color: string;
+    band: string;
+    mulank: number;
+    /** Raw project/location name (or a sentinel when absent — never translated). */
+    place: string;
+    placeIsFallback: boolean;
+  };
 }
 
 /** Deterministic 32-bit FNV-1a hash of a string → unsigned int. */
@@ -129,6 +148,7 @@ const YOGAS = [
   'Budhaditya Yoga — intellect meets prosperity',
   'Chandra-Mangal Yoga — flowing financial gains',
 ] as const;
+const YOGA_KEYS = ['dhan', 'lakshmi', 'gajaKesari', 'raj', 'kubera', 'budhaditya', 'chandraMangal'] as const;
 
 const ELEMENTS = [
   'Prithvi (Earth) — grounded, stable wealth',
@@ -137,12 +157,14 @@ const ELEMENTS = [
   'Vayu (Air) — fresh opportunity and movement',
   'Akasha (Ether) — limitless growth',
 ] as const;
+const ELEMENT_KEYS = ['prithvi', 'jala', 'agni', 'vayu', 'akasha'] as const;
 
 const DIRECTIONS = [
   'North-East (Ishanya) — the corner of blessings',
   'North (Kubera) — the direction of wealth',
   'East (Surya) — sunrise, health and vitality',
 ] as const;
+const DIRECTION_KEYS = ['northEast', 'north', 'east'] as const;
 
 const NAKSHATRAS = [
   'Pushya — the most nourishing, fortune-bringing star',
@@ -154,6 +176,7 @@ const NAKSHATRAS = [
   'Uttara Phalguni — patronage and comfort',
   'Ashwini — swift, auspicious new beginnings',
 ] as const;
+const NAKSHATRA_KEYS = ['pushya', 'rohini', 'anuradha', 'hasta', 'revati', 'shravana', 'uttaraPhalguni', 'ashwini'] as const;
 
 const COLORS = [
   'Gold',
@@ -164,6 +187,7 @@ const COLORS = [
   'Auspicious Red',
   'Silver',
 ] as const;
+const COLOR_KEYS = ['gold', 'saffron', 'emeraldGreen', 'royalBlue', 'ivoryWhite', 'auspiciousRed', 'silver'] as const;
 
 function bandFor(score: number): string {
   if (score >= 96) return 'Exceptionally Auspicious';
@@ -171,6 +195,16 @@ function bandFor(score: number): string {
   if (score >= 88) return 'Blessed & Favourable';
   return 'Fortunate';
 }
+
+function bandKeyFor(score: number): string {
+  if (score >= 96) return 'exceptional';
+  if (score >= 92) return 'high';
+  if (score >= 88) return 'blessed';
+  return 'fortunate';
+}
+
+/** The stable sentinel used when a property has no project/location name. */
+export const PLACE_FALLBACK = '__this_land__';
 
 /** Reduce any number/string of digits to a single-digit Mulank (1–9). */
 export function toMulank(raw: string | number): number {
@@ -207,17 +241,23 @@ export function propertyFortune(input: FortuneInput): Fortune {
 
   const score = 84 + (s(1) % 16); // 84–99, always favourable
   const planet = pick(PLANETS, s(2));
-  const yoga = pick(YOGAS, s(3));
-  const element = pick(ELEMENTS, s(4));
-  const direction = pick(DIRECTIONS, s(5));
-  const nakshatra = pick(NAKSHATRAS, s(6));
-  const color = pick(COLORS, s(7));
+  const yi = s(3) % YOGAS.length;
+  const ei = s(4) % ELEMENTS.length;
+  const di = s(5) % DIRECTIONS.length;
+  const ni = s(6) % NAKSHATRAS.length;
+  const ci = s(7) % COLORS.length;
+  const yoga = YOGAS[yi];
+  const element = ELEMENTS[ei];
+  const direction = DIRECTIONS[di];
+  const nakshatra = NAKSHATRAS[ni];
+  const color = COLORS[ci];
   const mulank = toMulank(`${input.plotCode ?? ''}${input.price ?? s(8)}`);
 
   const gem = GEM[planet];
   const graha = GRAHA[planet];
 
-  const place = input.project || input.location || 'this land';
+  const rawPlace = input.project || input.location || '';
+  const place = rawPlace || 'this land';
   const blessing = `Guided by ${graha}, ${place} carries ${PLANET_GIFT[planet]}.`;
 
   const highlights = [
@@ -241,6 +281,18 @@ export function propertyFortune(input: FortuneInput): Fortune {
     color,
     blessing,
     highlights,
+    keys: {
+      planet,
+      yoga: YOGA_KEYS[yi],
+      element: ELEMENT_KEYS[ei],
+      direction: DIRECTION_KEYS[di],
+      nakshatra: NAKSHATRA_KEYS[ni],
+      color: COLOR_KEYS[ci],
+      band: bandKeyFor(score),
+      mulank,
+      place: rawPlace || PLACE_FALLBACK,
+      placeIsFallback: !rawPlace,
+    },
   };
 }
 
