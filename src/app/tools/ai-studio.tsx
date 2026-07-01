@@ -105,6 +105,19 @@ export default function AiStudio() {
         </Card>
       </Pressable>
 
+      <Pressable onPress={() => router.push('/tools/translate')}>
+        <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
+          <View className="h-11 w-11 items-center justify-center rounded-xl bg-gold/20">
+            <Ionicons name="language" size={22} color={color.goldDeep} />
+          </View>
+          <View className="flex-1">
+            <Text variant="title" className="text-[14px]">Translate (Indian languages)</Text>
+            <Text variant="caption">Translate text with Sarvam AI</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={color.muted} />
+        </Card>
+      </Pressable>
+
       <View className="flex-row flex-wrap gap-2">
         {FEATURES.map((f) => (
           <Chip key={f.key} label={f.label} active={feature === f.key} onPress={() => setFeature(f.key)} />
