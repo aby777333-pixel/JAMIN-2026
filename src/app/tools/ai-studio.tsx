@@ -79,6 +79,19 @@ export default function AiStudio() {
         </Card>
       </Pressable>
 
+      <Pressable onPress={() => router.push('/tools/ai-image')}>
+        <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
+          <View className="h-11 w-11 items-center justify-center rounded-xl bg-gold/20">
+            <Ionicons name="sparkles" size={22} color={color.goldDeep} />
+          </View>
+          <View className="flex-1">
+            <Text variant="title" className="text-[14px]">AI Image Generator</Text>
+            <Text variant="caption">Create flyer & banner images from a text prompt</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={color.muted} />
+        </Card>
+      </Pressable>
+
       <Pressable onPress={() => router.push('/tools/staging')}>
         <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
           <View className="h-11 w-11 items-center justify-center rounded-xl bg-gold/20">

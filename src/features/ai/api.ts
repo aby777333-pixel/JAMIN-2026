@@ -81,6 +81,32 @@ export async function virtualStage(base64: string, prompt: string, mime = 'image
   return data as StageResult;
 }
 
+export interface ImageGenResult {
+  configured: boolean;
+  url?: string;
+  message?: string;
+  error?: string;
+}
+
+/** AI image generation (text-to-image, Replicate google/imagen-4) via the ai-image Edge Function. */
+export async function generateImage(prompt: string, aspect = '4:3'): Promise<ImageGenResult> {
+  const { data, error } = await supabase.functions.invoke('ai-image', {
+    body: { prompt, aspect_ratio: aspect },
+  });
+  if (error) {
+    let message = error.message;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const body = await (error as any).context?.json?.();
+      if (body?.message || body?.error) message = body.message ?? body.error;
+    } catch {
+      /* keep default */
+    }
+    throw new Error(message);
+  }
+  return data as ImageGenResult;
+}
+
 /** AI photo enhancement (§14) — sends a base64 image to the image-enhance Edge Function. */
 export async function enhancePhoto(base64: string, mime = 'image/jpeg'): Promise<EnhanceResult> {
   const { data, error } = await supabase.functions.invoke('image-enhance', {
