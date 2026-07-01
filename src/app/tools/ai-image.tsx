@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Image } from 'expo-image';
+import { router } from 'expo-router';
 import * as MediaLibrary from 'expo-media-library';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Platform, ScrollView, View } from 'react-native';
@@ -103,6 +104,13 @@ export default function AiImage() {
     setBusy(false);
   }
 
+  async function onUseInFlyer() {
+    setBusy(true);
+    const local = await toLocal();
+    setBusy(false);
+    if (local) router.push({ pathname: '/tools/poster', params: { imageUri: local } });
+  }
+
   const previewRatio = RATIO[aspect] ?? 3 / 4;
 
   return (
@@ -137,13 +145,22 @@ export default function AiImage() {
             </View>
           )}
           {url ? (
-            <View className="w-full flex-row gap-3">
-              <View className="flex-1">
-                <Button title="Save" variant="outline" disabled={busy} onPress={onSave} />
+            <View className="w-full gap-2">
+              <View className="flex-row gap-3">
+                <View className="flex-1">
+                  <Button title="Save" variant="outline" disabled={busy} onPress={onSave} />
+                </View>
+                <View className="flex-1">
+                  <Button title="Share" disabled={busy} onPress={onShare} />
+                </View>
               </View>
-              <View className="flex-1">
-                <Button title="Share" disabled={busy} onPress={onShare} />
-              </View>
+              <Button
+                title="Use in Flyer maker"
+                variant="secondary"
+                left={<Ionicons name="image" size={16} color={color.ink} />}
+                disabled={busy}
+                onPress={onUseInFlyer}
+              />
             </View>
           ) : null}
         </Card>

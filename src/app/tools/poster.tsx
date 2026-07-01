@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import * as VideoThumbnails from 'expo-video-thumbnails';
+import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { Alert, Dimensions, Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,8 +42,12 @@ interface Media {
 export default function PosterMaker() {
   const profile = useAuth((s) => s.profile);
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{ imageUri?: string }>();
   const frameRef = useRef<View>(null);
-  const [media, setMedia] = useState<Media | null>(null);
+  // Seed the background from an AI-generated image passed by the AI Image Generator.
+  const [media, setMedia] = useState<Media | null>(() =>
+    params.imageUri ? { uri: params.imageUri, kind: 'image' } : null,
+  );
   const [format, setFormat] = useState<AdFormatKey>('flyer');
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');

@@ -216,6 +216,7 @@ export default function Home() {
             <QuickLink icon="camera" label="Create Ad" tint="#E11D48" onPress={() => router.push('/tools/ad-creator')} />
             <QuickLink icon="document-text" label="Brochures" tint="#7C3AED" onPress={() => router.push('/brochures')} />
             <QuickLink icon="sparkles" label="AI Studio" tint="#9333EA" onPress={() => router.push('/tools/ai-studio')} />
+            <QuickLink icon="chatbubbles" label="Ad Chats" tint="#0D9488" onPress={() => router.push('/ad-chats')} />
             <QuickLink icon="trophy" label="Rewards" tint="#D97706" onPress={() => router.push('/rewards')} />
             {canTeam ? (
               <QuickLink icon="git-network" label="Network" tint="#0D9488" onPress={() => router.push('/(tabs)/network')} />
