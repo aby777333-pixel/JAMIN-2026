@@ -23,6 +23,7 @@ const ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string;
   { icon: 'lock-closed', label: 'Escrow & milestones', sub: 'Staged booking payments', href: '/escrow' },
   { icon: 'trending-up', label: 'Market insights', sub: 'Trends, hotspots, leaderboard', href: '/tools/insights' },
   { icon: 'school', label: 'Training Academy', sub: 'Courses, quizzes & certificates', href: '/academy' },
+  { icon: 'compass', label: 'Vastu & Muhurat', sub: 'Facing, numerology & auspicious dates', href: '/vastu' },
   { icon: 'cash', label: 'Home loans', sub: 'Compare lenders, get pre-approved', href: '/loans' },
   { icon: 'folder', label: 'Document vault', sub: 'Agreements, IDs & KYC in one place', href: '/documents' },
   { icon: 'apps', label: "What's included", sub: 'Explore all platform features', href: '/features' },
@@ -64,7 +65,7 @@ export default function Settings() {
 
       {isRealAdmin ? (
         <Pressable onPress={() => router.push('/role-preview')}>
-          <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
+          <Card className="flex-row items-center gap-3 border-gold/60 bg-[#FDF3D8]">
             <View className="h-10 w-10 items-center justify-center rounded-xl bg-gold/20">
               <Ionicons name="eye" size={18} color={color.goldDeep} />
             </View>

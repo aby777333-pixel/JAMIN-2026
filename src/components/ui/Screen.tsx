@@ -2,7 +2,12 @@ import { type ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BG } from '@/components/brand/backgrounds';
+import { ImageBackdrop } from '@/components/brand/ImageBackdrop';
 import { cn } from '@/lib/cn';
+
+/** Subtle serene backdrop applied to scrollable screens that don't set their own. */
+const DEFAULT_BACKDROP = <ImageBackdrop source={BG.nature} height={220} opacity={0.55} />;
 
 /**
  * Page wrapper: paper background, safe-area aware, keeps content inside the
@@ -31,6 +36,10 @@ export function Screen({
   const insets = useSafeAreaInsets();
   const pad = edges ? { paddingTop: insets.top, paddingBottom: insets.bottom } : undefined;
 
+  // Scrollable screens that don't set a backdrop fall back to the serene default
+  // so every page has a brand backdrop. Pass `backdrop={null}` to opt out.
+  const resolvedBackdrop = backdrop === undefined ? DEFAULT_BACKDROP : backdrop;
+
   if (scroll) {
     const scroller = (
       <ScrollView
@@ -42,7 +51,7 @@ export function Screen({
     );
     return (
       <View className={cn('flex-1 bg-paper', className)} style={pad}>
-        {backdrop}
+        {resolvedBackdrop}
         {keyboardAvoiding ? (
           <KeyboardAvoidingView
             style={{ flex: 1 }}

@@ -12,4 +12,7 @@ export const BG = {
   onboarding: require('../../../assets/images/backgrounds/onboarding.jpg'),
   verify: require('../../../assets/images/backgrounds/verify.jpg'),
   waterfall: require('../../../assets/images/backgrounds/waterfall.jpg'),
+  // Minimalist lone-tree-in-field — the default serene backdrop for screens
+  // that don't specify their own (see Screen.tsx). On-brand for "verified land".
+  nature: require('../../../assets/images/backgrounds/nature.jpg'),
 };
