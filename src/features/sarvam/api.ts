@@ -7,18 +7,34 @@ export interface SarvamResult {
   error?: string;
 }
 
-/** Sarvam-supported Indian languages (BCP-47 codes Sarvam expects). */
+/**
+ * All languages Sarvam's translate model (sarvam-translate:v1) supports — the 22
+ * scheduled Indian languages + English. Verified live against the API.
+ */
 export const SARVAM_LANGUAGES = [
   { code: 'en-IN', label: 'English' },
   { code: 'hi-IN', label: 'हिन्दी' },
+  { code: 'bn-IN', label: 'বাংলা' },
   { code: 'ta-IN', label: 'தமிழ்' },
   { code: 'te-IN', label: 'తెలుగు' },
   { code: 'kn-IN', label: 'ಕನ್ನಡ' },
   { code: 'ml-IN', label: 'മലയാളം' },
   { code: 'mr-IN', label: 'मराठी' },
-  { code: 'bn-IN', label: 'বাংলা' },
   { code: 'gu-IN', label: 'ગુજરાતી' },
   { code: 'pa-IN', label: 'ਪੰਜਾਬੀ' },
+  { code: 'od-IN', label: 'ଓଡ଼ିଆ' },
+  { code: 'ur-IN', label: 'اردو' },
+  { code: 'as-IN', label: 'অসমীয়া' },
+  { code: 'ne-IN', label: 'नेपाली' },
+  { code: 'sa-IN', label: 'संस्कृतम्' },
+  { code: 'kok-IN', label: 'कोंकणी' },
+  { code: 'mai-IN', label: 'मैथिली' },
+  { code: 'doi-IN', label: 'डोगरी' },
+  { code: 'ks-IN', label: 'کٲشُر' },
+  { code: 'sd-IN', label: 'सिन्धी' },
+  { code: 'sat-IN', label: 'ᱥᱟᱱᱛᱟᱲᱤ' },
+  { code: 'mni-IN', label: 'মৈতৈলোন্' },
+  { code: 'brx-IN', label: 'बड़ो' },
 ] as const;
 
 /** Translate text into an Indian language via the sarvam Edge Function (modular). */

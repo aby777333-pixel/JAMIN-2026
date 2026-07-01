@@ -53,13 +53,34 @@ Deno.serve(async (req) => {
       if (!text || typeof text !== 'string' || !target) {
         return json({ error: 'text and target language are required.' }, 400);
       }
+      const H = { 'api-subscription-key': key, 'Content-Type': 'application/json' };
+      // sarvam-translate:v1 covers all 22 scheduled Indian languages but needs a real
+      // source code (no 'auto'), so detect it via Sarvam's LID when unspecified.
+      let src = source && source !== 'auto' ? source : '';
+      if (!src) {
+        try {
+          const lid = await fetch('https://api.sarvam.ai/text-lid', {
+            method: 'POST',
+            headers: H,
+            body: JSON.stringify({ input: text.slice(0, 500) }),
+          });
+          const ld = await lid.json().catch(() => ({}));
+          src = typeof ld?.language_code === 'string' && ld.language_code.includes('-') ? ld.language_code : 'en-IN';
+        } catch {
+          src = 'en-IN';
+        }
+      }
+      // Same source & target — nothing to translate.
+      if (src === target) return json({ configured: true, text });
+
       const res = await fetch('https://api.sarvam.ai/translate', {
         method: 'POST',
-        headers: { 'api-subscription-key': key, 'Content-Type': 'application/json' },
+        headers: H,
         body: JSON.stringify({
           input: text.slice(0, 2000),
-          source_language_code: source || 'auto',
+          source_language_code: src,
           target_language_code: target,
+          model: 'sarvam-translate:v1',
         }),
       });
       const d = await res.json().catch(() => ({}));
