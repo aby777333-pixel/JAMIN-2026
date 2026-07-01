@@ -4,7 +4,8 @@ import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, Platform, ScrollView, Share, View } from 'react-native';
+import { Alert, Dimensions, Platform, ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
 
 import { AgentStamp } from '@/components/brand/AgentStamp';
@@ -39,6 +40,7 @@ interface Media {
  */
 export default function PosterMaker() {
   const profile = useAuth((s) => s.profile);
+  const insets = useSafeAreaInsets();
   const frameRef = useRef<View>(null);
   const [media, setMedia] = useState<Media | null>(null);
   const [format, setFormat] = useState<AdFormatKey>('flyer');
@@ -165,8 +167,10 @@ export default function PosterMaker() {
             `${title || 'Property for sale'}${price.trim() ? ` · ${formatINR(money(price))}` : ''}` +
             `${location.trim() ? ` · ${location.trim()}` : ''}\n` +
             'JAMIN Properties · Signature for Fortune\n' +
-            url;
-          await Share.share({ message: caption, url });
+            `More: ${url}`;
+          // Share the composed flyer IMAGE so WhatsApp attaches the picture
+          // (a link alone shows no image). The flyer embeds the QR + contact.
+          await shareImageFile(uri, caption);
           return;
         } catch {
           /* fall through to image share */
@@ -205,7 +209,11 @@ export default function PosterMaker() {
 
   return (
     <View className="flex-1 bg-paper">
-      <ScrollView contentContainerClassName="px-5 pb-10" showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerClassName="px-5"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled">
         <BackHeader title="Your poster" />
 
         {/* Exported frame */}

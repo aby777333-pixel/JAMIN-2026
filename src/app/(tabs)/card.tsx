@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useRef } from 'react';
 import { Share, View } from 'react-native';
@@ -24,7 +25,9 @@ import { BRAND, TAGLINE, color } from '@/theme/tokens';
  */
 export default function CardScreen() {
   const profile = useAuth((s) => s.profile);
+  const isRealAdmin = useAuth((s) => s.isRealAdmin);
   const cardRef = useRef<View>(null);
+  const verified = isRealAdmin || profile?.kyc_status === 'verified';
 
   const code = profile?.referral_code ?? 'JAMIN';
   const referralUrl = `${SITE_URL}/r/${code}`;
@@ -71,9 +74,14 @@ export default function CardScreen() {
               <Text className="font-bold text-[22px] text-white" numberOfLines={1}>
                 {profile?.full_name ?? 'Member'}
               </Text>
-              <Text className="mt-0.5 text-[13px] text-white/70" numberOfLines={1}>
-                {profile?.designation ?? 'JAMIN Partner'}
-              </Text>
+              <View className="mt-0.5 flex-row items-center gap-1">
+                <Text className="text-[13px] text-white/70" numberOfLines={1}>
+                  {profile?.designation ?? 'JAMIN Partner'}
+                </Text>
+                {verified ? (
+                  <Ionicons name="checkmark-circle" size={14} color={color.success} />
+                ) : null}
+              </View>
 
               <View className="mt-4 gap-1">
                 {profile?.phone ? (

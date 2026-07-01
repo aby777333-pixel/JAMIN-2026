@@ -7,7 +7,8 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import * as MediaLibrary from 'expo-media-library';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, Linking, Platform, Pressable, ScrollView, Share, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, Linking, Platform, Pressable, ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
 
 import { AgentStamp } from '@/components/brand/AgentStamp';
@@ -36,6 +37,7 @@ interface Capture {
 
 export default function AdCreator() {
   const profile = useAuth((s) => s.profile);
+  const insets = useSafeAreaInsets();
   const [perm, requestPerm] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
   const frameRef = useRef<View>(null);
@@ -179,9 +181,10 @@ export default function AdCreator() {
           const caption =
             `🏡 Real property — captured live${capture?.place ? ` · ${capture.place}` : ''}\n` +
             'JAMIN Properties · Signature for Fortune\n' +
-            'View photo, location & contact 👇\n' +
-            url;
-          await Share.share({ message: caption, url });
+            `More: ${url}`;
+          // Share the actual flyer IMAGE (it embeds the QR + contact) so WhatsApp
+          // and other apps attach the picture — a shared link alone shows no image.
+          await shareImageFile(uri, caption);
           return;
         } catch {
           // fall through to image share on any publish/upload failure
@@ -254,7 +257,10 @@ export default function AdCreator() {
 
   return (
     <View className="flex-1 bg-paper">
-      <ScrollView contentContainerClassName="px-5 pb-8" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerClassName="px-5"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}
+        showsVerticalScrollIndicator={false}>
         <BackHeader title="Your ad" />
 
         <View
