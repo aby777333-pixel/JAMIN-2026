@@ -155,5 +155,35 @@
       "myBookings": "میری بکنگز",
       "becomePartner": "پارٹنر بنیں"
     }
+  },
+  "properties": {
+    "projects": "پروجیکٹس",
+    "map": "نقشہ",
+    "compare": "موازنہ",
+    "searchPlaceholder": "پلاٹ کوڈ سے تلاش کریں…",
+    "forYou": "آپ کے لیے",
+    "propertySingular": "پراپرٹی",
+    "propertyPlural": "پراپرٹیز",
+    "getAlerts": "الرٹس حاصل کریں",
+    "couldntLoad": "لوڈ نہیں ہو سکا",
+    "couldntLoadBody": "ریفریش کرنے کے لیے کھینچیں اور دوبارہ کوشش کریں۔",
+    "noMatches": "کوئی نتیجہ نہیں",
+    "noMatchesSaved": "یہاں دیکھنے کے لیے پراپرٹیز محفوظ کریں۔",
+    "noMatchesBody": "اپنے فلٹرز وسیع کر کے دیکھیں۔",
+    "filters": {
+      "saved": "محفوظ",
+      "allTypes": "تمام اقسام",
+      "allProjects": "تمام پروجیکٹس",
+      "budget": "بجٹ",
+      "facing": "سمت",
+      "any": "کوئی بھی",
+      "verified": "تصدیق شدہ",
+      "premium": "پریمیم",
+      "sort": "ترتیب",
+      "sortPlot": "پلاٹ",
+      "sortNewest": "تازہ ترین",
+      "priceUp": "قیمت ↑",
+      "priceDown": "قیمت ↓"
+    }
   }
 }

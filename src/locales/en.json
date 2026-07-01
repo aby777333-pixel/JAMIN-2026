@@ -86,6 +86,36 @@
     "earnings": "Earnings",
     "withdraw": "Withdraw"
   },
+  "properties": {
+    "projects": "Projects",
+    "map": "Map",
+    "compare": "Compare",
+    "searchPlaceholder": "Search by plot code…",
+    "forYou": "For you",
+    "propertySingular": "property",
+    "propertyPlural": "properties",
+    "getAlerts": "Get alerts",
+    "couldntLoad": "Couldn't load",
+    "couldntLoadBody": "Pull to refresh and try again.",
+    "noMatches": "No matches",
+    "noMatchesSaved": "Save properties to see them here.",
+    "noMatchesBody": "Try widening your filters.",
+    "filters": {
+      "saved": "Saved",
+      "allTypes": "All types",
+      "allProjects": "All projects",
+      "budget": "Budget",
+      "facing": "Facing",
+      "any": "Any",
+      "verified": "Verified",
+      "premium": "Premium",
+      "sort": "Sort",
+      "sortPlot": "Plot",
+      "sortNewest": "Newest",
+      "priceUp": "Price ↑",
+      "priceDown": "Price ↓"
+    }
+  },
   "vastu": {
     "title": "Vastu & Muhurat",
     "heroTitle": "Buy with confidence & good fortune",

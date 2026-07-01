@@ -172,5 +172,35 @@
       "myBookings": "எனது முன்பதிவுகள்",
       "becomePartner": "பங்குதாரராகுங்கள்"
     }
+  },
+  "properties": {
+    "projects": "திட்டங்கள்",
+    "map": "வரைபடம்",
+    "compare": "ஒப்பிடு",
+    "searchPlaceholder": "மனை குறியீட்டால் தேடுங்கள்…",
+    "forYou": "உங்களுக்காக",
+    "propertySingular": "சொத்து",
+    "propertyPlural": "சொத்துகள்",
+    "getAlerts": "அறிவிப்புகள் பெறு",
+    "couldntLoad": "ஏற்ற முடியவில்லை",
+    "couldntLoadBody": "புதுப்பிக்க இழுத்து மீண்டும் முயற்சிக்கவும்.",
+    "noMatches": "பொருத்தம் இல்லை",
+    "noMatchesSaved": "இங்கே காண சொத்துகளை சேமிக்கவும்.",
+    "noMatchesBody": "உங்கள் வடிகட்டிகளை விரிவாக்கிப் பாருங்கள்.",
+    "filters": {
+      "saved": "சேமித்தவை",
+      "allTypes": "அனைத்து வகைகள்",
+      "allProjects": "அனைத்து திட்டங்கள்",
+      "budget": "பட்ஜெட்",
+      "facing": "திசை",
+      "any": "ஏதேனும்",
+      "verified": "சரிபார்க்கப்பட்டது",
+      "premium": "பிரீமியம்",
+      "sort": "வரிசை",
+      "sortPlot": "மனை",
+      "sortNewest": "புதியவை",
+      "priceUp": "விலை ↑",
+      "priceDown": "விலை ↓"
+    }
   }
 }

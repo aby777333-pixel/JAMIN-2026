@@ -64,25 +64,25 @@ export default function Properties() {
                 className="flex-row items-center gap-1 rounded-full border border-line bg-surface px-3 py-2"
               >
                 <Ionicons name="business" size={15} color={color.ink} />
-                <Text className="text-[13px] font-semibold text-ink">Projects</Text>
+                <Text className="text-[13px] font-semibold text-ink">{t('properties.projects')}</Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push('/map')}
                 className="flex-row items-center gap-1 rounded-full border border-line bg-surface px-3 py-2"
               >
                 <Ionicons name="map" size={15} color={color.ink} />
-                <Text className="text-[13px] font-semibold text-ink">Map</Text>
+                <Text className="text-[13px] font-semibold text-ink">{t('properties.map')}</Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push('/compare')}
                 className="flex-row items-center gap-1 rounded-full border border-line bg-surface px-3 py-2"
               >
                 <Ionicons name="git-compare" size={15} color={color.ink} />
-                <Text className="text-[13px] font-semibold text-ink">Compare</Text>
+                <Text className="text-[13px] font-semibold text-ink">{t('properties.compare')}</Text>
               </Pressable>
             </ScrollView>
             <Input
-              placeholder="Search by plot code…"
+              placeholder={t('properties.searchPlaceholder')}
               autoCapitalize="characters"
               value={filters.search ?? ''}
               onChangeText={(v) => patch({ search: v })}
@@ -92,7 +92,7 @@ export default function Properties() {
               <View className="gap-2">
                 <View className="flex-row items-center gap-1.5">
                   <Ionicons name="sparkles" size={14} color={color.gold} />
-                  <Text variant="label">For you</Text>
+                  <Text variant="label">{t('properties.forYou')}</Text>
                 </View>
                 <FlatList
                   horizontal
@@ -119,13 +119,16 @@ export default function Properties() {
             {!isLoading ? (
               <View className="flex-row items-center justify-between">
                 <Text variant="caption">
-                  {properties.length} {properties.length === 1 ? 'property' : 'properties'}
+                  {properties.length}{' '}
+                  {properties.length === 1
+                    ? t('properties.propertySingular')
+                    : t('properties.propertyPlural')}
                 </Text>
                 <Pressable
                   onPress={() => router.push('/requirements')}
                   className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5">
                   <Ionicons name="notifications-outline" size={14} color={color.red} />
-                  <Text className="text-[12px] font-semibold text-ink">Get alerts</Text>
+                  <Text className="text-[12px] font-semibold text-ink">{t('properties.getAlerts')}</Text>
                 </Pressable>
               </View>
             ) : null}
@@ -146,12 +149,12 @@ export default function Properties() {
               <ActivityIndicator color={color.red} />
             </View>
           ) : isError ? (
-            <EmptyState icon="cloud-offline" title="Couldn't load" body="Pull to refresh and try again." />
+            <EmptyState icon="cloud-offline" title={t('properties.couldntLoad')} body={t('properties.couldntLoadBody')} />
           ) : (
             <EmptyState
               icon="search"
-              title="No matches"
-              body={filters.savedOnly ? 'Save properties to see them here.' : 'Try widening your filters.'}
+              title={t('properties.noMatches')}
+              body={filters.savedOnly ? t('properties.noMatchesSaved') : t('properties.noMatchesBody')}
             />
           )
         }

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 
 import { Chip } from '@/components/ui/Chip';
@@ -21,6 +22,7 @@ export function FilterBar({
   filters: PropertyFilters;
   onChange: (patch: Partial<PropertyFilters>) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View className="gap-2">
       <ScrollView
@@ -28,21 +30,21 @@ export function FilterBar({
         showsHorizontalScrollIndicator={false}
         contentContainerClassName="gap-2 pr-4">
         <Chip
-          label="♡ Saved"
+          label={`♡ ${t('properties.filters.saved')}`}
           active={!!filters.savedOnly}
           onPress={() => onChange({ savedOnly: !filters.savedOnly })}
         />
         <Chip
-          label="All types"
+          label={t('properties.filters.allTypes')}
           active={!filters.propertyTypeId}
           onPress={() => onChange({ propertyTypeId: null })}
         />
-        {types.map((t) => (
+        {types.map((ty) => (
           <Chip
-            key={t.id}
-            label={t.name}
-            active={filters.propertyTypeId === t.id}
-            onPress={() => onChange({ propertyTypeId: t.id })}
+            key={ty.id}
+            label={ty.name}
+            active={filters.propertyTypeId === ty.id}
+            onPress={() => onChange({ propertyTypeId: ty.id })}
           />
         ))}
       </ScrollView>
@@ -53,7 +55,7 @@ export function FilterBar({
           showsHorizontalScrollIndicator={false}
           contentContainerClassName="gap-2 pr-4">
           <Chip
-            label="All projects"
+            label={t('properties.filters.allProjects')}
             active={!filters.projectId}
             onPress={() => onChange({ projectId: null })}
           />
@@ -73,7 +75,7 @@ export function FilterBar({
         showsHorizontalScrollIndicator={false}
         contentContainerClassName="gap-2 pr-4 items-center">
         <Text variant="caption" className="mr-1">
-          Budget
+          {t('properties.filters.budget')}
         </Text>
         {PRICE_BANDS.map((b) => {
           const active = filters.priceMax === b.max && (filters.priceMin ?? 0) === (b.min ?? 0);
@@ -95,9 +97,9 @@ export function FilterBar({
         showsHorizontalScrollIndicator={false}
         contentContainerClassName="gap-2 pr-4 items-center">
         <Text variant="caption" className="mr-1">
-          🧭 Facing
+          🧭 {t('properties.filters.facing')}
         </Text>
-        <Chip label="Any" active={!filters.facing} onPress={() => onChange({ facing: null })} />
+        <Chip label={t('properties.filters.any')} active={!filters.facing} onPress={() => onChange({ facing: null })} />
         {FACINGS.map((f) => (
           <Chip
             key={f}
@@ -112,15 +114,15 @@ export function FilterBar({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerClassName="gap-2 pr-4 items-center">
-        <Chip label="✓ Verified" active={!!filters.verifiedOnly} onPress={() => onChange({ verifiedOnly: !filters.verifiedOnly })} />
-        <Chip label="★ Premium" active={!!filters.premiumOnly} onPress={() => onChange({ premiumOnly: !filters.premiumOnly })} />
+        <Chip label={`✓ ${t('properties.filters.verified')}`} active={!!filters.verifiedOnly} onPress={() => onChange({ verifiedOnly: !filters.verifiedOnly })} />
+        <Chip label={`★ ${t('properties.filters.premium')}`} active={!!filters.premiumOnly} onPress={() => onChange({ premiumOnly: !filters.premiumOnly })} />
         <Text variant="caption" className="mx-1">
-          Sort
+          {t('properties.filters.sort')}
         </Text>
         {SORTS.map((s) => (
           <Chip
             key={s.value}
-            label={s.label}
+            label={t(s.key)}
             active={(filters.sort ?? 'plot') === s.value}
             onPress={() => onChange({ sort: s.value })}
           />
@@ -130,11 +132,11 @@ export function FilterBar({
   );
 }
 
-const SORTS: { label: string; value: NonNullable<PropertyFilters['sort']> }[] = [
-  { label: 'Plot', value: 'plot' },
-  { label: 'Newest', value: 'newest' },
-  { label: 'Price ↑', value: 'price_asc' },
-  { label: 'Price ↓', value: 'price_desc' },
+const SORTS: { key: string; value: NonNullable<PropertyFilters['sort']> }[] = [
+  { key: 'properties.filters.sortPlot', value: 'plot' },
+  { key: 'properties.filters.sortNewest', value: 'newest' },
+  { key: 'properties.filters.priceUp', value: 'price_asc' },
+  { key: 'properties.filters.priceDown', value: 'price_desc' },
 ];
 
 const PRICE_BANDS: { label: string; min: number | null; max: number | null }[] = [

@@ -155,5 +155,35 @@
       "myBookings": "എന്റെ ബുക്കിംഗുകൾ",
       "becomePartner": "പങ്കാളിയാകൂ"
     }
+  },
+  "properties": {
+    "projects": "പ്രോജക്ടുകൾ",
+    "map": "മാപ്പ്",
+    "compare": "താരതമ്യം",
+    "searchPlaceholder": "പ്ലോട്ട് കോഡ് ഉപയോഗിച്ച് തിരയൂ…",
+    "forYou": "നിങ്ങൾക്കായി",
+    "propertySingular": "പ്രോപ്പർട്ടി",
+    "propertyPlural": "പ്രോപ്പർട്ടികൾ",
+    "getAlerts": "അലേർട്ടുകൾ നേടൂ",
+    "couldntLoad": "ലോഡ് ചെയ്യാനായില്ല",
+    "couldntLoadBody": "പുതുക്കാൻ വലിച്ച് വീണ്ടും ശ്രമിക്കൂ.",
+    "noMatches": "പൊരുത്തങ്ങളില്ല",
+    "noMatchesSaved": "ഇവിടെ കാണാൻ പ്രോപ്പർട്ടികൾ സേവ് ചെയ്യൂ.",
+    "noMatchesBody": "നിങ്ങളുടെ ഫിൽട്ടറുകൾ വിശാലമാക്കി നോക്കൂ.",
+    "filters": {
+      "saved": "സേവ് ചെയ്തവ",
+      "allTypes": "എല്ലാ തരങ്ങളും",
+      "allProjects": "എല്ലാ പ്രോജക്ടുകളും",
+      "budget": "ബജറ്റ്",
+      "facing": "ദിശ",
+      "any": "ഏതെങ്കിലും",
+      "verified": "സ്ഥിരീകരിച്ചു",
+      "premium": "പ്രീമിയം",
+      "sort": "ക്രമീകരിക്കൂ",
+      "sortPlot": "പ്ലോട്ട്",
+      "sortNewest": "പുതിയവ",
+      "priceUp": "വില ↑",
+      "priceDown": "വില ↓"
+    }
   }
 }

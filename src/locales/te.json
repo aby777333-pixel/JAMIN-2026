@@ -172,5 +172,35 @@
       "myBookings": "నా బుకింగ్‌లు",
       "becomePartner": "భాగస్వామి అవ్వండి"
     }
+  },
+  "properties": {
+    "projects": "ప్రాజెక్టులు",
+    "map": "మ్యాప్",
+    "compare": "పోల్చండి",
+    "searchPlaceholder": "ప్లాట్ కోడ్‌తో వెతకండి…",
+    "forYou": "మీ కోసం",
+    "propertySingular": "ఆస్తి",
+    "propertyPlural": "ఆస్తులు",
+    "getAlerts": "అలర్ట్‌లు పొందండి",
+    "couldntLoad": "లోడ్ కాలేదు",
+    "couldntLoadBody": "రిఫ్రెష్ చేయడానికి లాగి మళ్లీ ప్రయత్నించండి.",
+    "noMatches": "సరిపోలికలు లేవు",
+    "noMatchesSaved": "ఇక్కడ చూడటానికి ఆస్తులను సేవ్ చేయండి.",
+    "noMatchesBody": "మీ ఫిల్టర్‌లను విస్తృతం చేసి ప్రయత్నించండి.",
+    "filters": {
+      "saved": "సేవ్ చేసినవి",
+      "allTypes": "అన్ని రకాలు",
+      "allProjects": "అన్ని ప్రాజెక్టులు",
+      "budget": "బడ్జెట్",
+      "facing": "దిక్కు",
+      "any": "ఏదైనా",
+      "verified": "ధృవీకరించబడింది",
+      "premium": "ప్రీమియం",
+      "sort": "క్రమం",
+      "sortPlot": "ప్లాట్",
+      "sortNewest": "కొత్తవి",
+      "priceUp": "ధర ↑",
+      "priceDown": "ధర ↓"
+    }
   }
 }

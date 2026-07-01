@@ -172,5 +172,35 @@
       "myBookings": "मेरी बुकिंग",
       "becomePartner": "पार्टनर बनें"
     }
+  },
+  "properties": {
+    "projects": "परियोजनाएँ",
+    "map": "मानचित्र",
+    "compare": "तुलना",
+    "searchPlaceholder": "प्लॉट कोड से खोजें…",
+    "forYou": "आपके लिए",
+    "propertySingular": "संपत्ति",
+    "propertyPlural": "संपत्तियाँ",
+    "getAlerts": "अलर्ट पाएं",
+    "couldntLoad": "लोड नहीं हो सका",
+    "couldntLoadBody": "रिफ़्रेश करने के लिए खींचें और पुनः प्रयास करें।",
+    "noMatches": "कोई परिणाम नहीं",
+    "noMatchesSaved": "यहाँ देखने के लिए संपत्तियाँ सहेजें।",
+    "noMatchesBody": "अपने फ़िल्टर विस्तृत करके देखें।",
+    "filters": {
+      "saved": "सहेजे",
+      "allTypes": "सभी प्रकार",
+      "allProjects": "सभी परियोजनाएँ",
+      "budget": "बजट",
+      "facing": "दिशा",
+      "any": "कोई भी",
+      "verified": "सत्यापित",
+      "premium": "प्रीमियम",
+      "sort": "क्रमबद्ध",
+      "sortPlot": "प्लॉट",
+      "sortNewest": "नवीनतम",
+      "priceUp": "कीमत ↑",
+      "priceDown": "कीमत ↓"
+    }
   }
 }

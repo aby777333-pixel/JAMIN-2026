@@ -172,5 +172,35 @@
       "myBookings": "ನನ್ನ ಬುಕಿಂಗ್‌ಗಳು",
       "becomePartner": "ಪಾಲುದಾರರಾಗಿ"
     }
+  },
+  "properties": {
+    "projects": "ಯೋಜನೆಗಳು",
+    "map": "ನಕ್ಷೆ",
+    "compare": "ಹೋಲಿಸಿ",
+    "searchPlaceholder": "ಪ್ಲಾಟ್ ಕೋಡ್‌ನಿಂದ ಹುಡುಕಿ…",
+    "forYou": "ನಿಮಗಾಗಿ",
+    "propertySingular": "ಆಸ್ತಿ",
+    "propertyPlural": "ಆಸ್ತಿಗಳು",
+    "getAlerts": "ಎಚ್ಚರಿಕೆಗಳನ್ನು ಪಡೆಯಿರಿ",
+    "couldntLoad": "ಲೋಡ್ ಆಗಲಿಲ್ಲ",
+    "couldntLoadBody": "ರಿಫ್ರೆಶ್ ಮಾಡಲು ಎಳೆದು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "noMatches": "ಹೊಂದಾಣಿಕೆ ಇಲ್ಲ",
+    "noMatchesSaved": "ಇಲ್ಲಿ ನೋಡಲು ಆಸ್ತಿಗಳನ್ನು ಉಳಿಸಿ.",
+    "noMatchesBody": "ನಿಮ್ಮ ಫಿಲ್ಟರ್‌ಗಳನ್ನು ವಿಸ್ತರಿಸಿ ಪ್ರಯತ್ನಿಸಿ.",
+    "filters": {
+      "saved": "ಉಳಿಸಿದವು",
+      "allTypes": "ಎಲ್ಲಾ ಪ್ರಕಾರಗಳು",
+      "allProjects": "ಎಲ್ಲಾ ಯೋಜನೆಗಳು",
+      "budget": "ಬಜೆಟ್",
+      "facing": "ದಿಕ್ಕು",
+      "any": "ಯಾವುದೇ",
+      "verified": "ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
+      "premium": "ಪ್ರೀಮಿಯಂ",
+      "sort": "ವಿಂಗಡಿಸಿ",
+      "sortPlot": "ಪ್ಲಾಟ್",
+      "sortNewest": "ಹೊಸವು",
+      "priceUp": "ಬೆಲೆ ↑",
+      "priceDown": "ಬೆಲೆ ↓"
+    }
   }
 }
