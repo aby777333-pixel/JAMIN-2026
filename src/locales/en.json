@@ -116,6 +116,48 @@
       "priceDown": "Price ↓"
     }
   },
+  "property": {
+    "title": "Property",
+    "notFound": "This property is no longer available.",
+    "about": "About this property",
+    "onMarket": "On market {{days}} days",
+    "toursLocation": "Tours & location",
+    "detail": { "type": "Type", "plan": "Plan", "projectCode": "Project code", "location": "Location" },
+    "badges": {
+      "verifiedSeller": "Verified Seller",
+      "verifiedDocs": "Verified Docs",
+      "verifiedLocation": "Verified Location",
+      "premium": "Premium"
+    },
+    "pending": "Awaiting admin approval — this listing isn't visible to buyers yet.",
+    "rejected": "This listing was not approved. Edit it and contact support if you think this is a mistake.",
+    "tours": {
+      "video": "Video tour",
+      "virtual": "Virtual tour",
+      "walkthrough": "3D walkthrough",
+      "nearby": "Nearby & directions",
+      "ar": "AR boundary (beta)"
+    },
+    "suggestPhoto": "Suggest a photo",
+    "uploading": "Uploading…",
+    "suggestPhotoBody": "Add photos for this plot — an admin reviews before they go live.",
+    "reserveTitle": "Reserve this plot?",
+    "reserveBody": "This places a soft reservation.",
+    "reserveAction": "Reserve",
+    "reserved": "Reserved",
+    "reservedBody": "Our team will follow up to confirm.",
+    "couldNotReserve": "Could not reserve",
+    "trust": { "freeVisit": "Free site visit", "noObligation": "No obligation", "escrow": "Escrow-protected" },
+    "cta": {
+      "enquire": "Enquire now",
+      "bookVisit": "Book a site visit",
+      "shortlist": "Add to shared shortlist",
+      "cobroke": "Offer for co-broking",
+      "makeOffer": "Make an offer",
+      "reserve": "Reserve this plot"
+    },
+    "report": "Report a problem with this listing"
+  },
   "vastu": {
     "title": "Vastu & Muhurat",
     "heroTitle": "Buy with confidence & good fortune",

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, Share, View } from 'react-native';
 
@@ -50,6 +51,7 @@ import { color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
 
 export default function PropertyDetail() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: property, isLoading } = useProperty(id);
   useLogPropertyView(id);
@@ -99,9 +101,9 @@ export default function PropertyDetail() {
   if (!property) {
     return (
       <Screen scroll={false}>
-        <BackHeader title="Property" />
+        <BackHeader title={t('property.title')} />
         <Text variant="body" className="mt-8 text-center text-muted">
-          This property is no longer available.
+          {t('property.notFound')}
         </Text>
       </Screen>
     );
@@ -119,11 +121,11 @@ export default function PropertyDetail() {
   };
   const tours = (
     [
-      { label: 'Video tour', icon: 'play-circle' as const, url: pick('video_tour', 'video_url', 'video') },
-      { label: 'Virtual tour', icon: 'compass' as const, url: pick('virtual_tour', 'virtual_tour_url', 'tour_360') },
-      { label: '3D walkthrough', icon: 'cube' as const, url: pick('walkthrough', 'tour_3d', 'walkthrough_3d') },
+      { label: t('property.tours.video'), icon: 'play-circle' as const, url: pick('video_tour', 'video_url', 'video') },
+      { label: t('property.tours.virtual'), icon: 'compass' as const, url: pick('virtual_tour', 'virtual_tour_url', 'tour_360') },
+      { label: t('property.tours.walkthrough'), icon: 'cube' as const, url: pick('walkthrough', 'tour_3d', 'walkthrough_3d') },
     ] as const
-  ).filter((t) => !!t.url) as { label: string; icon: keyof typeof Ionicons.glyphMap; url: string }[];
+  ).filter((tr) => !!tr.url) as { label: string; icon: keyof typeof Ionicons.glyphMap; url: string }[];
 
   const customTitle = pick('title');
   const description = pick('description');
@@ -136,23 +138,23 @@ export default function PropertyDetail() {
 
   // Verification badges (migration 0037) — admin-set trust signals.
   const verifiedBadges: { label: string; icon: keyof typeof Ionicons.glyphMap }[] = [];
-  if (property.verified_seller) verifiedBadges.push({ label: 'Verified Seller', icon: 'shield-checkmark' });
-  if (property.verified_documents) verifiedBadges.push({ label: 'Verified Docs', icon: 'document-text' });
-  if (property.verified_location) verifiedBadges.push({ label: 'Verified Location', icon: 'location' });
-  if (property.is_premium) verifiedBadges.push({ label: 'Premium', icon: 'star' });
+  if (property.verified_seller) verifiedBadges.push({ label: t('property.badges.verifiedSeller'), icon: 'shield-checkmark' });
+  if (property.verified_documents) verifiedBadges.push({ label: t('property.badges.verifiedDocs'), icon: 'document-text' });
+  if (property.verified_location) verifiedBadges.push({ label: t('property.badges.verifiedLocation'), icon: 'location' });
+  if (property.is_premium) verifiedBadges.push({ label: t('property.badges.premium'), icon: 'star' });
   const isPending = property.approval_status === 'pending';
   const isRejected = property.approval_status === 'rejected';
 
   function onReserve() {
-    Alert.alert('Reserve this plot?', `${label}\nThis places a soft reservation.`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('property.reserveTitle'), `${label}\n${t('property.reserveBody')}`, [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Reserve',
+        text: t('property.reserveAction'),
         onPress: () =>
           reserve
             .mutateAsync({ propertyId: property!.id, amount: property!.price })
-            .then(() => Alert.alert('Reserved', 'Our team will follow up to confirm.'))
-            .catch((e) => Alert.alert('Could not reserve', errMessage(e))),
+            .then(() => Alert.alert(t('property.reserved'), t('property.reservedBody')))
+            .catch((e) => Alert.alert(t('property.couldNotReserve'), errMessage(e))),
       },
     ]);
   }
@@ -210,7 +212,9 @@ export default function PropertyDetail() {
         <MoneyText value={property.price} className="mt-1 text-[28px]" />
         {property.created_at ? (
           <Text variant="caption">
-            On market {Math.max(0, Math.floor((Date.now() - new Date(property.created_at).getTime()) / 86400000))} days
+            {t('property.onMarket', {
+              days: Math.max(0, Math.floor((Date.now() - new Date(property.created_at).getTime()) / 86400000)),
+            })}
           </Text>
         ) : null}
       </View>
@@ -239,16 +243,14 @@ export default function PropertyDetail() {
         <Card className={`flex-row items-center gap-2.5 ${isRejected ? 'border-danger/40 bg-danger/5' : 'border-gold/40 bg-gold/5'}`}>
           <Ionicons name={isRejected ? 'close-circle' : 'time'} size={18} color={isRejected ? color.red : color.goldDeep} />
           <Text variant="caption" className="flex-1">
-            {isRejected
-              ? 'This listing was not approved. Edit it and contact support if you think this is a mistake.'
-              : 'Awaiting admin approval — this listing isn’t visible to buyers yet.'}
+            {isRejected ? t('property.rejected') : t('property.pending')}
           </Text>
         </Card>
       ) : null}
 
       {description ? (
         <View className="gap-1">
-          <Text variant="label">About this property</Text>
+          <Text variant="label">{t('property.about')}</Text>
           <Text variant="body" className="text-ink">{description}</Text>
         </View>
       ) : null}
@@ -266,12 +268,12 @@ export default function PropertyDetail() {
       <InvestValueCard property={{ id: property.id, price: property.price, attrs: property.attrs }} />
 
       <Card className="flex-row flex-wrap gap-y-3">
-        <Detail label="Type" value={property.type?.name ?? '—'} />
-        <Detail label="Plan" value={property.plan?.name ?? '—'} />
-        <Detail label="Project code" value={property.project?.code ?? '—'} />
+        <Detail label={t('property.detail.type')} value={property.type?.name ?? '—'} />
+        <Detail label={t('property.detail.plan')} value={property.plan?.name ?? '—'} />
+        <Detail label={t('property.detail.projectCode')} value={property.project?.code ?? '—'} />
         {property.coordinates?.lat ? (
           <Detail
-            label="Location"
+            label={t('property.detail.location')}
             value={`${property.coordinates.lat.toFixed(3)}, ${property.coordinates.lng?.toFixed(3)}`}
           />
         ) : null}
@@ -297,9 +299,9 @@ export default function PropertyDetail() {
             <Ionicons name="cloud-upload" size={20} color={color.goldDeep} />
             <View className="flex-1">
               <Text variant="title" className="text-[14px]">
-                {submitPhotos.isPending ? 'Uploading…' : 'Suggest a photo'}
+                {submitPhotos.isPending ? t('property.uploading') : t('property.suggestPhoto')}
               </Text>
-              <Text variant="caption">Add photos for this plot — an admin reviews before they go live.</Text>
+              <Text variant="caption">{t('property.suggestPhotoBody')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={color.muted} />
           </Card>
@@ -308,7 +310,7 @@ export default function PropertyDetail() {
 
       {tours.length > 0 || hasCoords ? (
         <View className="gap-2">
-          <Text variant="label">Tours & location</Text>
+          <Text variant="label">{t('property.toursLocation')}</Text>
           <View className="flex-row flex-wrap gap-2">
             {tours.map((tr) => (
               <Pressable
@@ -326,7 +328,7 @@ export default function PropertyDetail() {
                 }
                 className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
                 <Ionicons name="navigate" size={16} color={color.red} />
-                <Text className="text-[13px] font-semibold text-ink">Nearby & directions</Text>
+                <Text className="text-[13px] font-semibold text-ink">{t('property.tours.nearby')}</Text>
               </Pressable>
             ) : null}
             {hasCoords ? (
@@ -334,7 +336,7 @@ export default function PropertyDetail() {
                 onPress={() => router.push({ pathname: '/ar', params: { id: property.id } })}
                 className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
                 <Ionicons name="scan" size={16} color={color.red} />
-                <Text className="text-[13px] font-semibold text-ink">AR boundary (beta)</Text>
+                <Text className="text-[13px] font-semibold text-ink">{t('property.tours.ar')}</Text>
               </Pressable>
             ) : null}
           </View>
@@ -370,27 +372,27 @@ export default function PropertyDetail() {
 
       <View className="gap-3">
         <View className="flex-row flex-wrap items-center justify-center gap-x-3 gap-y-1">
-          {['Free site visit', 'No obligation', 'Escrow-protected'].map((r) => (
+          {[t('property.trust.freeVisit'), t('property.trust.noObligation'), t('property.trust.escrow')].map((r) => (
             <View key={r} className="flex-row items-center gap-1">
               <Ionicons name="shield-checkmark" size={12} color={color.success} />
               <Text variant="caption" className="text-ink">{r}</Text>
             </View>
           ))}
         </View>
-        <Button title="Enquire now" onPress={() => setEnquiry(true)} />
-        <Button title="Book a site visit" variant="outline" onPress={() => setVisit(true)} />
-        <Button title="Add to shared shortlist" variant="outline" left={<Ionicons name="people" size={16} color={color.ink} />} onPress={() => setShortlist(true)} />
+        <Button title={t('property.cta.enquire')} onPress={() => setEnquiry(true)} />
+        <Button title={t('property.cta.bookVisit')} variant="outline" onPress={() => setVisit(true)} />
+        <Button title={t('property.cta.shortlist')} variant="outline" left={<Ionicons name="people" size={16} color={color.ink} />} onPress={() => setShortlist(true)} />
         {isPartner ? (
-          <Button title="Offer for co-broking" variant="outline" left={<Ionicons name="git-network" size={16} color={color.ink} />} onPress={() => setCobroke(true)} />
+          <Button title={t('property.cta.cobroke')} variant="outline" left={<Ionicons name="git-network" size={16} color={color.ink} />} onPress={() => setCobroke(true)} />
         ) : null}
         {property.status === 'available' && property.seller_id !== myId ? (
-          <Button title="Make an offer" variant="outline" onPress={() => setOffer(true)} />
+          <Button title={t('property.cta.makeOffer')} variant="outline" onPress={() => setOffer(true)} />
         ) : null}
         {property.status === 'available' ? (
-          <Button title="Reserve this plot" variant="secondary" loading={reserve.isPending} onPress={onReserve} />
+          <Button title={t('property.cta.reserve')} variant="secondary" loading={reserve.isPending} onPress={onReserve} />
         ) : null}
         <Pressable onPress={() => setReport(true)} className="items-center pt-1">
-          <Text className="text-[13px] font-semibold text-muted">Report a problem with this listing</Text>
+          <Text className="text-[13px] font-semibold text-muted">{t('property.report')}</Text>
         </Pressable>
       </View>
 
