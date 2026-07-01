@@ -7,16 +7,20 @@
   publish = "."
   command = "echo 'JAMIN landing — static site, no build step'"
 
+[functions]
+  directory = "netlify/functions"
+
+# Shared property ads (/ad/<slug>) → serverless function that injects the ad's
+# real og:image (for WhatsApp/social previews), then serves the interactive page.
+[[redirects]]
+  from = "/ad/*"
+  to = "/.netlify/functions/ad"
+  status = 200
+
 # Referral share links (/r/<code>) → click-tracking landing.
 [[redirects]]
   from = "/r/*"
   to = "/r.html"
-  status = 200
-
-# Shared property ads (/ad/<slug>) → interactive ad landing page.
-[[redirects]]
-  from = "/ad/*"
-  to = "/ad.html"
   status = 200
 
 # Per-agent public landing pages (/a/<referral_code>) → agent listings page.

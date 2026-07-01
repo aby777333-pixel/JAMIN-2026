@@ -7,7 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import * as MediaLibrary from 'expo-media-library';
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, Linking, Platform, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, Linking, Platform, Pressable, ScrollView, Share, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
 
@@ -181,10 +181,11 @@ export default function AdCreator() {
           const caption =
             `🏡 Real property — captured live${capture?.place ? ` · ${capture.place}` : ''}\n` +
             'JAMIN Properties · Signature for Fortune\n' +
-            `More: ${url}`;
-          // Share the actual flyer IMAGE (it embeds the QR + contact) so WhatsApp
-          // and other apps attach the picture — a shared link alone shows no image.
-          await shareImageFile(uri, caption);
+            'View photo, location & contact 👇\n' +
+            url;
+          // Share the LINK to the interactive ad page (the link preview shows the
+          // real flyer via the /ad og:image function). Receiver gets a tappable link.
+          await Share.share({ message: caption, url });
           return;
         } catch {
           // fall through to image share on any publish/upload failure

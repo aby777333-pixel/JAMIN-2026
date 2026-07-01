@@ -5,7 +5,7 @@ import * as MediaLibrary from 'expo-media-library';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
-import { Alert, Dimensions, Platform, ScrollView, View } from 'react-native';
+import { Alert, Dimensions, Platform, ScrollView, Share, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
 
@@ -195,10 +195,11 @@ export default function PosterMaker() {
             `${title || 'Property for sale'}${price.trim() ? ` · ${formatINR(money(price))}` : ''}` +
             `${location.trim() ? ` · ${location.trim()}` : ''}\n` +
             'JAMIN Properties · Signature for Fortune\n' +
-            `More: ${url}`;
-          // Share the composed flyer IMAGE so WhatsApp attaches the picture
-          // (a link alone shows no image). The flyer embeds the QR + contact.
-          await shareImageFile(uri, caption);
+            'View photo, location & contact 👇\n' +
+            url;
+          // Share the LINK to the interactive ad page (link preview shows the real
+          // flyer via the /ad og:image function). Receiver gets a tappable link.
+          await Share.share({ message: caption, url });
           return;
         } catch {
           /* fall through to image share */
