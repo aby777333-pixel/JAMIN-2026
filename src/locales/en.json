@@ -49,5 +49,48 @@
     "balance": "Wallet balance",
     "earnings": "Earnings",
     "withdraw": "Withdraw"
+  },
+  "vastu": {
+    "title": "Vastu & Muhurat",
+    "heroTitle": "Buy with confidence & good fortune",
+    "heroBody": "A friendly guide to plot facing, numerology and auspicious timing — traditions that matter to many families when choosing land and homes.",
+    "facingHeading": "PLOT & ENTRANCE FACING",
+    "presiding": "Presiding energy: {{deity}}",
+    "numerologyHeading": "PLOT / HOUSE NUMEROLOGY",
+    "numInputLabel": "Plot or house number",
+    "numInputPlaceholder": "e.g. 24 or B-108",
+    "numButton": "Reveal the number",
+    "numNeedDigit": "Add at least one digit to calculate the Mulank.",
+    "mulankLabel": "Mulank {{n}} · {{ruler}}",
+    "muhuratHeading": "AUSPICIOUS TIMING (MUHURAT)",
+    "disclaimer": "Shared as cultural guidance only. Please consult a qualified Vastu expert or family priest for important decisions — JAMIN Properties makes no religious or financial guarantee.",
+    "ratings": { "auspicious": "auspicious", "neutral": "neutral", "caution": "careful" },
+    "directions": {
+      "north_east": { "name": "North-East (Ishanya)", "deity": "Ishvara — water", "note": "The most auspicious corner. Ideal for the main entrance, pooja room and water source. Keep it open, clean and light." },
+      "north": { "name": "North (Kubera)", "deity": "Kubera — wealth", "note": "Governs wealth and career growth. A north-facing plot or entrance is highly sought after." },
+      "east": { "name": "East (Surya)", "deity": "Surya — the Sun", "note": "Brings health, vitality and prosperity. East-facing entrances catch the morning sun — very favourable." },
+      "west": { "name": "West (Varuna)", "deity": "Varuna — rain", "note": "Balanced and stable. Good for those later in their career; suitable with the right internal layout." },
+      "south_east": { "name": "South-East (Agni)", "deity": "Agni — fire", "note": "The fire corner — best for the kitchen. Avoid placing the main entrance or water tank here." },
+      "north_west": { "name": "North-West (Vayu)", "deity": "Vayu — wind", "note": "Movement and relationships. Good for guest rooms and stores; keep it lighter than the south-west." },
+      "south": { "name": "South (Yama)", "deity": "Yama — discipline", "note": "Needs careful planning. Keep this side heavier/taller and avoid large openings for balance." },
+      "south_west": { "name": "South-West (Nairutya)", "deity": "Nairutya — stability", "note": "Should be the heaviest, highest zone — ideal for the master bedroom. Avoid the main entrance or slopes here." }
+    },
+    "mulank": {
+      "1": { "ruler": "Sun", "vibe": "Leadership, independence and a strong new beginning." },
+      "2": { "ruler": "Moon", "vibe": "Harmony, family bonding and emotional comfort." },
+      "3": { "ruler": "Jupiter", "vibe": "Growth, wisdom and prosperity — considered very lucky." },
+      "4": { "ruler": "Rahu", "vibe": "Stability through effort; plan finances carefully." },
+      "5": { "ruler": "Mercury", "vibe": "Business, communication and quick fortune — highly favourable." },
+      "6": { "ruler": "Venus", "vibe": "Luxury, love and domestic bliss — excellent for family homes." },
+      "7": { "ruler": "Ketu", "vibe": "Peace and spirituality; steady rather than flashy gains." },
+      "8": { "ruler": "Saturn", "vibe": "Rewards after patience and discipline; mixed but powerful." },
+      "9": { "ruler": "Mars", "vibe": "Energy, courage and drive — a strong, action-oriented number." }
+    },
+    "muhuratTips": [
+      "Griha Pravesh (house-warming) is traditionally done in the months of Magha, Phalguna, Vaishakha and Jyeshtha.",
+      "Favoured weekdays are Monday, Wednesday, Thursday and Friday; many avoid Tuesday and Saturday.",
+      "Uttarayana (Jan–Jul, the sun's northward journey) is preferred over Dakshinayana for new beginnings.",
+      "Avoid the Adhik Maas (extra lunar month), eclipses and the Pitru Paksha fortnight for registrations."
+    ]
   }
 }

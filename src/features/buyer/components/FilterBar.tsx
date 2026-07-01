@@ -2,6 +2,7 @@ import { ScrollView, View } from 'react-native';
 
 import { Chip } from '@/components/ui/Chip';
 import { Text } from '@/components/ui/Text';
+import { FACINGS } from '@/features/astro/vastu';
 import type { PropertyFilters } from '../types';
 
 interface Option {
@@ -87,6 +88,24 @@ export function FilterBar({
             />
           );
         })}
+      </ScrollView>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerClassName="gap-2 pr-4 items-center">
+        <Text variant="caption" className="mr-1">
+          🧭 Facing
+        </Text>
+        <Chip label="Any" active={!filters.facing} onPress={() => onChange({ facing: null })} />
+        {FACINGS.map((f) => (
+          <Chip
+            key={f}
+            label={f}
+            active={filters.facing === f}
+            onPress={() => onChange({ facing: filters.facing === f ? null : f })}
+          />
+        ))}
       </ScrollView>
 
       <ScrollView

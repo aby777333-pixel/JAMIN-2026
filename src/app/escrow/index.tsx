@@ -9,6 +9,7 @@ import { MoneyText } from '@/components/ui/MoneyText';
 import { Screen } from '@/components/ui/Screen';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
+import { AuspiciousDatesCard } from '@/features/astro/AuspiciousDatesCard';
 import { useMyEscrow, useSetEscrowStatus } from '@/features/escrow/hooks';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
@@ -23,6 +24,11 @@ export default function Escrow() {
     <Screen contentClassName="pb-10 gap-3">
       <BackHeader title="Escrow & milestones" />
       <Text variant="caption">Booking payments held in stages and released as each milestone is met.</Text>
+
+      <AuspiciousDatesCard
+        title="Auspicious days to complete a milestone"
+        subtitle="Consider timing your payment or possession on a favourable day."
+      />
 
       {isLoading ? (
         <ActivityIndicator color={color.red} className="mt-6" />

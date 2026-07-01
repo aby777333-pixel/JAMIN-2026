@@ -4,6 +4,7 @@ import { Alert, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { Text } from '@/components/ui/Text';
+import { auspiciousNote, isAuspiciousDay } from '@/features/astro/muhurat';
 import { useBookSiteVisit } from '../hooks';
 import { useBookVisit } from '@/features/visits/hooks';
 import { Sheet } from './EnquirySheet';
@@ -32,17 +33,20 @@ export function SiteVisitSheet({
   const [slotIdx, setSlotIdx] = useState(0);
 
   const days = useMemo(() => {
-    const out: { label: string; date: Date }[] = [];
+    const out: { label: string; date: Date; auspicious: boolean }[] = [];
     for (let i = 1; i <= 5; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
       out.push({
         label: d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }),
         date: d,
+        auspicious: isAuspiciousDay(d),
       });
     }
     return out;
   }, []);
+
+  const selectedAuspicious = days[dayIdx]?.auspicious ? auspiciousNote(days[dayIdx].date) : null;
 
   async function confirm() {
     const d = new Date(days[dayIdx].date);
@@ -68,11 +72,26 @@ export function SiteVisitSheet({
       <Text variant="label" className="mb-2">
         Pick a day
       </Text>
-      <View className="mb-4 flex-row flex-wrap gap-2">
+      <View className="mb-2 flex-row flex-wrap gap-2">
         {days.map((d, i) => (
-          <Chip key={d.label} label={d.label} active={dayIdx === i} onPress={() => setDayIdx(i)} />
+          <Chip
+            key={d.label}
+            label={d.auspicious ? `${d.label} ✨` : d.label}
+            active={dayIdx === i}
+            onPress={() => setDayIdx(i)}
+          />
         ))}
       </View>
+      {selectedAuspicious ? (
+        <View className="mb-4 flex-row items-start gap-2 rounded-2xl border border-gold/40 bg-gold/10 p-2.5">
+          <Text className="text-[13px]">✨</Text>
+          <Text variant="caption" className="flex-1 text-gold-deep">
+            Auspicious day — {selectedAuspicious}.
+          </Text>
+        </View>
+      ) : (
+        <View className="mb-4" />
+      )}
 
       <Text variant="label" className="mb-2">
         Time slot

@@ -10,6 +10,7 @@ import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { useProjects, usePropertyTypes } from '@/features/buyer/hooks';
 import { useCreateListing } from '@/features/seller/hooks';
+import { FACINGS } from '@/features/astro/vastu';
 import { color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
 
@@ -27,6 +28,7 @@ export default function NewListing() {
   const [zoning, setZoning] = useState('');
   const [ownership, setOwnership] = useState('');
   const [area, setArea] = useState('');
+  const [facing, setFacing] = useState<string | null>(null);
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
 
@@ -48,6 +50,7 @@ export default function NewListing() {
         zoning: zoning.trim() || undefined,
         ownership: ownership.trim() || undefined,
         area: area.trim() || undefined,
+        facing: facing ?? undefined,
         lat: !isNaN(latNum) ? latNum : null,
         lng: !isNaN(lngNum) ? lngNum : null,
       });
@@ -104,6 +107,15 @@ export default function NewListing() {
       <Input label="Plot area (optional)" value={area} onChangeText={setArea} placeholder="e.g. 2400 sq ft" />
       <Input label="Land category / zoning (optional)" value={zoning} onChangeText={setZoning} placeholder="Residential / Commercial / Agricultural" />
       <Input label="Ownership / document status (optional)" value={ownership} onChangeText={setOwnership} placeholder="Clear title / Patta / Khata-A" />
+
+      <View className="gap-1.5">
+        <Text variant="label">Facing (Vastu) — optional</Text>
+        <View className="flex-row flex-wrap gap-2">
+          {FACINGS.map((f) => (
+            <Chip key={f} label={f} active={facing === f} onPress={() => setFacing(facing === f ? null : f)} />
+          ))}
+        </View>
+      </View>
 
       <View className="flex-row gap-3">
         <View className="flex-1">

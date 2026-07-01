@@ -48,6 +48,8 @@ export interface PropertyFilters {
   savedOnly?: boolean;
   premiumOnly?: boolean;
   verifiedOnly?: boolean;
+  /** Vastu facing (matches attrs.Facing, e.g. 'North-East'). */
+  facing?: string | null;
   sort?: 'plot' | 'price_asc' | 'price_desc' | 'newest';
 }
 

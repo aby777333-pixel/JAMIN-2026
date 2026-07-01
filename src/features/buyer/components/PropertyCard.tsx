@@ -8,6 +8,7 @@ import { MoneyText } from '@/components/ui/MoneyText';
 import { Text } from '@/components/ui/Text';
 import { ReraBadge } from './ReraBadge';
 import { propertyFortune } from '@/features/astro/engine';
+import { readFacing } from '@/features/astro/vastu';
 import { color } from '@/theme/tokens';
 import type { PropertyListItem } from '../types';
 
@@ -32,6 +33,7 @@ export function PropertyCard({
   const img = firstImage(item.media);
   const customTitle = typeof item.attrs?.title === 'string' ? (item.attrs.title as string) : null;
   const fortune = propertyFortune({ id: item.id, plotCode: item.plot_code, price: item.price, project: item.project?.name });
+  const facing = readFacing(item.attrs);
   return (
     <Pressable
       onPress={() => router.push(`/property/${item.id}`)}
@@ -79,6 +81,18 @@ export function PropertyCard({
             {item.project.location}
           </Text>
         ) : null}
+        <View className="flex-row flex-wrap items-center gap-1.5 pt-0.5">
+          {facing ? (
+            <View className="flex-row items-center gap-1 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5">
+              <Ionicons name="compass" size={11} color={color.goldDeep} />
+              <Text className="text-[11px] font-semibold text-gold-deep">{facing} facing</Text>
+            </View>
+          ) : null}
+          <View className="flex-row items-center gap-1 rounded-full bg-ink/[0.06] px-2 py-0.5">
+            <Ionicons name="sparkles" size={10} color={color.muted} />
+            <Text className="text-[11px] font-medium text-muted">Mulank {fortune.mulank}</Text>
+          </View>
+        </View>
         <ReraBadge
           status={item.project?.rera_status}
           validTill={item.project?.rera_valid_till}

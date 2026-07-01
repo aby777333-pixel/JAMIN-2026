@@ -34,6 +34,7 @@ export interface CreateListingInput {
   zoning?: string;
   ownership?: string;
   area?: string;
+  facing?: string;
   lat?: number | null;
   lng?: number | null;
 }
@@ -55,6 +56,7 @@ export async function createListing(input: CreateListingInput): Promise<string> 
   if (input.zoning) attrs['Land category / zoning'] = input.zoning;
   if (input.ownership) attrs['Ownership / document status'] = input.ownership;
   if (input.area) attrs['Plot area'] = input.area;
+  if (input.facing) attrs['Facing'] = input.facing;
 
   const body: PropertyInsert = {
     project_id: input.projectId,

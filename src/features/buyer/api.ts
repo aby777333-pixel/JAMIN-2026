@@ -41,6 +41,8 @@ export async function listProperties(filters: PropertyFilters): Promise<Property
   if (filters.priceMax != null) q = q.lte('price', filters.priceMax);
   if (filters.premiumOnly) q = q.eq('is_premium', true);
   if (filters.verifiedOnly) q = q.eq('verified_seller', true);
+  // Vastu facing lives in attrs.Facing (same jsonb pattern as attrs->>featured).
+  if (filters.facing) q = q.eq('attrs->>Facing', filters.facing);
   if (filters.search && filters.search.trim()) q = q.ilike('plot_code', `%${filters.search.trim()}%`);
   if (savedIds) q = q.in('id', savedIds);
 

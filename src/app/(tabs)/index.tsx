@@ -13,6 +13,7 @@ import { Screen } from '@/components/ui/Screen';
 import { StatCard } from '@/components/ui/StatCard';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
+import { FestivalBanner } from '@/features/astro/FestivalBanner';
 import { PropertyCard } from '@/features/buyer/components/PropertyCard';
 import { useFeaturedProperties, useToggleWishlist, useWishlistIds } from '@/features/buyer/hooks';
 import { useAnnouncements, useContent } from '@/features/content/hooks';
@@ -93,6 +94,8 @@ export default function Home() {
           </Pressable>
         </View>
       </View>
+
+      <FestivalBanner />
 
       {/* Minimal referral code strip */}
       <Card className="flex-row items-center justify-between gap-3 bg-charcoal">

@@ -7,9 +7,11 @@ import en from '@/locales/en.json';
 import gu from '@/locales/gu.json';
 import hi from '@/locales/hi.json';
 import kn from '@/locales/kn.json';
+import ml from '@/locales/ml.json';
 import mr from '@/locales/mr.json';
 import ta from '@/locales/ta.json';
 import te from '@/locales/te.json';
+import ur from '@/locales/ur.json';
 
 /**
  * i18n — SuperPrompt §2. English default; structure ready for Indian languages:
@@ -20,8 +22,10 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'en', label: 'English' },
   { code: 'hi', label: 'हिन्दी' },
   { code: 'ta', label: 'தமிழ்' },
+  { code: 'ml', label: 'മലയാളം' },
   { code: 'te', label: 'తెలుగు' },
   { code: 'kn', label: 'ಕನ್ನಡ' },
+  { code: 'ur', label: 'اردو' },
   { code: 'mr', label: 'मराठी' },
   { code: 'bn', label: 'বাংলা' },
   { code: 'gu', label: 'ગુજરાતી' },
@@ -31,8 +35,10 @@ const resources = {
   en: { translation: en },
   hi: { translation: hi },
   ta: { translation: ta },
+  ml: { translation: ml },
   te: { translation: te },
   kn: { translation: kn },
+  ur: { translation: ur },
   mr: { translation: mr },
   bn: { translation: bn },
   gu: { translation: gu },
