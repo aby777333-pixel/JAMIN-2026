@@ -1,11 +1,13 @@
 // JAMIN Properties — image-enhance Edge Function (§14 AI Photo Enhancement).
-// Server-side image upscaler/enhancer via Replicate. The key lives only here
-// (REPLICATE_API_TOKEN); until it's set the function returns { configured:false }.
+// Server-side image upscaler/enhancer via Replicate. The token comes from the
+// REPLICATE_API_TOKEN env secret, falling back to the service-role-only
+// public.app_secrets table (key 'replicate_api_token') when the env isn't set.
+// Until a token exists the function returns { configured:false }.
 // Default model: nightmareai/real-esrgan (override with REPLICATE_MODEL).
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
-const TOKEN = Deno.env.get('REPLICATE_API_TOKEN');
+const ENV_TOKEN = Deno.env.get('REPLICATE_API_TOKEN');
 const MODEL = Deno.env.get('REPLICATE_MODEL') ?? 'nightmareai/real-esrgan';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -31,7 +33,23 @@ Deno.serve(async (req) => {
     const { image_base64, mime } = await req.json().catch(() => ({}));
     if (!image_base64) return json({ error: 'image_base64 required' }, 400);
 
-    if (!TOKEN) {
+    // Token: env secret first, then the service-role-only app_secrets fallback.
+    let token = ENV_TOKEN;
+    if (!token) {
+      try {
+        const svc0 = createClient(SUPABASE_URL, SERVICE_KEY);
+        const { data: sec } = await svc0
+          .from('app_secrets')
+          .select('value')
+          .eq('key', 'replicate_api_token')
+          .maybeSingle();
+        token = (sec as { value?: string } | null)?.value ?? undefined;
+      } catch {
+        /* ignore — treated as unconfigured below */
+      }
+    }
+
+    if (!token) {
       return json({
         configured: false,
         message: 'AI photo enhancement is not enabled yet. Add a Replicate token to switch it on.',
@@ -42,7 +60,7 @@ Deno.serve(async (req) => {
     const res = await fetch(`https://api.replicate.com/v1/models/${MODEL}/predictions`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${TOKEN}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
         Prefer: 'wait=55',
       },

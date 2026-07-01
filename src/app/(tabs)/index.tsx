@@ -98,13 +98,13 @@ export default function Home() {
       <FestivalBanner />
 
       {/* Minimal referral code strip */}
-      <Card className="flex-row items-center justify-between gap-3 bg-charcoal">
+      <Card className="flex-row items-center justify-between gap-3 bg-charcoal !py-3">
         <View className="flex-1">
-          <Text className="font-medium text-[10px] uppercase tracking-[2px] text-gold">
+          <Text className="font-medium text-[10px] leading-[14px] uppercase tracking-[2px] text-gold">
             Referral code
           </Text>
           <Text
-            className="font-mono-bold text-[19px] text-white tracking-[1px]"
+            className="font-mono-bold text-[18px] leading-[24px] text-white tracking-[1px]"
             numberOfLines={1}>
             {profile?.referral_code ?? '—'}
           </Text>

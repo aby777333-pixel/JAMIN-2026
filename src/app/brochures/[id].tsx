@@ -7,6 +7,8 @@ import { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 
+import { Ionicons } from '@expo/vector-icons';
+
 import { AgentStamp } from '@/components/brand/AgentStamp';
 import { ShareChannels } from '@/components/share/ShareChannels';
 import { BackHeader } from '@/components/ui/BackHeader';
@@ -16,13 +18,15 @@ import { Text } from '@/components/ui/Text';
 import { logBrochure, useBrochureTemplate } from '@/features/marketing/brochures';
 import { logArtifactShare, referralUrl, shareImageFile } from '@/features/marketing/share';
 import { useAuth } from '@/stores/auth';
-import { BRAND, color } from '@/theme/tokens';
+import { BRAND, TAGLINE, color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
 
 export default function BrochurePreview() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: tpl, isLoading } = useBrochureTemplate(id);
   const profile = useAuth((s) => s.profile);
+  const isRealAdmin = useAuth((s) => s.isRealAdmin);
+  const verified = isRealAdmin || profile?.kyc_status === 'verified';
   const ref = useRef<View>(null);
   const [busy, setBusy] = useState(false);
 
@@ -119,46 +123,71 @@ export default function BrochurePreview() {
     <Screen contentClassName="pb-10 gap-4">
       <BackHeader title={tpl.name} />
 
-      {/* Captured poster */}
+      {/* Captured poster — creative flyer / banner */}
       <View
         ref={ref}
         collapsable={false}
         className="overflow-hidden rounded-2xl bg-surface border border-line"
         style={{ width: w, height: h, alignSelf: 'center' }}>
-        <View style={{ height: 10, backgroundColor: accent }} />
-        <View className="flex-1 p-5 justify-between">
+        {/* Banner header */}
+        <View style={{ backgroundColor: accent }} className="px-5 pb-3.5 pt-4">
+          <Text className="font-medium text-[11px] uppercase tracking-[3px] text-white">{BRAND}</Text>
+          <Text className="mt-0.5 font-medium text-[9px] uppercase tracking-[2px] text-white/75">
+            {TAGLINE}
+          </Text>
+        </View>
+
+        <View className="flex-1 px-5 py-4 justify-between">
           <View>
-            <Text className="font-medium text-[11px] uppercase tracking-[3px]" style={{ color: accent }}>
-              {BRAND}
-            </Text>
-            <Text className="mt-6 font-black text-[30px] leading-[34px] text-ink">
+            <Text className="font-black text-[26px] leading-[30px] text-ink">
               {tpl.config.headline ?? 'Own a piece of fortune'}
             </Text>
             {tpl.config.subhead ? (
-              <Text className="mt-2 text-[15px] text-muted">{tpl.config.subhead}</Text>
+              <Text className="mt-1.5 text-[14px] text-muted">{tpl.config.subhead}</Text>
             ) : null}
-            {tpl.config.body ? (
-              <Text className="mt-4 text-[13px] text-ink">{tpl.config.body}</Text>
-            ) : (
-              <Text className="mt-4 text-[13px] text-ink">
-                Premium plots, villas, apartments & commercial spaces. Dynamic inventory, transparent
-                pricing, expert guidance.
-              </Text>
-            )}
+            <Text className="mt-3 text-[13px] leading-[19px] text-ink">
+              {tpl.config.body ??
+                'Premium plots, villas, apartments & commercial spaces. Dynamic inventory, transparent pricing, expert guidance.'}
+            </Text>
+
+            {/* Trust badges */}
+            <View className="mt-4 flex-row flex-wrap gap-2">
+              {['RERA-ready', 'Verified listings', 'Vastu-guided'].map((b) => (
+                <View
+                  key={b}
+                  className="flex-row items-center gap-1 rounded-full px-2.5 py-1"
+                  style={{ backgroundColor: `${accent}14` }}>
+                  <Ionicons name="checkmark-circle" size={12} color={accent} />
+                  <Text className="text-[11px] font-semibold" style={{ color: accent }}>
+                    {b}
+                  </Text>
+                </View>
+              ))}
+            </View>
+
             {tpl.config.cta ? (
-              <View className="mt-5 self-start rounded-full px-4 py-2" style={{ backgroundColor: accent }}>
+              <View className="mt-4 self-start rounded-full px-4 py-2" style={{ backgroundColor: accent }}>
                 <Text className="font-semibold text-[13px] text-white">{tpl.config.cta}</Text>
               </View>
             ) : null}
           </View>
 
-          <View className="rounded-2xl bg-charcoal p-3">
+          {/* Enhanced sender / advisor card */}
+          <View
+            className="rounded-2xl p-3"
+            style={{ backgroundColor: color.charcoal, borderWidth: 1.5, borderColor: accent }}>
+            <View className="mb-2 flex-row items-center gap-1">
+              <Text className="font-medium text-[9px] uppercase tracking-[1.5px] text-gold">
+                Your property advisor
+              </Text>
+              {verified ? <Ionicons name="checkmark-circle" size={12} color={color.success} /> : null}
+            </View>
             <AgentStamp
               name={profile?.full_name ?? 'JAMIN Partner'}
               phone={profile?.phone}
               referralCode={code}
               photoUrl={profile?.photo_url}
-              qrSize={58}
+              qrSize={56}
             />
           </View>
         </View>
