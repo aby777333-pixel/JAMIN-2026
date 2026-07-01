@@ -29,6 +29,7 @@ import { ReviewsPanel } from '@/features/reviews/ReviewsPanel';
 import { AddToShortlistSheet } from '@/features/shortlists/AddToShortlistSheet';
 import { CobrokeSheet } from '@/features/cobroke/CobrokeSheet';
 import { AiPropertyPanel } from '@/features/ai/AiPropertyPanel';
+import { FortunePanel } from '@/features/astro/FortunePanel';
 import { JourneyTracker } from '@/features/journey/JourneyTracker';
 import { useMyWatchIds, useToggleWatch } from '@/features/watch/hooks';
 import { OfferSheet } from '@/features/offers/OfferSheet';
@@ -247,6 +248,16 @@ export default function PropertyDetail() {
           <Text variant="body" className="text-ink">{description}</Text>
         </View>
       ) : null}
+
+      <FortunePanel
+        property={{
+          id: property.id,
+          plotCode: property.plot_code,
+          price: property.price,
+          project: property.project?.name,
+          location: property.project?.location,
+        }}
+      />
 
       <Card className="flex-row flex-wrap gap-y-3">
         <Detail label="Type" value={property.type?.name ?? '—'} />

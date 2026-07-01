@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Text } from '@/components/ui/Text';
 import { ReraBadge } from './ReraBadge';
+import { propertyFortune } from '@/features/astro/engine';
 import { color } from '@/theme/tokens';
 import type { PropertyListItem } from '../types';
 
@@ -30,6 +31,7 @@ export function PropertyCard({
 }) {
   const img = firstImage(item.media);
   const customTitle = typeof item.attrs?.title === 'string' ? (item.attrs.title as string) : null;
+  const fortune = propertyFortune({ id: item.id, plotCode: item.plot_code, price: item.price, project: item.project?.name });
   return (
     <Pressable
       onPress={() => router.push(`/property/${item.id}`)}
@@ -57,6 +59,10 @@ export function PropertyCard({
             label={item.status}
             tone={item.status === 'available' ? 'available' : item.status === 'reserved' ? 'reserved' : 'sold'}
           />
+        </View>
+        <View className="absolute bottom-2 left-2 flex-row items-center gap-1 rounded-full bg-[#1A1A1A]/75 px-2 py-1">
+          <Ionicons name="sparkles" size={11} color={color.gold} />
+          <Text className="text-[11px] font-semibold text-white">{fortune.score} Fortune</Text>
         </View>
       </View>
 
