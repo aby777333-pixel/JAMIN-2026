@@ -6,18 +6,16 @@
  */
 
 import { FESTIVALS } from './festivals';
-
-/** Weekdays traditionally favoured for auspicious activity (Mon, Wed, Thu, Fri). */
-const AUSPICIOUS_WEEKDAYS = new Set([1, 3, 4, 5]);
+import { panchang } from './panchang';
 
 const WEEKDAY_BLESSING: Record<number, string> = {
-  0: 'Sunday — Surya’s day, good for bold, confident steps',
-  1: 'Monday — Chandra’s day, gentle and harmonious',
-  2: 'Tuesday — Mangal’s day, strong energy for the determined',
-  3: 'Wednesday — Budh’s day, excellent for deals & paperwork',
-  4: 'Thursday — Guru’s day, most blessed for wealth & property',
-  5: 'Friday — Shukra’s day, brings comfort and prosperity',
-  6: 'Saturday — Shani’s day, best for patient, long-term decisions',
+  0: 'Surya’s day',
+  1: 'Chandra’s day',
+  2: 'Mangal’s day',
+  3: 'Budh’s day',
+  4: 'Guru’s day — most blessed for wealth',
+  5: 'Shukra’s day',
+  6: 'Shani’s day',
 };
 
 function ymd(d: Date): string {
@@ -32,16 +30,20 @@ export function isFestivalDay(date: Date): boolean {
   return FESTIVAL_DATES.has(ymd(date));
 }
 
-/** A generally-auspicious day: a favoured weekday or a festival. */
+/**
+ * A generally-auspicious day, from the real panchang (tithi + nakshatra + vara)
+ * or a festival. Festivals always count, even on an otherwise-quiet day.
+ */
 export function isAuspiciousDay(date: Date): boolean {
-  return isFestivalDay(date) || AUSPICIOUS_WEEKDAYS.has(date.getDay());
+  return isFestivalDay(date) || panchang(date).auspicious;
 }
 
 /** A short, positive reason a day is auspicious (festival takes precedence). */
 export function auspiciousNote(date: Date): string {
   const fest = FESTIVALS.find((f) => f.date === ymd(date));
   if (fest) return `${fest.name} — a specially auspicious day`;
-  return WEEKDAY_BLESSING[date.getDay()];
+  const p = panchang(date);
+  return `${p.nakshatraName} nakshatra · ${p.tithiName} · ${WEEKDAY_BLESSING[p.vara]}`;
 }
 
 export interface AuspiciousDay {

@@ -1,24 +1,19 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { upcomingFestival } from '@/features/astro/festivals';
-import { isAuspiciousDay, isFestivalDay, nextAuspiciousDates } from '@/features/astro/muhurat';
+import { auspiciousNote, isAuspiciousDay, isFestivalDay, nextAuspiciousDates } from '@/features/astro/muhurat';
+import { panchang } from '@/features/astro/panchang';
 
-describe('muhurat helper (positive-only, deterministic)', () => {
-  it('flags favourable weekdays (Mon/Wed/Thu/Fri) as auspicious', () => {
-    // 2026-07-06 is a Monday.
-    expect(isAuspiciousDay(new Date(2026, 6, 6))).toBe(true); // Mon
-    expect(isAuspiciousDay(new Date(2026, 6, 8))).toBe(true); // Wed
-    expect(isAuspiciousDay(new Date(2026, 6, 9))).toBe(true); // Thu
-    expect(isAuspiciousDay(new Date(2026, 6, 10))).toBe(true); // Fri
-    expect(isAuspiciousDay(new Date(2026, 6, 7))).toBe(false); // Tue
-    expect(isAuspiciousDay(new Date(2026, 6, 11))).toBe(false); // Sat
-  });
+// Tithis traditionally avoided (Rikta, Ashtami, Amavasya) — mirrors panchang.ts.
+const AVOID = new Set([4, 8, 9, 14, 19, 23, 24, 29, 30]);
 
-  it('recognises festival days as auspicious even on an off weekday', () => {
-    // Diwali 2026-11-08 is a Sunday (normally not a favoured weekday).
+describe('muhurat helper (panchang-driven, positive-only)', () => {
+  it('recognises festival days as auspicious even on an off day', () => {
+    // Diwali 2026-11-08 falls on Amavasya (an otherwise-avoided tithi).
     const diwali = new Date(2026, 10, 8);
     expect(isFestivalDay(diwali)).toBe(true);
     expect(isAuspiciousDay(diwali)).toBe(true);
+    expect(auspiciousNote(diwali)).toContain('Diwali');
   });
 
   it('nextAuspiciousDates returns the requested count, all auspicious & in the future', () => {
@@ -32,6 +27,15 @@ describe('muhurat helper (positive-only, deterministic)', () => {
     }
   });
 
+  it('non-festival auspicious days never fall on an avoided tithi', () => {
+    const days = nextAuspiciousDates(new Date(2026, 6, 1), 12);
+    for (const d of days) {
+      if (!d.festival) {
+        expect(AVOID.has(panchang(d.date).tithi)).toBe(false);
+      }
+    }
+  });
+
   it('upcomingFestival finds the nearest festival within the window', () => {
     const f = upcomingFestival(new Date(2026, 6, 1), 45);
     expect(f).not.toBeNull();
@@ -40,7 +44,6 @@ describe('muhurat helper (positive-only, deterministic)', () => {
   });
 
   it('upcomingFestival returns null when none is near', () => {
-    // Far from any listed festival window.
     const f = upcomingFestival(new Date(2026, 11, 1), 5);
     expect(f).toBeNull();
   });
