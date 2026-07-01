@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
 import { AuspiciousDatesCard } from '@/features/astro/AuspiciousDatesCard';
@@ -32,6 +33,7 @@ const STEPS: { key: string; label: string; note: string }[] = [
 ];
 
 export default function GrihaPravesh() {
+  const { t } = useTranslation();
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [loaded, setLoaded] = useState(false);
 
@@ -75,8 +77,8 @@ export default function GrihaPravesh() {
       </Card>
 
       <AuspiciousDatesCard
-        title="Auspicious days for Griha Pravesh"
-        subtitle="Favourable days to hold your housewarming ceremony."
+        title={t('astro.dates.grihaTitle')}
+        subtitle={t('astro.dates.grihaSubtitle')}
       />
 
       <View className="gap-2">

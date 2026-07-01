@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
 import { Text } from '@/components/ui/Text';
@@ -14,12 +15,17 @@ import { useFestivals } from './hooks';
  * Renders nothing when no festival is within the window. Positive-only.
  */
 export function FestivalBanner({ withinDays = 45 }: { withinDays?: number }) {
+  const { t } = useTranslation();
   const { data: festivals = FESTIVALS } = useFestivals();
   const fest = useMemo(() => upcomingFestival(new Date(), withinDays, festivals), [withinDays, festivals]);
   if (!fest) return null;
 
   const when =
-    fest.inDays === 0 ? 'Today' : fest.inDays === 1 ? 'Tomorrow' : `in ${fest.inDays} days`;
+    fest.inDays === 0
+      ? t('astro.festival.today')
+      : fest.inDays === 1
+        ? t('astro.festival.tomorrow')
+        : t('astro.festival.inDays', { count: fest.inDays });
 
   return (
     <Pressable onPress={() => router.push('/properties')}>
@@ -37,7 +43,7 @@ export function FestivalBanner({ withinDays = 45 }: { withinDays?: number }) {
           {fest.blurb}
         </Text>
         <View className="flex-row items-center gap-1 pt-0.5">
-          <Text className="text-[12px] font-semibold text-red">Explore auspicious plots</Text>
+          <Text className="text-[12px] font-semibold text-red">{t('astro.festival.explore')}</Text>
           <Ionicons name="arrow-forward" size={13} color={color.red} />
         </View>
       </View>

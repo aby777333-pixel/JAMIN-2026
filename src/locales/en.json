@@ -339,5 +339,36 @@
       "Uttarayana (Jan–Jul, the sun's northward journey) is preferred over Dakshinayana for new beginnings.",
       "Avoid the Adhik Maas (extra lunar month), eclipses and the Pitru Paksha fortnight for registrations."
     ]
+  },
+  "astro": {
+    "fortune": {
+      "title": "Auspicious Insights",
+      "index": "Prosperity Index",
+      "rulingPlanet": "Ruling planet",
+      "element": "Element",
+      "luckyGem": "Lucky gem",
+      "wealthDirection": "Wealth direction",
+      "birthStar": "Birth-star",
+      "prosperityNo": "Prosperity no.",
+      "luckyColour": "Lucky colour",
+      "personalise": "PERSONALISE WITH YOUR RASHI",
+      "tapMoon": "Tap your moon sign for a personal note.",
+      "disclaimer": "Shared for positivity & tradition — a warm blessing, never a guarantee."
+    },
+    "dates": {
+      "defaultTitle": "Auspicious days ahead",
+      "defaultSubtitle": "Favourable days to visit, book or complete your purchase.",
+      "disclaimer": "Traditional guidance — please confirm the exact muhurat with your panchang or priest.",
+      "escrowTitle": "Auspicious days to complete a milestone",
+      "escrowSubtitle": "Consider timing your payment or possession on a favourable day.",
+      "grihaTitle": "Auspicious days for Griha Pravesh",
+      "grihaSubtitle": "Favourable days to hold your housewarming ceremony."
+    },
+    "festival": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "inDays": "in {{count}} days",
+      "explore": "Explore auspicious plots"
+    }
   }
 }

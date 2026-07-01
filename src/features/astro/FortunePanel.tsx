@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
@@ -13,18 +14,19 @@ import { propertyFortune, rashiHarmony, RASHIS, type FortuneInput } from './engi
  * property. Deterministic (see engine.ts), purely decorative, no network/DB.
  */
 export function FortunePanel({ property }: { property: FortuneInput }) {
+  const { t } = useTranslation();
   const [rashi, setRashi] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const f = useMemo(() => propertyFortune(property), [property]);
 
   const facets: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string }[] = [
-    { icon: 'planet', label: 'Ruling planet', value: `${f.planet} (${f.graha})` },
-    { icon: 'flame', label: 'Element', value: f.element.split(' — ')[0] },
-    { icon: 'diamond', label: 'Lucky gem', value: f.gem },
-    { icon: 'compass', label: 'Wealth direction', value: f.direction.split(' — ')[0] },
-    { icon: 'star', label: 'Birth-star', value: f.nakshatra.split(' — ')[0] },
-    { icon: 'sparkles', label: 'Prosperity no.', value: String(f.mulank) },
-    { icon: 'color-palette', label: 'Lucky colour', value: f.color },
+    { icon: 'planet', label: t('astro.fortune.rulingPlanet'), value: `${f.planet} (${f.graha})` },
+    { icon: 'flame', label: t('astro.fortune.element'), value: f.element.split(' — ')[0] },
+    { icon: 'diamond', label: t('astro.fortune.luckyGem'), value: f.gem },
+    { icon: 'compass', label: t('astro.fortune.wealthDirection'), value: f.direction.split(' — ')[0] },
+    { icon: 'star', label: t('astro.fortune.birthStar'), value: f.nakshatra.split(' — ')[0] },
+    { icon: 'sparkles', label: t('astro.fortune.prosperityNo'), value: String(f.mulank) },
+    { icon: 'color-palette', label: t('astro.fortune.luckyColour'), value: f.color },
   ];
 
   return (
@@ -32,11 +34,11 @@ export function FortunePanel({ property }: { property: FortuneInput }) {
       <View className="flex-row items-center gap-2">
         <Ionicons name="sparkles" size={18} color={color.goldDeep} />
         <Text variant="title" className="flex-1">
-          Auspicious Insights
+          {t('astro.fortune.title')}
         </Text>
         <View className="items-end">
           <Text className="font-mono-bold text-[22px] text-gold-deep">{f.score}</Text>
-          <Text variant="caption">Prosperity Index</Text>
+          <Text variant="caption">{t('astro.fortune.index')}</Text>
         </View>
       </View>
 
@@ -87,7 +89,7 @@ export function FortunePanel({ property }: { property: FortuneInput }) {
           variant="label"
           onPress={() => setOpen((v) => !v)}
           className="text-gold-deep">
-          {open ? '▾ ' : '▸ '}PERSONALISE WITH YOUR RASHI
+          {open ? '▾ ' : '▸ '}{t('astro.fortune.personalise')}
         </Text>
         {open ? (
           <>
@@ -108,14 +110,14 @@ export function FortunePanel({ property }: { property: FortuneInput }) {
                 </Text>
               </View>
             ) : (
-              <Text variant="caption">Tap your moon sign for a personal note.</Text>
+              <Text variant="caption">{t('astro.fortune.tapMoon')}</Text>
             )}
           </>
         ) : null}
       </View>
 
       <Text variant="caption" className="text-muted">
-        Shared for positivity &amp; tradition — a warm blessing, never a guarantee.
+        {t('astro.fortune.disclaimer')}
       </Text>
     </Card>
   );

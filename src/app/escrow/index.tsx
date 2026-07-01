@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
@@ -16,6 +17,7 @@ import { color } from '@/theme/tokens';
 
 /** Escrow & token milestones — staged booking payments with controlled release. */
 export default function Escrow() {
+  const { t } = useTranslation();
   const myId = useAuth((s) => s.profile?.id);
   const { data: rows = [], isLoading } = useMyEscrow();
   const setStatus = useSetEscrowStatus();
@@ -26,8 +28,8 @@ export default function Escrow() {
       <Text variant="caption">Booking payments held in stages and released as each milestone is met.</Text>
 
       <AuspiciousDatesCard
-        title="Auspicious days to complete a milestone"
-        subtitle="Consider timing your payment or possession on a favourable day."
+        title={t('astro.dates.escrowTitle')}
+        subtitle={t('astro.dates.escrowSubtitle')}
       />
 
       {isLoading ? (

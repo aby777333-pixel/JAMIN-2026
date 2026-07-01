@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
@@ -12,25 +13,28 @@ import { nextAuspiciousDates } from './muhurat';
  * guidance for completing a booking / planning a visit. Positive-only, decorative.
  */
 export function AuspiciousDatesCard({
-  title = 'Auspicious days ahead',
-  subtitle = 'Favourable days to visit, book or complete your purchase.',
+  title,
+  subtitle,
   count = 6,
 }: {
   title?: string;
   subtitle?: string;
   count?: number;
 }) {
+  const { t } = useTranslation();
   const days = useMemo(() => nextAuspiciousDates(new Date(), count), [count]);
+  const heading = title ?? t('astro.dates.defaultTitle');
+  const sub = subtitle ?? t('astro.dates.defaultSubtitle');
 
   return (
     <Card className="gap-2 border-gold/40 bg-[#FDF3D8]">
       <View className="flex-row items-center gap-2">
         <Ionicons name="calendar" size={16} color={color.goldDeep} />
         <Text variant="title" className="flex-1 text-[15px]">
-          {title}
+          {heading}
         </Text>
       </View>
-      <Text variant="caption">{subtitle}</Text>
+      <Text variant="caption">{sub}</Text>
       <View className="flex-row flex-wrap gap-2 pt-1">
         {days.map((d) => (
           <View
@@ -47,7 +51,7 @@ export function AuspiciousDatesCard({
         ))}
       </View>
       <Text variant="caption" className="text-muted">
-        Traditional guidance — please confirm the exact muhurat with your panchang or priest.
+        {t('astro.dates.disclaimer')}
       </Text>
     </Card>
   );
