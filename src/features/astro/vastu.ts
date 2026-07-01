@@ -56,3 +56,22 @@ export function readFacing(attrs: Record<string, unknown> | null | undefined): s
   const v = attrs?.Facing ?? attrs?.facing;
   return typeof v === 'string' && v.trim() ? v : null;
 }
+
+/**
+ * A positive-leaning Vastu compliance score (60–98) from facing + corner-plot.
+ * Deterministic, guidance-only — never punishing, matching the app's positive tone.
+ */
+export function vastuScore(
+  facing: string | null,
+  attrs?: Record<string, unknown> | null,
+): number {
+  let score = 62; // encouraging baseline
+  const rating = facing ? FACING_RATING[facing as Facing] : undefined;
+  if (rating === 'auspicious') score += 28;
+  else if (rating === 'neutral') score += 16;
+  else if (rating === 'caution') score += 8;
+  else score += 14; // facing unknown — neutral, still positive
+  const corner = attrs?.['Corner plot'];
+  if (typeof corner === 'string' && /yes/i.test(corner)) score += 8;
+  return Math.max(60, Math.min(98, score));
+}

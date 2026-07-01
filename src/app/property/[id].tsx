@@ -30,6 +30,7 @@ import { AddToShortlistSheet } from '@/features/shortlists/AddToShortlistSheet';
 import { CobrokeSheet } from '@/features/cobroke/CobrokeSheet';
 import { AiPropertyPanel } from '@/features/ai/AiPropertyPanel';
 import { FortunePanel } from '@/features/astro/FortunePanel';
+import { InvestValueCard } from '@/features/invest/InvestValueCard';
 import { JourneyTracker } from '@/features/journey/JourneyTracker';
 import { useMyWatchIds, useToggleWatch } from '@/features/watch/hooks';
 import { OfferSheet } from '@/features/offers/OfferSheet';
@@ -258,6 +259,8 @@ export default function PropertyDetail() {
           location: property.project?.location,
         }}
       />
+
+      <InvestValueCard property={{ id: property.id, price: property.price, attrs: property.attrs }} />
 
       <Card className="flex-row flex-wrap gap-y-3">
         <Detail label="Type" value={property.type?.name ?? '—'} />

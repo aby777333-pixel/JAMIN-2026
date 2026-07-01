@@ -13,6 +13,7 @@ import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { toMulank } from '@/features/astro/engine';
 import { FACING_ABBR, FACING_RATING, FACINGS, facingKey, type FacingRating } from '@/features/astro/vastu';
+import { ConsultSheet } from '@/features/invest/ConsultSheet';
 import { color } from '@/theme/tokens';
 
 /**
@@ -32,6 +33,7 @@ export default function VastuScreen() {
   const [active, setActive] = useState<string>(FACINGS[0]);
   const [plotNo, setPlotNo] = useState('');
   const [result, setResult] = useState<number | null>(null);
+  const [consult, setConsult] = useState(false);
 
   const key = useMemo(() => facingKey(active), [active]);
   const rating = FACING_RATING[active as keyof typeof FACING_RATING] ?? 'neutral';
@@ -121,9 +123,18 @@ export default function VastuScreen() {
         </Card>
       </View>
 
+      <Button
+        title="Talk to a Vastu expert"
+        variant="outline"
+        left={<Ionicons name="chatbubble-ellipses" size={16} color={color.ink} />}
+        onPress={() => setConsult(true)}
+      />
+
       <Text variant="caption" className="px-1 text-center">
         {t('vastu.disclaimer')}
       </Text>
+
+      <ConsultSheet visible={consult} onClose={() => setConsult(false)} defaultTopic="Vastu" />
     </Screen>
   );
 }
