@@ -1,11 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
+import * as Sharing from 'expo-sharing';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
 import { Alert, Dimensions, Platform, ScrollView, Share, View } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
 
@@ -20,7 +23,9 @@ import { Text } from '@/components/ui/Text';
 import { callAI } from '@/features/ai/api';
 import { AD_FORMATS, type AdFormatKey } from '@/features/marketing/formats';
 import { publishAd } from '@/features/marketing/ad';
-import { logArtifactShare, shareImageFile } from '@/features/marketing/share';
+import { logArtifactShare, referralUrl, shareImageFile } from '@/features/marketing/share';
+import { brandVideo } from '@/features/video/api';
+import { uploadFileToBucket, uploadImageToBucket } from '@/lib/upload';
 import { formatINR, money } from '@/lib/money';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
@@ -57,6 +62,8 @@ export default function PosterMaker() {
   const [busy, setBusy] = useState(false);
   const [writing, setWriting] = useState(false);
   const [picking, setPicking] = useState(false);
+  const [branding, setBranding] = useState(false);
+  const brandOverlayRef = useRef<View>(null);
 
   const highlightList = useMemo(
     () =>
@@ -208,6 +215,54 @@ export default function PosterMaker() {
       await shareImageFile(uri, title || 'JAMIN Properties');
     } finally {
       setBusy(false);
+    }
+  }
+
+  /** Server-render a branded video: overlay the JAMIN strip onto the clip via Cloudinary. */
+  async function onBrandVideo() {
+    if (!media || media.kind !== 'video' || !media.sourceUri) return;
+    setBranding(true);
+    try {
+      const uid = profile?.id ?? 'anon';
+      // 1) Capture the transparent branding strip.
+      const overlayUri = await captureRef(brandOverlayRef, { format: 'png', quality: 1 });
+      // 2) Upload the strip + source video to public storage (Cloudinary fetches them).
+      const { url: overlayUrl } = await uploadImageToBucket('user-media', `${uid}/brand`, {
+        uri: overlayUri,
+        name: `strip_${Date.now()}.png`,
+        mimeType: 'image/png',
+      });
+      const { url: videoUrl } = await uploadFileToBucket(
+        'user-media',
+        `${uid}/brand`,
+        { uri: media.sourceUri, name: `src_${Date.now()}.mp4`, mimeType: media.videoMime ?? 'video/mp4' },
+        'video.mp4',
+        'video/mp4',
+      );
+      // 3) Render the branded video.
+      const res = await brandVideo(videoUrl, overlayUrl);
+      if (res.configured === false) {
+        Alert.alert('Branded video', res.message ?? 'Not enabled yet.');
+        return;
+      }
+      if (!res.url) {
+        Alert.alert('Could not create', 'No branded video was returned. Please try again.');
+        return;
+      }
+      // 4) Download and share the branded MP4.
+      if (profile?.referral_code)
+        await logArtifactShare({ artifact: 'ad', referralCode: profile.referral_code, channel: 'video' });
+      const dest = `${FileSystem.cacheDirectory}jamin_branded_${Date.now()}.mp4`;
+      const dl = await FileSystem.downloadAsync(res.url, dest);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(dl.uri, { mimeType: 'video/mp4', UTI: 'public.movie' });
+      } else {
+        await Share.share({ url: res.url, message: 'JAMIN Properties · Signature for Fortune' });
+      }
+    } catch (e) {
+      Alert.alert('Could not create branded video', errMessage(e));
+    } finally {
+      setBranding(false);
     }
   }
 
@@ -366,9 +421,40 @@ export default function PosterMaker() {
 
         <View className="mt-5 gap-3">
           <Button title="Share ad" loading={busy} onPress={onShare} />
+          {media.kind === 'video' ? (
+            <Button
+              title={branding ? 'Rendering branded video…' : '🎬 Create branded video'}
+              variant="secondary"
+              loading={branding}
+              disabled={busy}
+              onPress={onBrandVideo}
+            />
+          ) : null}
           <View className="flex-row gap-3">
             <View className="flex-1"><Button title="Save to gallery" variant="outline" onPress={onSave} disabled={busy} /></View>
             <View className="flex-1"><Button title="Change media" variant="ghost" onPress={() => setMedia(null)} disabled={busy} /></View>
+          </View>
+        </View>
+
+        {/* Off-screen branding strip captured as the video overlay (transparent bg). */}
+        <View
+          ref={brandOverlayRef}
+          collapsable={false}
+          style={{ position: 'absolute', left: -10000, top: 0, width: 1080 }}>
+          <View className="flex-row items-center gap-4 bg-black/70 px-8 py-6">
+            <View className="rounded-xl bg-red px-4 py-3">
+              <Text className="font-black text-[30px] text-white">JAMIN</Text>
+            </View>
+            <View className="flex-1">
+              <Text className="font-bold text-[30px] text-white" numberOfLines={1}>
+                {profile?.full_name ?? 'JAMIN Partner'}
+              </Text>
+              {profile?.phone ? <Text className="text-[24px] text-white/90">{profile.phone}</Text> : null}
+              <Text className="text-[18px] text-gold">Signature for Fortune</Text>
+            </View>
+            <View className="rounded-2xl bg-white p-3">
+              <QRCode value={referralUrl(profile?.referral_code ?? 'JAMIN')} size={110} />
+            </View>
           </View>
         </View>
       </ScrollView>
