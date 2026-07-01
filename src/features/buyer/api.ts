@@ -66,6 +66,17 @@ export async function listProperties(filters: PropertyFilters): Promise<Property
   return (data ?? []) as unknown as PropertyListItem[];
 }
 
+/** Honest scarcity — how many plots are still available in a project. */
+export async function getPlotsLeftInProject(projectId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('properties')
+    .select('id', { count: 'exact', head: true })
+    .eq('project_id', projectId)
+    .eq('status', 'available');
+  if (error) throw error;
+  return count ?? 0;
+}
+
 /** Properties the signed-in user has viewed, most-recent first (item 25). */
 export async function getRecentlyViewed(limit = 12): Promise<PropertyListItem[]> {
   const { data: views, error } = await supabase

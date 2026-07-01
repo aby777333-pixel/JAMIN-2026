@@ -20,6 +20,7 @@ import { NearbyAmenities } from '@/features/buyer/components/NearbyAmenities';
 import { NeighborhoodScores } from '@/features/buyer/components/NeighborhoodScores';
 import { PriceHistoryPanel } from '@/features/buyer/components/PriceHistoryPanel';
 import { PropertyGallery } from '@/features/buyer/components/PropertyGallery';
+import { PlotAppeal } from '@/features/buyer/components/PlotAppeal';
 import { RentVsBuyCalculator } from '@/features/buyer/components/RentVsBuyCalculator';
 import { ReraBadge } from '@/features/buyer/components/ReraBadge';
 import { RoiCalculator } from '@/features/buyer/components/RoiCalculator';
@@ -232,6 +233,8 @@ export default function PropertyDetail() {
         </View>
       ) : null}
 
+      {!isPending && !isRejected ? <PlotAppeal property={property} /> : null}
+
       {isPending || isRejected ? (
         <Card className={`flex-row items-center gap-2.5 ${isRejected ? 'border-danger/40 bg-danger/5' : 'border-gold/40 bg-gold/5'}`}>
           <Ionicons name={isRejected ? 'close-circle' : 'time'} size={18} color={isRejected ? color.red : color.goldDeep} />
@@ -366,6 +369,14 @@ export default function PropertyDetail() {
       {property.project_id ? <ReviewsPanel projectId={property.project_id} /> : null}
 
       <View className="gap-3">
+        <View className="flex-row flex-wrap items-center justify-center gap-x-3 gap-y-1">
+          {['Free site visit', 'No obligation', 'Escrow-protected'].map((r) => (
+            <View key={r} className="flex-row items-center gap-1">
+              <Ionicons name="shield-checkmark" size={12} color={color.success} />
+              <Text variant="caption" className="text-ink">{r}</Text>
+            </View>
+          ))}
+        </View>
         <Button title="Enquire now" onPress={() => setEnquiry(true)} />
         <Button title="Book a site visit" variant="outline" onPress={() => setVisit(true)} />
         <Button title="Add to shared shortlist" variant="outline" left={<Ionicons name="people" size={16} color={color.ink} />} onPress={() => setShortlist(true)} />

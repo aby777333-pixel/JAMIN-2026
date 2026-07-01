@@ -34,6 +34,15 @@ export function usePriceHistory(propertyId: string | undefined) {
   });
 }
 
+export function usePlotsLeft(projectId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['plots-left', projectId],
+    queryFn: () => api.getPlotsLeftInProject(projectId as string),
+    enabled: !!projectId,
+    staleTime: 60_000,
+  });
+}
+
 export function useProperty(id: string | undefined) {
   return useQuery({
     queryKey: ['property', id],
