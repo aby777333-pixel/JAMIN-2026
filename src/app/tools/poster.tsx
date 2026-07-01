@@ -7,6 +7,7 @@ import * as Sharing from 'expo-sharing';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Dimensions, Platform, ScrollView, Share, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -45,6 +46,7 @@ interface Media {
  * Creator, so output is consistent across the marketing suite.
  */
 export default function PosterMaker() {
+  const { t } = useTranslation();
   const profile = useAuth((s) => s.profile);
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ imageUri?: string }>();
@@ -270,24 +272,21 @@ export default function PosterMaker() {
   if (!media) {
     return (
       <Screen contentClassName="pb-10 gap-4" keyboardAvoiding>
-        <BackHeader title="Poster / Banner Maker" />
+        <BackHeader title={t('tools.poster.title')} />
         <Card className="items-center gap-3 py-10">
           <Ionicons name="images" size={36} color={color.gold} />
-          <Text variant="title" className="text-[15px]">Start with a photo or video</Text>
-          <Text variant="caption" className="px-6 text-center">
-            Capture live or pick a property photo or video clip — we’ll pull a clean frame — then add
-            details to build a share-ready poster.
-          </Text>
+          <Text variant="title" className="text-[15px]">{t('tools.poster.startWith')}</Text>
+          <Text variant="caption" className="px-6 text-center">{t('tools.poster.startBody')}</Text>
           <View className="w-full gap-2 px-4">
             <Button
-              title={picking ? 'Opening…' : 'Choose from gallery'}
+              title={picking ? t('tools.poster.opening') : t('tools.poster.chooseGallery')}
               loading={picking}
               onPress={pick}
             />
             <View className="flex-row gap-2">
               <View className="flex-1">
                 <Button
-                  title="Take photo"
+                  title={t('tools.poster.takePhoto')}
                   variant="outline"
                   disabled={picking}
                   left={<Ionicons name="camera" size={16} color={color.ink} />}
@@ -296,7 +295,7 @@ export default function PosterMaker() {
               </View>
               <View className="flex-1">
                 <Button
-                  title="Record video"
+                  title={t('tools.poster.recordVideo')}
                   variant="outline"
                   disabled={picking}
                   left={<Ionicons name="videocam" size={16} color={color.ink} />}
@@ -393,26 +392,26 @@ export default function PosterMaker() {
 
         {/* Details */}
         <Card className="mt-4 gap-3">
-          <Text variant="label">Details</Text>
-          <Input label="Headline / title" placeholder="e.g. Premium 2BHK Villa" value={title} onChangeText={setTitle} />
+          <Text variant="label">{t('tools.poster.details')}</Text>
+          <Input label={t('tools.poster.headline')} placeholder={t('tools.poster.headlinePh')} value={title} onChangeText={setTitle} />
           <View className="flex-row gap-3">
-            <View className="flex-1"><Input label="Price (₹)" value={price} onChangeText={setPrice} keyboardType="numeric" /></View>
-            <View className="flex-1"><Input label="Location" value={location} onChangeText={setLocation} /></View>
+            <View className="flex-1"><Input label={t('tools.poster.price')} value={price} onChangeText={setPrice} keyboardType="numeric" /></View>
+            <View className="flex-1"><Input label={t('tools.poster.location')} value={location} onChangeText={setLocation} /></View>
           </View>
           <Input
-            label="Highlights (comma or new line, up to 3)"
-            placeholder="Gated community, near IT park, ready to move"
+            label={t('tools.poster.highlights')}
+            placeholder={t('tools.poster.highlightsPh')}
             value={highlights}
             onChangeText={setHighlights}
             multiline
           />
           <View className="flex-row items-center gap-2">
-            <View className="flex-1"><Input label="Tagline" placeholder="Optional one-liner" value={tagline} onChangeText={setTagline} /></View>
+            <View className="flex-1"><Input label={t('tools.poster.tagline')} placeholder={t('tools.poster.taglinePh')} value={tagline} onChangeText={setTagline} /></View>
             <Button title={writing ? '…' : '✨ AI'} variant="secondary" className="h-12 mt-5" loading={writing} onPress={writeWithAI} />
           </View>
         </Card>
 
-        <Text variant="label" className="mb-2 mt-4">Format</Text>
+        <Text variant="label" className="mb-2 mt-4">{t('tools.poster.format')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pr-4">
           {AD_FORMATS.map((f) => (
             <Chip key={f.key} label={f.label} active={format === f.key} onPress={() => setFormat(f.key)} />
@@ -420,10 +419,10 @@ export default function PosterMaker() {
         </ScrollView>
 
         <View className="mt-5 gap-3">
-          <Button title="Share ad" loading={busy} onPress={onShare} />
+          <Button title={t('tools.poster.shareAd')} loading={busy} onPress={onShare} />
           {media.kind === 'video' ? (
             <Button
-              title={branding ? 'Rendering branded video…' : '🎬 Create branded video'}
+              title={branding ? t('tools.poster.rendering') : t('tools.poster.brandedVideo')}
               variant="secondary"
               loading={branding}
               disabled={busy}
@@ -431,8 +430,8 @@ export default function PosterMaker() {
             />
           ) : null}
           <View className="flex-row gap-3">
-            <View className="flex-1"><Button title="Save to gallery" variant="outline" onPress={onSave} disabled={busy} /></View>
-            <View className="flex-1"><Button title="Change media" variant="ghost" onPress={() => setMedia(null)} disabled={busy} /></View>
+            <View className="flex-1"><Button title={t('tools.poster.saveGallery')} variant="outline" onPress={onSave} disabled={busy} /></View>
+            <View className="flex-1"><Button title={t('tools.poster.changeMedia')} variant="ghost" onPress={() => setMedia(null)} disabled={busy} /></View>
           </View>
         </View>
 

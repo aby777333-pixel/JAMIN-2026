@@ -9,6 +9,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Linking, Platform, Pressable, ScrollView, Share, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { captureRef } from 'react-native-view-shot';
 
 import { AgentStamp } from '@/components/brand/AgentStamp';
@@ -37,6 +38,7 @@ interface Capture {
 
 export default function AdCreator() {
   const profile = useAuth((s) => s.profile);
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [perm, requestPerm] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
@@ -208,7 +210,7 @@ export default function AdCreator() {
   async function copyCoords() {
     if (capture?.lat == null || capture?.lng == null) return;
     await Clipboard.setStringAsync(`${capture.lat.toFixed(6)}, ${capture.lng.toFixed(6)}`);
-    Alert.alert('Copied', 'Coordinates copied to your clipboard.');
+    Alert.alert(t('tools.adCreator.copied'), t('tools.adCreator.coordsCopied'));
   }
 
   // ── Camera step ───────────────────────────────────────────────────────────
@@ -222,31 +224,27 @@ export default function AdCreator() {
     }
     return (
       <Screen scroll={false} contentClassName="pt-2">
-        <BackHeader title="Photo Ad Creator" />
+        <BackHeader title={t('tools.adCreator.title')} />
         <View className="mt-2 flex-1 overflow-hidden rounded-3xl bg-charcoal">
           {perm.granted ? (
             <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" />
           ) : (
             <View className="flex-1 items-center justify-center gap-3 p-6">
               <Ionicons name="camera" size={36} color={color.gold} />
-              <Text className="text-center text-white/80">
-                Camera access lets you capture a live, geo-verified property photo.
-              </Text>
-              <Button title="Enable camera" variant="secondary" onPress={requestPerm} />
+              <Text className="text-center text-white/80">{t('tools.adCreator.camAccess')}</Text>
+              <Button title={t('tools.adCreator.enableCam')} variant="secondary" onPress={requestPerm} />
             </View>
           )}
         </View>
         <View className="mt-3 flex-row gap-3">
           <View className="flex-1">
-            <Button title="Upload" variant="outline" onPress={pickPhoto} />
+            <Button title={t('tools.adCreator.upload')} variant="outline" onPress={pickPhoto} />
           </View>
           <View className="flex-[2]">
-            <Button title="Capture live" onPress={takePhoto} disabled={!perm.granted} />
+            <Button title={t('tools.adCreator.captureLive')} onPress={takePhoto} disabled={!perm.granted} />
           </View>
         </View>
-        <Text variant="caption" className="mt-2 text-center">
-          We stamp the ad with the time, location and your branding — proof it was taken on site.
-        </Text>
+        <Text variant="caption" className="mt-2 text-center">{t('tools.adCreator.stampNote')}</Text>
       </Screen>
     );
   }
@@ -262,7 +260,7 @@ export default function AdCreator() {
         contentContainerClassName="px-5"
         contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}
         showsVerticalScrollIndicator={false}>
-        <BackHeader title="Your ad" />
+        <BackHeader title={t('tools.adCreator.yourAd')} />
 
         <View
           ref={frameRef}
@@ -308,7 +306,7 @@ export default function AdCreator() {
 
         {/* Location & contact — interactive, lives OUTSIDE frameRef so the exported ad is unchanged */}
         <Card className="mt-4 gap-3">
-          <Text variant="label">Location & contact</Text>
+          <Text variant="label">{t('tools.adCreator.locationContact')}</Text>
 
           {capture.lat != null && capture.lng != null ? (
             <>
@@ -336,7 +334,7 @@ export default function AdCreator() {
                   }
                   className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
                   <Ionicons name="earth" size={16} color={color.red} />
-                  <Text className="text-[13px] font-semibold text-ink">Earth view</Text>
+                  <Text className="text-[13px] font-semibold text-ink">{t('tools.adCreator.earthView')}</Text>
                 </Pressable>
                 <Pressable
                   onPress={() =>
@@ -346,7 +344,7 @@ export default function AdCreator() {
                   }
                   className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
                   <Ionicons name="walk" size={16} color={color.red} />
-                  <Text className="text-[13px] font-semibold text-ink">Street view</Text>
+                  <Text className="text-[13px] font-semibold text-ink">{t('tools.adCreator.streetView')}</Text>
                 </Pressable>
                 <Pressable
                   onPress={() =>
@@ -354,7 +352,7 @@ export default function AdCreator() {
                   }
                   className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
                   <Ionicons name="map" size={16} color={color.red} />
-                  <Text className="text-[13px] font-semibold text-ink">Open in Maps</Text>
+                  <Text className="text-[13px] font-semibold text-ink">{t('tools.adCreator.openMaps')}</Text>
                 </Pressable>
                 <Pressable
                   onPress={() =>
@@ -362,15 +360,12 @@ export default function AdCreator() {
                   }
                   className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
                   <Ionicons name="navigate" size={16} color={color.red} />
-                  <Text className="text-[13px] font-semibold text-ink">Directions</Text>
+                  <Text className="text-[13px] font-semibold text-ink">{t('tools.adCreator.directions')}</Text>
                 </Pressable>
               </View>
             </>
           ) : (
-            <Text variant="caption">
-              Location wasn’t captured for this photo. Retake with location enabled to add coordinates, Earth &
-              Street view.
-            </Text>
+            <Text variant="caption">{t('tools.adCreator.noLocation')}</Text>
           )}
 
           {profile?.phone ? (
@@ -380,14 +375,14 @@ export default function AdCreator() {
               <Ionicons name="call" size={16} color={color.red} />
               <Text className="font-mono text-[14px] text-red">{profile.phone}</Text>
               <Text variant="caption" className="ml-auto">
-                Tap to call
+                {t('tools.adCreator.tapToCall')}
               </Text>
             </Pressable>
           ) : null}
         </Card>
 
         <Text variant="label" className="mb-2 mt-4">
-          Format
+          {t('tools.adCreator.format')}
         </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 pr-4">
           {AD_FORMATS.map((f) => (
@@ -397,20 +392,20 @@ export default function AdCreator() {
 
         <View className="mt-5 gap-3">
           <Button
-            title={enhancing ? 'Enhancing…' : enhanced ? '✨ Enhanced — enhance again' : '✨ Enhance photo with AI'}
+            title={enhancing ? t('tools.adCreator.enhancing') : enhanced ? t('tools.adCreator.enhanceAgain') : t('tools.adCreator.enhance')}
             variant="secondary"
             loading={enhancing}
             disabled={busy}
             onPress={onEnhance}
           />
-          <Button title="Share ad" loading={busy} onPress={onShare} />
+          <Button title={t('tools.adCreator.shareAd')} loading={busy} onPress={onShare} />
           <View className="flex-row gap-3">
             <View className="flex-1">
-              <Button title="Save to gallery" variant="outline" onPress={onSave} disabled={busy} />
+              <Button title={t('tools.adCreator.saveGallery')} variant="outline" onPress={onSave} disabled={busy} />
             </View>
             <View className="flex-1">
               <Button
-                title="Retake"
+                title={t('tools.adCreator.retake')}
                 variant="ghost"
                 onPress={() => {
                   setEnhanced(false);
