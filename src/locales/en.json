@@ -158,6 +158,75 @@
     },
     "report": "Report a problem with this listing"
   },
+  "tools": {
+    "aiStudio": {
+      "title": "AI Studio",
+      "intro": "Generate branded marketing copy with Claude. Pick a type, add a few details, and go.",
+      "posterCard": "Poster / Banner Maker",
+      "posterSub": "Turn a photo or video + details into a share-ready ad",
+      "imageCard": "AI Image Generator",
+      "imageSub": "Create flyer & banner images from a text prompt",
+      "stagingCard": "AI Virtual Staging",
+      "stagingSub": "Furnish an empty-room photo with AI",
+      "translateCard": "Translate (Indian languages)",
+      "translateSub": "Translate text with Sarvam AI",
+      "aboutLabel": "What's it about?",
+      "aboutPlaceholder": "e.g. premium 2BHK villa, gated community, near IT park",
+      "project": "Project",
+      "location": "Location",
+      "price": "Price (₹)",
+      "generate": "Generate",
+      "result": "Result",
+      "copy": "Copy",
+      "copied": "Copied",
+      "share": "Share",
+      "feat": {
+        "description": "Listing description",
+        "social": "Social post",
+        "flyer": "Flyer copy",
+        "campaign": "Campaign",
+        "video_script": "Video script",
+        "brochure_copy": "Brochure copy"
+      }
+    },
+    "translate": {
+      "title": "Translate",
+      "intro": "Translate any text into major Indian languages — powered by Sarvam AI.",
+      "text": "Text",
+      "placeholder": "Type or paste text…",
+      "to": "Translate to",
+      "action": "Translate",
+      "translating": "Translating…",
+      "result": "Translation",
+      "copy": "Copy",
+      "enterText": "Enter text",
+      "enterTextBody": "Type something to translate."
+    },
+    "staging": {
+      "title": "AI Virtual Staging",
+      "intro": "Turn an empty-room photo into a furnished one. Pick a room, choose a style, and stage it.",
+      "style": "Style",
+      "choosePhoto": "Choose room photo",
+      "changePhoto": "Change photo",
+      "stage": "Stage this room",
+      "staging": "Staging…"
+    },
+    "valuation": {
+      "title": "Land valuation",
+      "intro": "Estimate a plot's value from comparable live listings. Pick a project (and type), optionally enter the area, and we'll work out an indicative range. This is a guide, not a formal valuation.",
+      "project": "Project",
+      "all": "All",
+      "type": "Property type",
+      "any": "Any",
+      "area": "Plot area (optional)",
+      "noComps": "No comparable listings yet — pick a different project or type.",
+      "estimated": "Estimated value",
+      "range": "Range",
+      "comparables": "Comparables",
+      "avgPrice": "Avg listing price",
+      "avgPerUnit": "Avg price / unit area"
+    }
+  },
   "vastu": {
     "title": "Vastu & Muhurat",
     "heroTitle": "Buy with confidence & good fortune",

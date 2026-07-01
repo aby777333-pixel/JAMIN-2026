@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Share, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
@@ -25,6 +26,7 @@ const FEATURES: { key: AIFeature; label: string }[] = [
 ];
 
 export default function AiStudio() {
+  const { t } = useTranslation();
   const gen = useAIGenerate();
   const [feature, setFeature] = useState<AIFeature>('description');
   const [context, setContext] = useState('');
@@ -54,7 +56,7 @@ export default function AiStudio() {
   return (
     <Screen contentClassName="pb-10 gap-4" keyboardAvoiding>
       <BackHeader
-        title="AI Studio"
+        title={t('tools.aiStudio.title')}
         right={
           <Pressable onPress={() => router.push('/tools/ai-assistant')} hitSlop={8}>
             <Ionicons name="chatbubbles" size={22} color={color.red} />
@@ -62,9 +64,7 @@ export default function AiStudio() {
         }
       />
 
-      <Text variant="caption">
-        Generate branded marketing copy with Claude. Pick a type, add a few details, and go.
-      </Text>
+      <Text variant="caption">{t('tools.aiStudio.intro')}</Text>
 
       <Pressable onPress={() => router.push('/tools/poster')}>
         <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
@@ -72,8 +72,8 @@ export default function AiStudio() {
             <Ionicons name="image" size={22} color={color.goldDeep} />
           </View>
           <View className="flex-1">
-            <Text variant="title" className="text-[14px]">Poster / Banner Maker</Text>
-            <Text variant="caption">Turn a photo or video + details into a share-ready ad</Text>
+            <Text variant="title" className="text-[14px]">{t('tools.aiStudio.posterCard')}</Text>
+            <Text variant="caption">{t('tools.aiStudio.posterSub')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={color.muted} />
         </Card>
@@ -85,8 +85,8 @@ export default function AiStudio() {
             <Ionicons name="sparkles" size={22} color={color.goldDeep} />
           </View>
           <View className="flex-1">
-            <Text variant="title" className="text-[14px]">AI Image Generator</Text>
-            <Text variant="caption">Create flyer & banner images from a text prompt</Text>
+            <Text variant="title" className="text-[14px]">{t('tools.aiStudio.imageCard')}</Text>
+            <Text variant="caption">{t('tools.aiStudio.imageSub')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={color.muted} />
         </Card>
@@ -98,8 +98,8 @@ export default function AiStudio() {
             <Ionicons name="color-wand" size={22} color={color.goldDeep} />
           </View>
           <View className="flex-1">
-            <Text variant="title" className="text-[14px]">AI Virtual Staging</Text>
-            <Text variant="caption">Furnish an empty-room photo with AI</Text>
+            <Text variant="title" className="text-[14px]">{t('tools.aiStudio.stagingCard')}</Text>
+            <Text variant="caption">{t('tools.aiStudio.stagingSub')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={color.muted} />
         </Card>
@@ -111,8 +111,8 @@ export default function AiStudio() {
             <Ionicons name="language" size={22} color={color.goldDeep} />
           </View>
           <View className="flex-1">
-            <Text variant="title" className="text-[14px]">Translate (Indian languages)</Text>
-            <Text variant="caption">Translate text with Sarvam AI</Text>
+            <Text variant="title" className="text-[14px]">{t('tools.aiStudio.translateCard')}</Text>
+            <Text variant="caption">{t('tools.aiStudio.translateSub')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={color.muted} />
         </Card>
@@ -120,13 +120,13 @@ export default function AiStudio() {
 
       <View className="flex-row flex-wrap gap-2">
         {FEATURES.map((f) => (
-          <Chip key={f.key} label={f.label} active={feature === f.key} onPress={() => setFeature(f.key)} />
+          <Chip key={f.key} label={t(`tools.aiStudio.feat.${f.key}`)} active={feature === f.key} onPress={() => setFeature(f.key)} />
         ))}
       </View>
 
       <Input
-        label="What's it about?"
-        placeholder="e.g. premium 2BHK villa, gated community, near IT park"
+        label={t('tools.aiStudio.aboutLabel')}
+        placeholder={t('tools.aiStudio.aboutPlaceholder')}
         value={context}
         onChangeText={setContext}
         multiline
@@ -134,15 +134,15 @@ export default function AiStudio() {
       />
       <View className="flex-row gap-3">
         <View className="flex-1">
-          <Input label="Project" value={project} onChangeText={setProject} />
+          <Input label={t('tools.aiStudio.project')} value={project} onChangeText={setProject} />
         </View>
         <View className="flex-1">
-          <Input label="Location" value={location} onChangeText={setLocation} />
+          <Input label={t('tools.aiStudio.location')} value={location} onChangeText={setLocation} />
         </View>
       </View>
-      <Input label="Price (₹)" value={price} onChangeText={setPrice} keyboardType="numeric" />
+      <Input label={t('tools.aiStudio.price')} value={price} onChangeText={setPrice} keyboardType="numeric" />
 
-      <Button title="Generate" loading={gen.isPending} onPress={onGenerate} />
+      <Button title={t('tools.aiStudio.generate')} loading={gen.isPending} onPress={onGenerate} />
 
       {gen.isPending ? (
         <View className="items-center py-6">
@@ -150,23 +150,23 @@ export default function AiStudio() {
         </View>
       ) : output ? (
         <Card className="gap-3">
-          <Text variant="label">Result</Text>
+          <Text variant="label">{t('tools.aiStudio.result')}</Text>
           <Text variant="body" selectable>
             {output}
           </Text>
           <View className="flex-row gap-3">
             <View className="flex-1">
               <Button
-                title="Copy"
+                title={t('tools.aiStudio.copy')}
                 variant="outline"
                 onPress={async () => {
                   await Clipboard.setStringAsync(output);
-                  Alert.alert('Copied');
+                  Alert.alert(t('tools.aiStudio.copied'));
                 }}
               />
             </View>
             <View className="flex-1">
-              <Button title="Share" variant="ghost" onPress={() => Share.share({ message: output })} />
+              <Button title={t('tools.aiStudio.share')} variant="ghost" onPress={() => Share.share({ message: output })} />
             </View>
           </View>
         </Card>

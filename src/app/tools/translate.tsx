@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
@@ -19,6 +20,7 @@ import { errMessage } from '@/lib/errors';
  * Inert until a Sarvam key is configured server-side (shows a friendly note).
  */
 export default function TranslateTool() {
+  const { t: tr } = useTranslation();
   const [text, setText] = useState('');
   const [target, setTarget] = useState('hi-IN');
   const [busy, setBusy] = useState(false);
@@ -27,7 +29,7 @@ export default function TranslateTool() {
 
   async function onTranslate() {
     if (text.trim().length < 1) {
-      Alert.alert('Enter text', 'Type something to translate.');
+      Alert.alert(tr('tools.translate.enterText'), tr('tools.translate.enterTextBody'));
       return;
     }
     setBusy(true);
@@ -46,14 +48,12 @@ export default function TranslateTool() {
 
   return (
     <Screen contentClassName="pb-10 gap-4" keyboardAvoiding>
-      <BackHeader title="Translate" />
-      <Text variant="caption">
-        Translate any text into major Indian languages — powered by Sarvam AI.
-      </Text>
+      <BackHeader title={tr('tools.translate.title')} />
+      <Text variant="caption">{tr('tools.translate.intro')}</Text>
 
       <Input
-        label="Text"
-        placeholder="Type or paste text…"
+        label={tr('tools.translate.text')}
+        placeholder={tr('tools.translate.placeholder')}
         value={text}
         onChangeText={setText}
         multiline
@@ -61,7 +61,7 @@ export default function TranslateTool() {
       />
 
       <View className="gap-1.5">
-        <Text variant="label">Translate to</Text>
+        <Text variant="label">{tr('tools.translate.to')}</Text>
         <View className="flex-row flex-wrap gap-2">
           {SARVAM_LANGUAGES.map((l) => (
             <Chip key={l.code} label={l.label} active={target === l.code} onPress={() => setTarget(l.code)} />
@@ -69,7 +69,7 @@ export default function TranslateTool() {
         </View>
       </View>
 
-      <Button title={busy ? 'Translating…' : 'Translate'} loading={busy} onPress={onTranslate} />
+      <Button title={busy ? tr('tools.translate.translating') : tr('tools.translate.action')} loading={busy} onPress={onTranslate} />
 
       {note ? (
         <Card className="border-gold/40 bg-gold/5">
@@ -79,17 +79,17 @@ export default function TranslateTool() {
 
       {result ? (
         <Card className="gap-3">
-          <Text variant="label">Translation</Text>
+          <Text variant="label">{tr('tools.translate.result')}</Text>
           <Text variant="body" selectable className="text-ink">
             {result}
           </Text>
           <Button
-            title="Copy"
+            title={tr('tools.translate.copy')}
             variant="outline"
             left={<Ionicons name="copy-outline" size={16} color={color.ink} />}
             onPress={async () => {
               await Clipboard.setStringAsync(result);
-              Alert.alert('Copied');
+              Alert.alert(tr('tools.aiStudio.copied'));
             }}
           />
         </Card>

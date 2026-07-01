@@ -3,7 +3,8 @@ import { Image } from 'expo-image';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
-import { Alert, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Button } from '@/components/ui/Button';
@@ -19,6 +20,7 @@ const STYLES = ['Modern', 'Minimalist', 'Scandinavian', 'Luxury', 'Traditional I
 
 /** AI Virtual Staging — furnish an empty room. Activates once an image-gen key is set. */
 export default function VirtualStaging() {
+  const { t } = useTranslation();
   const [uri, setUri] = useState<string | null>(null);
   const [style, setStyle] = useState('Modern');
   const [busy, setBusy] = useState(false);
@@ -57,8 +59,8 @@ export default function VirtualStaging() {
 
   return (
     <Screen contentClassName="pb-10 gap-4">
-      <BackHeader title="AI Virtual Staging" />
-      <Text variant="caption">Turn an empty-room photo into a furnished one. Pick a room, choose a style, and stage it.</Text>
+      <BackHeader title={t('tools.staging.title')} />
+      <Text variant="caption">{t('tools.staging.intro')}</Text>
 
       <Card className="items-center gap-3">
         {result || uri ? (
@@ -68,11 +70,11 @@ export default function VirtualStaging() {
             <Ionicons name="color-wand" size={32} color={color.gold} />
           </View>
         )}
-        <Button title={uri ? 'Change photo' : 'Choose room photo'} variant="outline" onPress={pick} />
+        <Button title={uri ? t('tools.staging.changePhoto') : t('tools.staging.choosePhoto')} variant="outline" onPress={pick} />
       </Card>
 
       <View className="gap-1.5">
-        <Text variant="label">Style</Text>
+        <Text variant="label">{t('tools.staging.style')}</Text>
         <View className="flex-row flex-wrap gap-2">
           {STYLES.map((s) => (
             <Chip key={s} label={s} active={style === s} onPress={() => setStyle(s)} />
@@ -80,7 +82,7 @@ export default function VirtualStaging() {
         </View>
       </View>
 
-      <Button title={busy ? 'Staging…' : '✨ Stage this room'} loading={busy} disabled={!uri} onPress={stage} />
+      <Button title={busy ? t('tools.staging.staging') : `✨ ${t('tools.staging.stage')}`} loading={busy} disabled={!uri} onPress={stage} />
       {note ? (
         <Card>
           <Text variant="caption">{note}</Text>
