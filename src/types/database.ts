@@ -459,6 +459,42 @@ export type Database = {
         }
         Relationships: []
       }
+      festivals: {
+        Row: {
+          active: boolean
+          blurb: string | null
+          created_at: string
+          festival_date: string
+          id: string
+          key: string | null
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          blurb?: string | null
+          created_at?: string
+          festival_date: string
+          id?: string
+          key?: string | null
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          blurb?: string | null
+          created_at?: string
+          festival_date?: string
+          id?: string
+          key?: string | null
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string

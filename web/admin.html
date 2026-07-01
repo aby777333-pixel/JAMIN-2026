@@ -145,6 +145,7 @@
         <button class="nav-i" data-tab="insights">📈 Insights</button>
         <button class="nav-i" data-tab="audit">🧾 Audit log</button>
         <button class="nav-i" data-tab="exports">📤 Exports</button>
+        <button class="nav-i" data-tab="festivals">🪔 Festivals</button>
         <div style="margin-top:14px;padding:10px 12px;font-size:11px;line-height:1.55;color:rgba(255,255,255,.6);background:rgba(255,255,255,.06);border-radius:10px">✓ Every change you save here is <b style="color:#7ee2a8">live in the phone app instantly</b> — no deploy needed.</div>
         <div class="who"><span id="whoEmail"></span><br /><button id="signOut" class="btn-o btn-sm" style="margin-top:8px">Sign out</button></div>
       </aside>
@@ -186,6 +187,7 @@
         <div id="tabInsights" class="hidden"></div>
         <div id="tabAudit" class="hidden"></div>
         <div id="tabExports" class="hidden"></div>
+        <div id="tabFestivals" class="hidden"></div>
       </main>
     </div>
 
@@ -270,7 +272,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'moderation', 'insights', 'audit', 'exports'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'moderation', 'insights', 'audit', 'exports', 'festivals'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -308,6 +310,7 @@
         if (tab === 'insights') renderInsights();
         if (tab === 'audit') renderAudit();
         if (tab === 'exports') renderExports();
+        if (tab === 'festivals') renderFestivals();
       }
 
       // ─── Properties ─────────────────────────────────────────────────────
@@ -1625,6 +1628,64 @@
             if (!confirm('Delete this feature?')) return;
             var r = await sb.from('app_features').delete().eq('id', id);
             if (r.error) return alert(r.error.message); renderFeatures();
+          };
+        });
+      }
+
+      // ─── Festivals (drives the app Home auspicious-festival banner) ─────
+      async function renderFestivals() {
+        var el = $('tabFestivals');
+        el.innerHTML = '<div class="head"><h2>Festivals</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('festivals').select('id,name,festival_date,blurb,active,sort_order').order('festival_date');
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Festivals</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var rows = q.data || [];
+        el.innerHTML = '<div class="head"><h2>Festivals</h2></div>' +
+          '<div class="panel"><h3>Add a festival</h3><div class="row">' +
+            '<input id="fe_name" class="inp" style="max-width:220px" placeholder="Name (e.g. Akshaya Tritiya)" />' +
+            '<input id="fe_date" class="inp" type="date" style="max-width:170px" />' +
+            '<input id="fe_order" class="inp" type="number" style="max-width:90px" placeholder="order" />' +
+            '<button id="fe_add" class="btn btn-sm">Add</button></div>' +
+            '<div class="row" style="margin-top:6px"><input id="fe_blurb" class="inp" style="max-width:620px" placeholder="Short blurb shown on the banner" /></div>' +
+            '<div class="muted" style="margin-top:6px">These power the auspicious-festival banner on the app Home (shown when a festival is within ~45 days). Toggle off to hide one.</div></div>' +
+          (rows.length ? '<table><thead><tr><th>On</th><th>Name</th><th>Date</th><th>Blurb</th><th>Order</th><th></th></tr></thead><tbody>' +
+          rows.map(function (f) {
+            return '<tr data-id="' + f.id + '">' +
+              '<td><input type="checkbox" class="fe_en"' + (f.active ? ' checked' : '') + ' /></td>' +
+              '<td><input class="inp fe_name2" style="width:190px;height:36px" value="' + esc(f.name) + '" /></td>' +
+              '<td><input class="inp fe_date2" type="date" style="width:150px;height:36px" value="' + esc(f.festival_date) + '" /></td>' +
+              '<td><input class="inp fe_blurb2" style="width:340px;height:36px" value="' + esc(f.blurb || '') + '" /></td>' +
+              '<td><input class="inp fe_order2" type="number" style="width:70px;height:36px" value="' + (f.sort_order || 100) + '" /></td>' +
+              '<td><button class="btn btn-sm fe_save">Save</button> <button class="btn btn-sm fe_del" style="background:#fee;color:#c00">Del</button></td></tr>';
+          }).join('') + '</tbody></table>' : '<div class="muted">No festivals yet.</div>');
+        $('fe_add').onclick = async function () {
+          var name = $('fe_name').value.trim(); var date = $('fe_date').value;
+          if (!name || !date) return alert('Name and date are required.');
+          var body = { name: name, festival_date: date, blurb: $('fe_blurb').value.trim() || null };
+          var ord = parseInt($('fe_order').value, 10); if (!isNaN(ord)) body.sort_order = ord;
+          var r = await sb.from('festivals').insert(body);
+          if (r.error) return alert(r.error.message); renderFestivals();
+        };
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          tr.querySelector('.fe_save').onclick = async function () {
+            this.textContent = '…';
+            var ord = parseInt(tr.querySelector('.fe_order2').value, 10);
+            var r = await sb.from('festivals').update({
+              name: tr.querySelector('.fe_name2').value.trim(),
+              festival_date: tr.querySelector('.fe_date2').value,
+              blurb: tr.querySelector('.fe_blurb2').value.trim() || null,
+              sort_order: isNaN(ord) ? 100 : ord
+            }).eq('id', id);
+            this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+          tr.querySelector('.fe_en').onchange = async function () {
+            var r = await sb.from('festivals').update({ active: this.checked }).eq('id', id);
+            if (r.error) { alert(r.error.message); this.checked = !this.checked; }
+          };
+          tr.querySelector('.fe_del').onclick = async function () {
+            if (!confirm('Delete this festival?')) return;
+            var r = await sb.from('festivals').delete().eq('id', id);
+            if (r.error) return alert(r.error.message); renderFestivals();
           };
         });
       }

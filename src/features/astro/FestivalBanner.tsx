@@ -5,7 +5,8 @@ import { Pressable, View } from 'react-native';
 
 import { Text } from '@/components/ui/Text';
 import { color } from '@/theme/tokens';
-import { upcomingFestival } from './festivals';
+import { FESTIVALS, upcomingFestival } from './festivals';
+import { useFestivals } from './hooks';
 
 /**
  * A festive banner shown on Home when an auspicious festival (Akshaya Tritiya,
@@ -13,7 +14,8 @@ import { upcomingFestival } from './festivals';
  * Renders nothing when no festival is within the window. Positive-only.
  */
 export function FestivalBanner({ withinDays = 45 }: { withinDays?: number }) {
-  const fest = useMemo(() => upcomingFestival(new Date(), withinDays), [withinDays]);
+  const { data: festivals = FESTIVALS } = useFestivals();
+  const fest = useMemo(() => upcomingFestival(new Date(), withinDays, festivals), [withinDays, festivals]);
   if (!fest) return null;
 
   const when =

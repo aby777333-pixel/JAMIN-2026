@@ -37,14 +37,18 @@ function parseLocalDate(iso: string): Date {
   return new Date(y, m - 1, day);
 }
 
-/** The nearest upcoming festival within `withinDays`, with days-until, else null. */
+/**
+ * The nearest upcoming festival within `withinDays`, with days-until, else null.
+ * `list` defaults to the bundled festivals but can be the admin-managed DB list.
+ */
 export function upcomingFestival(
   from: Date,
   withinDays = 45,
+  list: Festival[] = FESTIVALS,
 ): (Festival & { inDays: number }) | null {
   const base = atMidnight(from);
   let best: (Festival & { inDays: number }) | null = null;
-  for (const f of FESTIVALS) {
+  for (const f of list) {
     const inDays = Math.round((atMidnight(parseLocalDate(f.date)) - base) / 86400000);
     if (inDays >= 0 && inDays <= withinDays && (!best || inDays < best.inDays)) {
       best = { ...f, inDays };
