@@ -68,6 +68,20 @@ export default function PosterMaker() {
     [highlights],
   );
 
+  async function handleAsset(a: ImagePicker.ImagePickerAsset) {
+    if (a.type === 'video') {
+      try {
+        const { uri } = await VideoThumbnails.getThumbnailAsync(a.uri, { time: 1500, quality: 0.9 });
+        setMedia({ uri, kind: 'video', sourceUri: a.uri, videoMime: a.mimeType ?? 'video/mp4' });
+      } catch {
+        Alert.alert('Could not read video', 'Try a different video or use a photo.');
+      }
+    } else {
+      setMedia({ uri: a.uri, kind: 'image' });
+    }
+  }
+
+  /** Pick from the gallery (photo or video). */
   async function pick() {
     setPicking(true);
     try {
@@ -76,18 +90,27 @@ export default function PosterMaker() {
         mediaTypes: ['images', 'videos'],
         videoMaxDuration: 60,
       });
-      if (res.canceled || !res.assets[0]) return;
-      const a = res.assets[0];
-      if (a.type === 'video') {
-        try {
-          const { uri } = await VideoThumbnails.getThumbnailAsync(a.uri, { time: 1500, quality: 0.9 });
-          setMedia({ uri, kind: 'video', sourceUri: a.uri, videoMime: a.mimeType ?? 'video/mp4' });
-        } catch {
-          Alert.alert('Could not read video', 'Try a different video or use a photo.');
-        }
-      } else {
-        setMedia({ uri: a.uri, kind: 'image' });
+      if (!res.canceled && res.assets[0]) await handleAsset(res.assets[0]);
+    } finally {
+      setPicking(false);
+    }
+  }
+
+  /** Capture live with the camera — a photo or a recorded video. */
+  async function capture(kind: 'photo' | 'video') {
+    setPicking(true);
+    try {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert('Camera access needed', 'Allow camera access to capture a photo or video.');
+        return;
       }
+      const res = await ImagePicker.launchCameraAsync({
+        quality: 0.9,
+        mediaTypes: kind === 'video' ? ['videos'] : ['images'],
+        videoMaxDuration: 60,
+      });
+      if (!res.canceled && res.assets[0]) await handleAsset(res.assets[0]);
     } finally {
       setPicking(false);
     }
@@ -196,11 +219,35 @@ export default function PosterMaker() {
           <Ionicons name="images" size={36} color={color.gold} />
           <Text variant="title" className="text-[15px]">Start with a photo or video</Text>
           <Text variant="caption" className="px-6 text-center">
-            Pick a property photo or a video clip — we’ll pull a clean frame — then add details to build a
-            share-ready poster.
+            Capture live or pick a property photo or video clip — we’ll pull a clean frame — then add
+            details to build a share-ready poster.
           </Text>
-          <View className="w-52">
-            <Button title={picking ? 'Opening…' : 'Choose photo / video'} loading={picking} onPress={pick} />
+          <View className="w-full gap-2 px-4">
+            <Button
+              title={picking ? 'Opening…' : 'Choose from gallery'}
+              loading={picking}
+              onPress={pick}
+            />
+            <View className="flex-row gap-2">
+              <View className="flex-1">
+                <Button
+                  title="Take photo"
+                  variant="outline"
+                  disabled={picking}
+                  left={<Ionicons name="camera" size={16} color={color.ink} />}
+                  onPress={() => capture('photo')}
+                />
+              </View>
+              <View className="flex-1">
+                <Button
+                  title="Record video"
+                  variant="outline"
+                  disabled={picking}
+                  left={<Ionicons name="videocam" size={16} color={color.ink} />}
+                  onPress={() => capture('video')}
+                />
+              </View>
+            </View>
           </View>
         </Card>
       </Screen>

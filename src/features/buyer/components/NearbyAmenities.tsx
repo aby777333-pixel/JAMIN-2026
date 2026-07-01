@@ -43,18 +43,54 @@ function haversine(aLat: number, aLng: number, bLat: number, bLng: number): numb
   return 2 * 6371000 * Math.asin(Math.sqrt(s));
 }
 
+// Overpass mirrors — the main endpoint is often rate-limited/down, so we try
+// several in turn (each with a client-side timeout) before giving up.
+const OVERPASS_ENDPOINTS = [
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+  'https://lz4.overpass-api.de/api/interpreter',
+  'https://overpass-api.de/api/interpreter',
+];
+
+async function postWithTimeout(url: string, body: string, ms: number): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body,
+      signal: ctrl.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function fetchNearby(lat: number, lng: number, cat: Category): Promise<Poi[]> {
   const body =
     `[out:json][timeout:20];(` +
     cat.selectors.map((s) => `nwr${s}(around:${R},${lat},${lng});`).join('') +
     `);out center 30;`;
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body,
-  });
-  if (!res.ok) throw new Error('Could not load nearby places');
-  const json = (await res.json()) as { elements?: any[] };
+
+  // Try each mirror until one returns valid JSON (some return an HTML error page
+  // with a 200, so we validate the parsed body and fall through on failure).
+  let json: { elements?: any[] } | null = null;
+  for (const url of OVERPASS_ENDPOINTS) {
+    try {
+      const r = await postWithTimeout(url, body, 15000);
+      if (!r.ok) continue;
+      const parsed = (await r.json()) as { elements?: any[] };
+      if (parsed && Array.isArray(parsed.elements)) {
+        json = parsed;
+        break;
+      }
+    } catch {
+      /* bad response / not JSON / timeout — try the next mirror */
+    }
+  }
+  if (!json) throw new Error('Could not load nearby places');
   const seen = new Set<string>();
   const pois: Poi[] = [];
   for (const el of json.elements ?? []) {
@@ -113,7 +149,7 @@ export function NearbyAmenities({ lat, lng }: { lat: number; lng: number }) {
           </View>
         ) : isError ? (
           <Text variant="caption" className="py-2 text-center">
-            Couldn't load nearby places right now.
+            Couldn&apos;t load nearby places right now. Pull to refresh or try another category.
           </Text>
         ) : pois.length === 0 ? (
           <Text variant="caption" className="py-2 text-center">

@@ -32,6 +32,15 @@ const PRESETS = [
   'A serene open land plot at sunrise with mountains behind, calm and auspicious',
 ];
 
+// Modular creative elements — tap to add to the prompt and compose a scene.
+const COMPONENTS: { group: string; items: string[] }[] = [
+  { group: 'Nature', items: ['coconut trees', 'palm trees', 'mountains', 'a river', 'a lake', 'a waterfall', 'lush gardens', 'rice fields', 'sunset sky', 'golden hour light', 'soft clouds'] },
+  { group: 'Wildlife', items: ['birds', 'butterflies', 'a peacock', 'elephants', 'deer', 'horses'] },
+  { group: 'Property', items: ['a modern villa', 'an apartment tower', 'a farmhouse', 'a luxury bungalow', 'a resort', 'a temple', 'a commercial building'] },
+  { group: 'Real estate', items: ['residential plots', 'a gated community', 'wide layout roads', 'a compound wall', 'a grand entrance gate', 'a swimming pool', 'agricultural land', 'a plantation', 'solar panels'] },
+  { group: 'Lifestyle', items: ['a luxury car', 'a fountain', 'street lights', 'a walking path', "a children's play area", 'a gazebo'] },
+];
+
 const RATIO: Record<string, number> = { '4:3': 3 / 4, '1:1': 1, '16:9': 9 / 16, '9:16': 16 / 9 };
 
 export default function AiImage() {
@@ -111,6 +120,10 @@ export default function AiImage() {
     if (local) router.push({ pathname: '/tools/poster', params: { imageUri: local } });
   }
 
+  function addElement(term: string) {
+    setPrompt((p) => (p.trim() ? `${p.replace(/\s+$/, '')}, ${term}` : term));
+  }
+
   const previewRatio = RATIO[aspect] ?? 3 / 4;
 
   return (
@@ -187,6 +200,20 @@ export default function AiImage() {
               <Chip key={p} label={p.length > 42 ? `${p.slice(0, 42)}…` : p} onPress={() => setPrompt(p)} />
             ))}
           </View>
+        </View>
+
+        <View className="gap-2">
+          <Text variant="label">Add elements — tap to build your scene</Text>
+          {COMPONENTS.map((g) => (
+            <View key={g.group} className="gap-1">
+              <Text variant="caption">{g.group}</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {g.items.map((it) => (
+                  <Chip key={it} label={it} onPress={() => addElement(it)} />
+                ))}
+              </View>
+            </View>
+          ))}
         </View>
 
         <View className="gap-1.5">
