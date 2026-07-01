@@ -43,7 +43,43 @@
   },
   "home": {
     "greeting": "Welcome back",
-    "role": "Role"
+    "role": "Role",
+    "referralCode": "Referral code",
+    "completeKyc": "Complete your KYC",
+    "featured": "Featured properties",
+    "seeAll": "See all",
+    "browseProperties": "Browse properties",
+    "stats": {
+      "wallet": "Wallet",
+      "earnings": "Earnings",
+      "team": "Team",
+      "activeLeads": "Active leads"
+    },
+    "links": {
+      "leads": "Leads",
+      "createAd": "Create Ad",
+      "brochures": "Brochures",
+      "aiStudio": "AI Studio",
+      "adChats": "Ad Chats",
+      "rewards": "Rewards",
+      "network": "Network",
+      "performance": "Performance",
+      "wallet": "Wallet",
+      "bookings": "Bookings",
+      "myCard": "My Card",
+      "forms": "Forms",
+      "help": "Help & FAQ",
+      "admin": "Admin",
+      "mapRadar": "Map & Radar",
+      "requirements": "Requirements",
+      "saved": "Saved",
+      "recentlyViewed": "Recently viewed",
+      "myOffers": "My offers",
+      "compare": "Compare",
+      "valuation": "Valuation",
+      "myBookings": "My bookings",
+      "becomePartner": "Become partner"
+    }
   },
   "wallet": {
     "balance": "Wallet balance",

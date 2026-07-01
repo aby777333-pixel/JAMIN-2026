@@ -115,5 +115,45 @@
       "نئی شروعات کے لیے دکشنائن کے مقابلے اتراین (جنوری–جولائی) بہتر سمجھا جاتا ہے۔",
       "رجسٹری کے لیے ادھک ماس، گرہن اور پترو پکش سے بچیں۔"
     ]
+  },
+  "home": {
+    "greeting": "واپسی پر خوش آمدید",
+    "role": "کردار",
+    "referralCode": "ریفرل کوڈ",
+    "completeKyc": "اپنا KYC مکمل کریں",
+    "featured": "نمایاں پراپرٹیز",
+    "seeAll": "سب دیکھیں",
+    "browseProperties": "پراپرٹیز دیکھیں",
+    "stats": {
+      "wallet": "والٹ",
+      "earnings": "کمائی",
+      "team": "ٹیم",
+      "activeLeads": "فعال لیڈز"
+    },
+    "links": {
+      "leads": "لیڈز",
+      "createAd": "اشتہار بنائیں",
+      "brochures": "بروشرز",
+      "aiStudio": "اے آئی اسٹوڈیو",
+      "adChats": "اشتہار چیٹس",
+      "rewards": "انعامات",
+      "network": "نیٹ ورک",
+      "performance": "کارکردگی",
+      "wallet": "والٹ",
+      "bookings": "بکنگز",
+      "myCard": "میرا کارڈ",
+      "forms": "فارمز",
+      "help": "مدد اور FAQ",
+      "admin": "ایڈمن",
+      "mapRadar": "نقشہ اور ریڈار",
+      "requirements": "ضروریات",
+      "saved": "محفوظ شدہ",
+      "recentlyViewed": "حال ہی میں دیکھے گئے",
+      "myOffers": "میری پیشکشیں",
+      "compare": "موازنہ کریں",
+      "valuation": "تخمینہ",
+      "myBookings": "میری بکنگز",
+      "becomePartner": "پارٹنر بنیں"
+    }
   }
 }

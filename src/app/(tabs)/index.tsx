@@ -101,7 +101,7 @@ export default function Home() {
       <Card className="flex-row items-center justify-between gap-3 bg-charcoal !py-3">
         <View className="flex-1">
           <Text className="font-medium text-[10px] leading-[14px] uppercase tracking-[2px] text-gold">
-            Referral code
+            {t('home.referralCode')}
           </Text>
           <Text
             className="font-mono-bold text-[18px] leading-[24px] text-white tracking-[1px]"
@@ -127,7 +127,7 @@ export default function Home() {
             <Ionicons name="id-card" size={22} color={color.goldDeep} />
             <View className="flex-1">
               <Text variant="title" className="text-[14px]">
-                Complete your KYC
+                {t('home.completeKyc')}
               </Text>
               <Text variant="caption">{get('kyc.intro')}</Text>
             </View>
@@ -164,9 +164,9 @@ export default function Home() {
       {featured.length > 0 ? (
         <View className="gap-2">
           <View className="flex-row items-center justify-between">
-            <Text variant="label">Featured properties</Text>
+            <Text variant="label">{t('home.featured')}</Text>
             <Pressable onPress={() => router.push('/(tabs)/properties')} hitSlop={8}>
-              <Text className="font-semibold text-[13px] text-red">See all</Text>
+              <Text className="font-semibold text-[13px] text-red">{t('home.seeAll')}</Text>
             </Pressable>
           </View>
           <FlatList
@@ -193,44 +193,44 @@ export default function Home() {
       {isPartner ? (
         <>
           <View className="flex-row gap-3">
-            <StatCard label="Wallet" icon="wallet">
+            <StatCard label={t('home.stats.wallet')} icon="wallet">
               <MoneyText value={summary?.balance ?? '0'} className="text-[18px]" />
             </StatCard>
-            <StatCard label="Earnings" icon="trending-up">
+            <StatCard label={t('home.stats.earnings')} icon="trending-up">
               <MoneyText value={summary?.earnings ?? '0'} className="text-[18px]" />
             </StatCard>
           </View>
           <View className="flex-row gap-3">
             {canTeam ? (
-              <StatCard label="Team" icon="people">
+              <StatCard label={t('home.stats.team')} icon="people">
                 <Text className="font-mono-bold text-[18px] text-ink">{team.length}</Text>
               </StatCard>
             ) : null}
-            <StatCard label="Active leads" icon="flame">
+            <StatCard label={t('home.stats.activeLeads')} icon="flame">
               <Text className="font-mono-bold text-[18px] text-ink">{activeLeads}</Text>
             </StatCard>
           </View>
 
           <View className="flex-row flex-wrap gap-3">
-            <QuickLink icon="people" label="Leads" tint="#2563EB" onPress={() => router.push('/leads')} />
-            <QuickLink icon="camera" label="Create Ad" tint="#E11D48" onPress={() => router.push('/tools/ad-creator')} />
-            <QuickLink icon="document-text" label="Brochures" tint="#7C3AED" onPress={() => router.push('/brochures')} />
-            <QuickLink icon="sparkles" label="AI Studio" tint="#9333EA" onPress={() => router.push('/tools/ai-studio')} />
-            <QuickLink icon="chatbubbles" label="Ad Chats" tint="#0D9488" onPress={() => router.push('/ad-chats')} />
-            <QuickLink icon="trophy" label="Rewards" tint="#D97706" onPress={() => router.push('/rewards')} />
+            <QuickLink icon="people" label={t('home.links.leads')} tint="#2563EB" onPress={() => router.push('/leads')} />
+            <QuickLink icon="camera" label={t('home.links.createAd')} tint="#E11D48" onPress={() => router.push('/tools/ad-creator')} />
+            <QuickLink icon="document-text" label={t('home.links.brochures')} tint="#7C3AED" onPress={() => router.push('/brochures')} />
+            <QuickLink icon="sparkles" label={t('home.links.aiStudio')} tint="#9333EA" onPress={() => router.push('/tools/ai-studio')} />
+            <QuickLink icon="chatbubbles" label={t('home.links.adChats')} tint="#0D9488" onPress={() => router.push('/ad-chats')} />
+            <QuickLink icon="trophy" label={t('home.links.rewards')} tint="#D97706" onPress={() => router.push('/rewards')} />
             {canTeam ? (
-              <QuickLink icon="git-network" label="Network" tint="#0D9488" onPress={() => router.push('/(tabs)/network')} />
+              <QuickLink icon="git-network" label={t('home.links.network')} tint="#0D9488" onPress={() => router.push('/(tabs)/network')} />
             ) : null}
             {canAnalytics ? (
-              <QuickLink icon="bar-chart" label="Performance" tint="#4F46E5" onPress={() => router.push('/performance')} />
+              <QuickLink icon="bar-chart" label={t('home.links.performance')} tint="#4F46E5" onPress={() => router.push('/performance')} />
             ) : null}
-            <QuickLink icon="wallet" label="Wallet" tint="#16A34A" onPress={() => router.push('/(tabs)/wallet')} />
-            <QuickLink icon="receipt" label="Bookings" tint="#EA580C" onPress={() => router.push('/payments')} />
-            <QuickLink icon="qr-code" label="My Card" tint="#0891B2" onPress={() => router.push('/(tabs)/card')} />
-            <QuickLink icon="clipboard" label="Forms" tint="#475569" onPress={() => router.push('/forms')} />
-            <QuickLink icon="help-circle" label="Help & FAQ" tint="#64748B" onPress={() => router.push('/help')} />
+            <QuickLink icon="wallet" label={t('home.links.wallet')} tint="#16A34A" onPress={() => router.push('/(tabs)/wallet')} />
+            <QuickLink icon="receipt" label={t('home.links.bookings')} tint="#EA580C" onPress={() => router.push('/payments')} />
+            <QuickLink icon="qr-code" label={t('home.links.myCard')} tint="#0891B2" onPress={() => router.push('/(tabs)/card')} />
+            <QuickLink icon="clipboard" label={t('home.links.forms')} tint="#475569" onPress={() => router.push('/forms')} />
+            <QuickLink icon="help-circle" label={t('home.links.help')} tint="#64748B" onPress={() => router.push('/help')} />
             {profile?.role_is_admin ? (
-              <QuickLink icon="shield-checkmark" label="Admin" tint="#DC2626" onPress={() => router.push('/admin')} />
+              <QuickLink icon="shield-checkmark" label={t('home.links.admin')} tint="#DC2626" onPress={() => router.push('/admin')} />
             ) : null}
           </View>
         </>
@@ -242,20 +242,20 @@ export default function Home() {
               {get('home.buyer_card_body')}
             </Text>
             <View className="mt-3">
-              <Button title="Browse properties" onPress={() => router.push('/(tabs)/properties')} />
+              <Button title={t('home.browseProperties')} onPress={() => router.push('/(tabs)/properties')} />
             </View>
           </Card>
           <View className="flex-row flex-wrap gap-3">
-            <QuickLink icon="map" label="Map & Radar" tint="#0D9488" onPress={() => router.push('/map')} />
-            <QuickLink icon="radio" label="Requirements" tint="#2563EB" onPress={() => router.push('/requirements')} />
-            <QuickLink icon="heart" label="Saved" tint="#E11D48" onPress={() => router.push('/(tabs)/properties')} />
-            <QuickLink icon="time" label="Recently viewed" tint="#7C3AED" onPress={() => router.push('/recent')} />
-            <QuickLink icon="pricetag" label="My offers" tint="#D97706" onPress={() => router.push('/offers')} />
-            <QuickLink icon="git-compare" label="Compare" tint="#4F46E5" onPress={() => router.push('/compare')} />
-            <QuickLink icon="calculator" label="Valuation" tint="#16A34A" onPress={() => router.push('/tools/valuation')} />
-            <QuickLink icon="receipt" label="My bookings" tint="#EA580C" onPress={() => router.push('/payments')} />
-            <QuickLink icon="help-circle" label="Help & FAQ" tint="#475569" onPress={() => router.push('/help')} />
-            <QuickLink icon="rocket" label="Become partner" tint="#DC2626" onPress={() => router.push('/become-partner')} />
+            <QuickLink icon="map" label={t('home.links.mapRadar')} tint="#0D9488" onPress={() => router.push('/map')} />
+            <QuickLink icon="radio" label={t('home.links.requirements')} tint="#2563EB" onPress={() => router.push('/requirements')} />
+            <QuickLink icon="heart" label={t('home.links.saved')} tint="#E11D48" onPress={() => router.push('/(tabs)/properties')} />
+            <QuickLink icon="time" label={t('home.links.recentlyViewed')} tint="#7C3AED" onPress={() => router.push('/recent')} />
+            <QuickLink icon="pricetag" label={t('home.links.myOffers')} tint="#D97706" onPress={() => router.push('/offers')} />
+            <QuickLink icon="git-compare" label={t('home.links.compare')} tint="#4F46E5" onPress={() => router.push('/compare')} />
+            <QuickLink icon="calculator" label={t('home.links.valuation')} tint="#16A34A" onPress={() => router.push('/tools/valuation')} />
+            <QuickLink icon="receipt" label={t('home.links.myBookings')} tint="#EA580C" onPress={() => router.push('/payments')} />
+            <QuickLink icon="help-circle" label={t('home.links.help')} tint="#475569" onPress={() => router.push('/help')} />
+            <QuickLink icon="rocket" label={t('home.links.becomePartner')} tint="#DC2626" onPress={() => router.push('/become-partner')} />
           </View>
         </>
       )}
