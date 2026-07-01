@@ -189,6 +189,27 @@
         "brochure_copy": "Brochure copy"
       }
     },
+    "aiImage": {
+      "title": "AI Image Generator",
+      "intro": "Describe a scene and let AI create a stunning image for your flyers, banners and posts.",
+      "addPrompt": "Add a prompt",
+      "addPromptBody": "Describe the image you want to create.",
+      "couldNotGen": "Could not generate an image.",
+      "downloadFailed": "Download failed",
+      "saved": "Saved",
+      "savedBody": "Image saved to your gallery.",
+      "save": "Save",
+      "share": "Share",
+      "useInFlyer": "Use in Flyer maker",
+      "promptLabel": "Prompt",
+      "promptPh": "e.g. a modern villa at sunset, cinematic real-estate photo",
+      "quickIdeas": "Quick ideas",
+      "addElements": "Add elements — tap to build your scene",
+      "format": "Format",
+      "generating": "Generating…",
+      "generate": "✨ Generate image",
+      "disclaimer": "AI-generated imagery — review before publishing."
+    },
     "translate": {
       "title": "Translate",
       "intro": "Translate any text into major Indian languages — powered by Sarvam AI.",

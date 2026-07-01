@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import * as MediaLibrary from 'expo-media-library';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -44,6 +45,7 @@ const COMPONENTS: { group: string; items: string[] }[] = [
 const RATIO: Record<string, number> = { '4:3': 3 / 4, '1:1': 1, '16:9': 9 / 16, '9:16': 16 / 9 };
 
 export default function AiImage() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [prompt, setPrompt] = useState('');
   const [aspect, setAspect] = useState('4:3');
@@ -53,7 +55,7 @@ export default function AiImage() {
 
   async function onGenerate() {
     if (prompt.trim().length < 3) {
-      Alert.alert('Add a prompt', 'Describe the image you want to create.');
+      Alert.alert(t('tools.aiImage.addPrompt'), t('tools.aiImage.addPromptBody'));
       return;
     }
     setBusy(true);
@@ -62,7 +64,7 @@ export default function AiImage() {
     try {
       const res = await generateImage(prompt.trim(), aspect);
       if (res.url) setUrl(res.url);
-      else setNote(res.message ?? 'Could not generate an image.');
+      else setNote(res.message ?? t('tools.aiImage.couldNotGen'));
     } catch (e) {
       setNote(errMessage(e));
     } finally {
@@ -78,7 +80,7 @@ export default function AiImage() {
       const { uri } = await FileSystem.downloadAsync(url, dest);
       return uri;
     } catch (e) {
-      Alert.alert('Download failed', errMessage(e));
+      Alert.alert(t('tools.aiImage.downloadFailed'), errMessage(e));
       return null;
     }
   }
@@ -94,7 +96,7 @@ export default function AiImage() {
           const perm = await MediaLibrary.requestPermissionsAsync();
           if (perm.granted) {
             await MediaLibrary.saveToLibraryAsync(local);
-            Alert.alert('Saved', 'Image saved to your gallery.');
+            Alert.alert(t('tools.aiImage.saved'), t('tools.aiImage.savedBody'));
           } else {
             await shareImageFile(local, 'JAMIN Properties');
           }
@@ -133,11 +135,9 @@ export default function AiImage() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled">
-        <BackHeader title="AI Image Generator" />
+        <BackHeader title={t('tools.aiImage.title')} />
 
-        <Text variant="caption">
-          Describe a scene and let AI create a stunning image for your flyers, banners and posts.
-        </Text>
+        <Text variant="caption">{t('tools.aiImage.intro')}</Text>
 
         <Card className="items-center gap-3">
           {url ? (
@@ -161,14 +161,14 @@ export default function AiImage() {
             <View className="w-full gap-2">
               <View className="flex-row gap-3">
                 <View className="flex-1">
-                  <Button title="Save" variant="outline" disabled={busy} onPress={onSave} />
+                  <Button title={t('tools.aiImage.save')} variant="outline" disabled={busy} onPress={onSave} />
                 </View>
                 <View className="flex-1">
-                  <Button title="Share" disabled={busy} onPress={onShare} />
+                  <Button title={t('tools.aiImage.share')} disabled={busy} onPress={onShare} />
                 </View>
               </View>
               <Button
-                title="Use in Flyer maker"
+                title={t('tools.aiImage.useInFlyer')}
                 variant="secondary"
                 left={<Ionicons name="image" size={16} color={color.ink} />}
                 disabled={busy}
@@ -185,8 +185,8 @@ export default function AiImage() {
         ) : null}
 
         <Input
-          label="Prompt"
-          placeholder="e.g. a modern villa at sunset, cinematic real-estate photo"
+          label={t('tools.aiImage.promptLabel')}
+          placeholder={t('tools.aiImage.promptPh')}
           value={prompt}
           onChangeText={setPrompt}
           multiline
@@ -194,7 +194,7 @@ export default function AiImage() {
         />
 
         <View className="gap-1.5">
-          <Text variant="label">Quick ideas</Text>
+          <Text variant="label">{t('tools.aiImage.quickIdeas')}</Text>
           <View className="gap-2">
             {PRESETS.map((p) => (
               <Chip key={p} label={p.length > 42 ? `${p.slice(0, 42)}…` : p} onPress={() => setPrompt(p)} />
@@ -203,7 +203,7 @@ export default function AiImage() {
         </View>
 
         <View className="gap-2">
-          <Text variant="label">Add elements — tap to build your scene</Text>
+          <Text variant="label">{t('tools.aiImage.addElements')}</Text>
           {COMPONENTS.map((g) => (
             <View key={g.group} className="gap-1">
               <Text variant="caption">{g.group}</Text>
@@ -217,7 +217,7 @@ export default function AiImage() {
         </View>
 
         <View className="gap-1.5">
-          <Text variant="label">Format</Text>
+          <Text variant="label">{t('tools.aiImage.format')}</Text>
           <View className="flex-row flex-wrap gap-2">
             {ASPECTS.map((a) => (
               <Chip key={a.key} label={a.label} active={aspect === a.key} onPress={() => setAspect(a.key)} />
@@ -225,10 +225,10 @@ export default function AiImage() {
           </View>
         </View>
 
-        <Button title={busy ? 'Generating…' : '✨ Generate image'} loading={busy} onPress={onGenerate} />
+        <Button title={busy ? t('tools.aiImage.generating') : t('tools.aiImage.generate')} loading={busy} onPress={onGenerate} />
 
         <Text variant="caption" className="text-center text-muted">
-          AI-generated imagery — review before publishing.
+          {t('tools.aiImage.disclaimer')}
         </Text>
       </ScrollView>
     </View>
