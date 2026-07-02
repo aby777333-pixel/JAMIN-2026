@@ -100,6 +100,7 @@ export default function RootLayout() {
             <Stack.Screen name="tools/ai-image" />
             <Stack.Screen name="tools/ai-assistant" />
             <Stack.Screen name="tools/sarvam-chat" />
+            <Stack.Screen name="tools/sarvam-voice" />
             <Stack.Screen name="tools/translate" />
             <Stack.Screen name="tools/valuation" />
             <Stack.Screen name="brochures/index" />

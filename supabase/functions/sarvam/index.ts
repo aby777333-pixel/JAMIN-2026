@@ -1,9 +1,10 @@
 // JAMIN Properties — sarvam Edge Function (Indian-language AI, modular).
-// Wraps Sarvam AI. Currently implements `translate`; structured so tts / stt /
-// chat can be added later. The API key comes from the SARVAM_API_KEY env secret,
-// falling back to the service-role-only public.app_secrets table (key
-// 'sarvam_api_key'). Returns { configured:false } until a key exists, so the
-// feature is completely inert (no effect on the app) until enabled.
+// Wraps Sarvam AI: `translate` (sarvam-translate:v1), `chat` (sarvam-30b),
+// `stt` (saarika:v2.5 speech-to-text) and `tts` (bulbul:v2 text-to-speech) —
+// together these power the Sarvam chat + voice-call experience. The API key
+// comes from the SARVAM_API_KEY env secret, falling back to the service-role-only
+// public.app_secrets table (key 'sarvam_api_key'). Returns { configured:false }
+// until a key exists, so the feature is completely inert until enabled.
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -39,7 +40,8 @@ Deno.serve(async (req) => {
     const { data: u } = await asUser.auth.getUser();
     if (!u?.user) return json({ error: 'unauthorized' }, 401);
 
-    const { action, text, source, target, messages, language } = await req.json().catch(() => ({}));
+    const { action, text, source, target, messages, language, audio_base64, mime, voice } =
+      await req.json().catch(() => ({}));
 
     const key = await resolveKey();
     if (!key) {
@@ -50,7 +52,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'chat') {
-      // Indian-language real-estate assistant via Sarvam-M chat completions.
+      // Indian-language real-estate assistant via Sarvam chat completions.
       // `messages` = [{ role:'user'|'assistant', content }]; `language` (label)
       // nudges the reply language. Inert until a Sarvam key is set.
       const history = Array.isArray(messages) ? messages : [];
@@ -76,16 +78,63 @@ Deno.serve(async (req) => {
           '"Signature for Fortune."' + langLine,
       };
 
+      // sarvam-m was deprecated (2026) → sarvam-30b. It's a reasoning model, so give
+      // it token headroom: the visible reply lands in `content` after the reasoning.
       const res = await fetch('https://api.sarvam.ai/v1/chat/completions', {
         method: 'POST',
         headers: { 'api-subscription-key': key, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'sarvam-m', messages: [system, ...clean], temperature: 0.5, max_tokens: 700 }),
+        body: JSON.stringify({ model: 'sarvam-30b', messages: [system, ...clean], temperature: 0.5, max_tokens: 2048 }),
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) return json({ error: d?.error?.message ?? d?.message ?? 'Chat failed', detail: d }, 502);
       const reply = d?.choices?.[0]?.message?.content;
       if (typeof reply !== 'string' || !reply.trim()) return json({ error: 'No reply from the model.' }, 502);
       return json({ configured: true, text: reply.trim() });
+    }
+
+    if (action === 'stt') {
+      // Speech-to-text (saarika:v2.5) — base64 audio in, transcript out. Auto-detects
+      // the spoken Indian language; returns the detected code too.
+      if (!audio_base64 || typeof audio_base64 !== 'string') {
+        return json({ error: 'audio_base64 required' }, 400);
+      }
+      const bin = Uint8Array.from(atob(audio_base64), (c) => c.charCodeAt(0));
+      const form = new FormData();
+      const kind = typeof mime === 'string' && mime ? mime : 'audio/wav';
+      const ext = kind.includes('mp4') || kind.includes('m4a') ? 'm4a' : kind.includes('mpeg') ? 'mp3' : 'wav';
+      form.append('file', new Blob([bin], { type: kind }), `speech.${ext}`);
+      form.append('model', 'saarika:v2.5');
+
+      const res = await fetch('https://api.sarvam.ai/speech-to-text', {
+        method: 'POST',
+        headers: { 'api-subscription-key': key },
+        body: form,
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) return json({ error: d?.error?.message ?? d?.message ?? 'Transcription failed', detail: d }, 502);
+      return json({ configured: true, text: d?.transcript ?? '', language_code: d?.language_code ?? null });
+    }
+
+    if (action === 'tts') {
+      // Text-to-speech (bulbul:v2) — returns base64 WAV audio for playback.
+      if (!text || typeof text !== 'string' || !target) {
+        return json({ error: 'text and target language are required.' }, 400);
+      }
+      const res = await fetch('https://api.sarvam.ai/text-to-speech', {
+        method: 'POST',
+        headers: { 'api-subscription-key': key, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: text.slice(0, 1500),
+          target_language_code: target,
+          model: 'bulbul:v2',
+          speaker: typeof voice === 'string' && voice ? voice : 'anushka',
+        }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) return json({ error: d?.error?.message ?? d?.message ?? 'Speech synthesis failed', detail: d }, 502);
+      const audio = Array.isArray(d?.audios) ? d.audios[0] : undefined;
+      if (!audio) return json({ error: 'No audio returned by the model.' }, 502);
+      return json({ configured: true, audio_base64: audio, mime: 'audio/wav' });
     }
 
     if (action === 'translate') {

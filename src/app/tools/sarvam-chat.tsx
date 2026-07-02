@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -68,7 +69,14 @@ export default function SarvamChat() {
   return (
     <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
       <View className="px-5">
-        <BackHeader title={t('tools.sarvamChat.title')} />
+        <BackHeader
+          title={t('tools.sarvamChat.title')}
+          right={
+            <Pressable onPress={() => router.push('/tools/sarvam-voice')} hitSlop={8}>
+              <Ionicons name="call" size={22} color={color.red} />
+            </Pressable>
+          }
+        />
       </View>
 
       {/* Language picker */}

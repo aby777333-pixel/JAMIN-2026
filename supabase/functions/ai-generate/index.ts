@@ -137,7 +137,23 @@ Deno.serve(async (req) => {
     const { data: userData } = await anon.auth.getUser(token);
     const userId = userData.user?.id ?? null;
 
-    if (!ANTHROPIC_API_KEY) {
+    // Key: env secret first, then the service-role-only app_secrets fallback
+    // (key 'anthropic_api_key') — same pattern as the other AI functions.
+    let apiKey = ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      try {
+        const svc0 = createClient(SUPABASE_URL, SERVICE_KEY);
+        const { data: sec } = await svc0
+          .from('app_secrets')
+          .select('value')
+          .eq('key', 'anthropic_api_key')
+          .maybeSingle();
+        apiKey = (sec as { value?: string } | null)?.value ?? undefined;
+      } catch {
+        /* ignore — treated as unconfigured below */
+      }
+    }
+    if (!apiKey) {
       return json(
         { error: 'AI is not configured yet. Set ANTHROPIC_API_KEY in the Edge Function secrets.' },
         503,
@@ -145,7 +161,7 @@ Deno.serve(async (req) => {
     }
 
     const spec = builder(input ?? {});
-    const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+    const anthropic = new Anthropic({ apiKey });
     const msg = await anthropic.messages.create({
       model: MODEL,
       max_tokens: spec.maxTokens ?? 1024,

@@ -51,6 +51,7 @@ const SECTIONS: { titleKey: string; tools: Tool[] }[] = [
     titleKey: 'tools.aiStudio.secLanguage',
     tools: [
       { icon: 'chatbubble-ellipses', titleKey: 'tools.aiStudio.sarvamCard', subKey: 'tools.aiStudio.sarvamSub', route: '/tools/sarvam-chat' },
+      { icon: 'call', titleKey: 'tools.aiStudio.voiceCard', subKey: 'tools.aiStudio.voiceSub', route: '/tools/sarvam-voice' },
       { icon: 'language', titleKey: 'tools.aiStudio.translateCard', subKey: 'tools.aiStudio.translateSub', route: '/tools/translate' },
     ],
   },
@@ -63,6 +64,7 @@ const CAPS = [
   { icon: 'sparkles' as const, key: 'tools.aiStudio.capImage' },
   { icon: 'language' as const, key: 'tools.aiStudio.capTranslate' },
   { icon: 'chatbubbles' as const, key: 'tools.aiStudio.capChat' },
+  { icon: 'call' as const, key: 'tools.aiStudio.capVoice' },
   { icon: 'color-wand' as const, key: 'tools.aiStudio.capStage' },
 ];
 

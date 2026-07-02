@@ -186,6 +186,8 @@
       "adSub": "Capture a live photo or video on site, stamped with your card",
       "sarvamCard": "Sarvam AI Chat",
       "sarvamSub": "Chat & get advice in your own Indian language",
+      "voiceCard": "AI Voice Call",
+      "voiceSub": "Speak with the AI assistant in Indian languages",
       "translateCard": "Translate (Indian languages)",
       "translateSub": "Translate text with Sarvam AI",
       "capVideo": "Send video ads",
@@ -193,6 +195,7 @@
       "capImage": "AI images",
       "capTranslate": "Translate",
       "capChat": "Indian-language chat",
+      "capVoice": "AI voice calls",
       "capStage": "Property staging",
       "aboutLabel": "What's it about?",
       "aboutPlaceholder": "e.g. premium 2BHK villa, gated community, near IT park",
@@ -353,8 +356,27 @@
       "title": "Sarvam AI Chat",
       "greeting": "Namaste! 🙏 I'm your JAMIN property assistant. Ask me anything about buying, selling, localities, home loans, Vastu or paperwork — in your own language.",
       "placeholder": "Type your message…",
-      "unavailable": "Chat isn't available right now.",
-      "voiceSoon": "Voice calls are coming soon."
+      "unavailable": "Chat isn't available right now."
+    },
+    "voice": {
+      "title": "AI Voice Call",
+      "intro": "Speak with the JAMIN assistant in your own language. Tap the mic, ask your question, and hear the answer out loud — powered by Sarvam AI.",
+      "chooseLang": "भाषा चुनें / Choose language",
+      "start": "Start Voice Call",
+      "powered": "Powered by Sarvam AI · Built in India for India",
+      "tapToTalk": "Tap the mic and speak",
+      "listening": "Listening… tap to finish",
+      "thinking": "Thinking…",
+      "speaking": "Speaking…",
+      "hint": "Tap the mic below and ask about properties, localities, prices, loans or Vastu.",
+      "end": "End call",
+      "micNeeded": "Microphone access needed",
+      "micNeededBody": "Allow microphone access to talk with the AI assistant.",
+      "noAudio": "No audio was recorded — please try again.",
+      "didntCatch": "Didn't catch that — please speak again.",
+      "notEnabled": "Voice AI is not enabled yet.",
+      "unavailable": "The assistant isn't available right now.",
+      "noVoice": "Couldn't generate the voice reply."
     }
   },
   "vastu": {

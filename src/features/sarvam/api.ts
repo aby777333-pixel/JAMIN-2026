@@ -61,6 +61,56 @@ export interface SarvamChatMessage {
   content: string;
 }
 
+export interface SarvamSttResult extends SarvamResult {
+  language_code?: string | null;
+}
+
+export interface SarvamTtsResult {
+  configured: boolean;
+  audio_base64?: string;
+  mime?: string;
+  message?: string;
+  error?: string;
+}
+
+/** Speech-to-text (saarika:v2.5) — base64 audio in, transcript out. Auto-detects the language. */
+export async function speechToText(audioBase64: string, mime = 'audio/m4a'): Promise<SarvamSttResult> {
+  const { data, error } = await supabase.functions.invoke('sarvam', {
+    body: { action: 'stt', audio_base64: audioBase64, mime },
+  });
+  if (error) {
+    let message = error.message;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const body = await (error as any).context?.json?.();
+      if (body?.message || body?.error) message = body.message ?? body.error;
+    } catch {
+      /* keep default */
+    }
+    throw new Error(message);
+  }
+  return data as SarvamSttResult;
+}
+
+/** Text-to-speech (bulbul:v2) — returns base64 WAV audio in the target language. */
+export async function textToSpeech(text: string, target: string): Promise<SarvamTtsResult> {
+  const { data, error } = await supabase.functions.invoke('sarvam', {
+    body: { action: 'tts', text, target },
+  });
+  if (error) {
+    let message = error.message;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const body = await (error as any).context?.json?.();
+      if (body?.message || body?.error) message = body.message ?? body.error;
+    } catch {
+      /* keep default */
+    }
+    throw new Error(message);
+  }
+  return data as SarvamTtsResult;
+}
+
 /**
  * Indian-language AI chat via the sarvam Edge Function (Sarvam-M). `language` is a
  * human label (e.g. "हिन्दी") that nudges the reply language. Inert until a Sarvam
