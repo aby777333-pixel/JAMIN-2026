@@ -125,6 +125,7 @@
         <button class="nav-i" data-tab="features">🧩 Features</button>
         <button class="nav-i" data-tab="aisuite">🤖 AI Suite</button>
         <button class="nav-i" data-tab="aiconvos">📞 AI Conversations</button>
+        <button class="nav-i" data-tab="calldesk">☎️ Call desk</button>
         <button class="nav-i" data-tab="rewards">🏆 Rewards</button>
         <button class="nav-i" data-tab="referrals">🔗 Referrals</button>
         <button class="nav-i" data-tab="commissions">💰 Commissions</button>
@@ -173,6 +174,7 @@
         <div id="tabFeatures" class="hidden"></div>
         <div id="tabAisuite" class="hidden"></div>
         <div id="tabAiconvos" class="hidden"></div>
+        <div id="tabCalldesk" class="hidden"></div>
         <div id="tabRewards" class="hidden"></div>
         <div id="tabReferrals" class="hidden"></div>
         <div id="tabCommissions" class="hidden"></div>
@@ -284,7 +286,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'aisuite', 'aiconvos', 'rewards', 'referrals', 'commissions', 'usermedia', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'moderation', 'insights', 'audit', 'exports', 'festivals'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'aisuite', 'aiconvos', 'calldesk', 'rewards', 'referrals', 'commissions', 'usermedia', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'moderation', 'insights', 'audit', 'exports', 'festivals'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -302,6 +304,7 @@
         if (tab === 'features') renderFeatures();
         if (tab === 'aisuite') renderAiSuite();
         if (tab === 'aiconvos') renderAiConvos();
+        if (tab === 'calldesk') renderCallDesk();
         if (tab === 'rewards') renderRewards();
         if (tab === 'referrals') renderReferrals();
         if (tab === 'commissions') renderCommissions();
@@ -1275,17 +1278,38 @@
         var poolSet = {}; (routing.pool || []).forEach(function (id) { poolSet[id] = true; });
         var routingHtml = '<div class="panel"><h3>Lead routing pool</h3>' +
           '<div class="muted" style="font-size:12px;margin-bottom:8px">Pick the agents who receive round-robin auto-assignments. Use “Assign” on a lead to hand it to the next agent in the pool.</div>' +
+          '<div class="row" style="gap:6px;margin-bottom:8px">' +
+            '<button id="rt_all" class="btn-o btn-sm">Select all</button>' +
+            '<button id="rt_none" class="btn-o btn-sm">Deselect all</button></div>' +
           '<div class="row" style="flex-wrap:wrap;gap:6px">' +
           agents.map(function (a) {
-            return '<label style="display:inline-flex;align-items:center;gap:4px;border:1px solid #e6e7e2;border-radius:8px;padding:4px 8px"><input type="checkbox" class="rt_agent" value="' + a.id + '"' + (poolSet[a.id] ? ' checked' : '') + ' /> ' + esc(a.full_name || '—') + '</label>';
+            return '<label style="display:inline-flex;align-items:center;gap:4px;border:1px solid #e6e7e2;border-radius:8px;padding:4px 8px"><input type="checkbox" class="rt_agent" value="' + a.id + '"' + (poolSet[a.id] ? ' checked' : '') + ' /> ' + esc(a.full_name || '(unnamed)') + '</label>';
           }).join('') + '</div>' +
-          '<div class="row" style="margin-top:8px"><button id="rt_save" class="btn btn-sm">Save pool</button> <span class="muted" style="align-self:center">' + ((routing.pool || []).length) + ' in pool</span></div></div>';
+          '<div class="row" style="margin-top:8px"><button id="rt_save" class="btn btn-sm">Save pool</button> <span id="rt_count" class="muted" style="align-self:center"></span></div></div>';
+        // Owner filter — view one agent's leads, then "All owners" restores the full list.
+        var ownerNames = {};
+        rows.forEach(function (l) { if (l.owner && l.owner.full_name) ownerNames[l.owner.full_name] = true; });
+        var ownerFilter = window.__crm_owner || 'all';
+        var filterHtml = '<div class="row" style="margin:4px 0 8px;align-items:center;gap:8px">' +
+          '<span class="muted" style="font-size:12px">Show leads of</span>' +
+          '<select id="crm_owner" class="inp" style="height:36px;width:220px">' +
+            '<option value="all"' + (ownerFilter === 'all' ? ' selected' : '') + '>All owners (' + rows.length + ')</option>' +
+            '<option value="__none__"' + (ownerFilter === '__none__' ? ' selected' : '') + '>Unassigned</option>' +
+            Object.keys(ownerNames).sort().map(function (n) {
+              return '<option value="' + esc(n) + '"' + (ownerFilter === n ? ' selected' : '') + '>' + esc(n) + '</option>';
+            }).join('') +
+          '</select></div>';
+        var shown = rows.filter(function (l) {
+          if (ownerFilter === 'all') return true;
+          if (ownerFilter === '__none__') return !l.owner || !l.owner.full_name;
+          return !!l.owner && l.owner.full_name === ownerFilter;
+        });
         el.innerHTML = '<div class="head"><h2>CRM / Leads</h2></div>' +
           '<div class="stat-row"><div class="stat"><div class="n">' + rows.length + '</div><div class="l">Leads</div></div>' +
             '<div class="stat"><div class="n">' + rows.filter(function (l) { return l.status === 'won'; }).length + '</div><div class="l">Won</div></div></div>' +
-          pipeHtml + routingHtml +
-          (rows.length ? '<table><thead><tr><th>Contact</th><th>Owner</th><th>Property</th><th>Source</th><th>Score</th><th>Value (₹)</th><th>Close</th><th>Status</th><th></th></tr></thead><tbody>' +
-          rows.map(function (l) {
+          pipeHtml + routingHtml + filterHtml +
+          (shown.length ? '<table><thead><tr><th>Contact</th><th>Owner</th><th>Property</th><th>Source</th><th>Score</th><th>Value (₹)</th><th>Close</th><th>Status</th><th></th></tr></thead><tbody>' +
+          shown.map(function (l) {
             var c = l.contact || {};
             var band = l.score_band ? '<br><span class="pill ' + (l.score_band === 'hot' ? 'available' : l.score_band === 'warm' ? 'reserved' : 'sold') + '">' + l.score_band + '</span>' : '';
             return '<tr data-id="' + l.id + '"><td>' + esc(c.name || c.full_name || '—') + (c.phone ? '<br><span class="muted">' + esc(c.phone) + '</span>' : '') + '</td>' +
@@ -1295,13 +1319,34 @@
               '<td><input class="inp lead_close" type="date" style="width:140px;height:36px" value="' + (l.expected_close || '') + '" /></td>' +
               '<td><select class="inp lead_status" style="width:130px;height:36px">' + LEAD_STATUSES.map(function (s) { return '<option value="' + s + '"' + (s === l.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></td>' +
               '<td><button class="btn-o btn-sm lead_smart">Smart score</button> <button class="btn-o btn-sm lead_assign">Assign</button></td></tr>';
-          }).join('') + '</tbody></table>' : '<div class="muted">No leads yet.</div>');
+          }).join('') + '</tbody></table>' : '<div class="muted">' + (rows.length ? 'No leads for this owner — choose “All owners” to see the full list.' : 'No leads yet.') + '</div>');
+        // Owner filter: re-render with the chosen owner; "All owners" restores everything.
+        var ownerSel = $('crm_owner');
+        if (ownerSel) ownerSel.onchange = function () { window.__crm_owner = this.value; renderCrm(); };
+        // Routing pool: select/deselect all + live selection count.
+        function rtRefreshCount() {
+          var n = document.querySelectorAll('.rt_agent:checked').length;
+          var c = $('rt_count');
+          if (c) c.textContent = n + ' selected · ' + ((routing.pool || []).length) + ' in saved pool';
+        }
+        rtRefreshCount();
+        document.querySelectorAll('.rt_agent').forEach(function (cb) { cb.addEventListener('change', rtRefreshCount); });
+        var rtAll = $('rt_all');
+        if (rtAll) rtAll.onclick = function () {
+          document.querySelectorAll('.rt_agent').forEach(function (cb) { cb.checked = true; });
+          rtRefreshCount();
+        };
+        var rtNone = $('rt_none');
+        if (rtNone) rtNone.onclick = function () {
+          document.querySelectorAll('.rt_agent').forEach(function (cb) { cb.checked = false; });
+          rtRefreshCount();
+        };
         var rtSave = $('rt_save');
         if (rtSave) rtSave.onclick = async function () {
           var pool = Array.prototype.slice.call(document.querySelectorAll('.rt_agent:checked')).map(function (c) { return c.value; });
           this.textContent = '…';
           var r = await sb.from('system_config').update({ value: { enabled: pool.length > 0, pool: pool, cursor: (routing.cursor || 0) } }).eq('key', 'lead_routing');
-          this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message); else renderCrm();
         };
         el.querySelectorAll('tr[data-id]').forEach(function (tr) {
           tr.querySelector('.lead_status').onchange = async function () {
@@ -1749,6 +1794,58 @@
             if (r.error) { alert(r.error.message); this.checked = !this.checked; }
           };
         });
+      }
+
+      // ─── Call desk (live-agent hotline + call requests) ──────────────────
+      async function renderCallDesk() {
+        var el = $('tabCalldesk');
+        el.innerHTML = '<div class="head"><h2>Call desk</h2></div><div class="muted">Loading…</div>';
+        var results = await Promise.all([
+          sb.from('system_config').select('value').eq('key', 'live_agent_phone').maybeSingle(),
+          sb.from('call_logs').select('slug,initiator,kind,room,created_at,property:properties(plot_code)').order('created_at', { ascending: false }).limit(50)
+        ]);
+        var cfg = results[0], calls = results[1];
+        var phone = (cfg.data && cfg.data.value) || '';
+        if (typeof phone !== 'string') phone = String(phone || '');
+
+        var explain =
+          '<div class="panel" style="background:#f2f9f4;border-color:#bfe3cb"><h3>How live-agent calls work</h3>' +
+          '<div style="font-size:13px;line-height:1.7">' +
+          '• When a customer asks for a <b>human</b>, the app shows a tap-to-call <b>"Talk to a live agent"</b> button that dials the hotline number below — the phone rings on <b>your (or your team\'s) actual phone</b>. This is where the live agent "logs in": whoever carries that number answers.<br />' +
+          '• Each tap is also logged below as a <b>call request</b> (with the customer\'s name & phone when signed in), so missed calls can be returned.<br />' +
+          '• Text conversations with humans happen in <b>💬 Live chat</b>; property-ad video/voice calls (Jitsi rooms from shared ads) also appear in the log below.<br />' +
+          '• <b>The number below is a MOCK</b> — replace it with your real hotline before launch.</div></div>';
+
+        var cfgHtml = cfg.error ? '<div class="muted">' + esc(cfg.error.message) + '</div>'
+          : '<div class="row" style="align-items:center;gap:8px">' +
+            '<input id="cd_phone" class="inp" style="max-width:260px" value="' + esc(phone) + '" placeholder="+91 …" />' +
+            '<button id="cd_save" class="btn btn-sm">Save number</button>' +
+            '<span class="muted" style="font-size:12px">Shown to customers as the live-agent number (mock for now).</span></div>';
+
+        var callsHtml = calls.error ? '<div class="muted">' + esc(calls.error.message) + '</div>'
+          : ((calls.data || []).length
+            ? '<table><thead><tr><th>When</th><th>Caller</th><th>Kind</th><th>Source</th></tr></thead><tbody>' +
+              calls.data.map(function (c) {
+                var src = c.room === 'live-agent' ? '📱 App — live agent request'
+                  : (c.slug ? 'Ad page /ad/' + esc(c.slug) : (c.property && c.property.plot_code ? 'Property ' + esc(c.property.plot_code) : '—'));
+                return '<tr><td class="muted">' + new Date(c.created_at).toLocaleString('en-IN') + '</td>' +
+                  '<td>' + esc(c.initiator || 'Anonymous') + '</td>' +
+                  '<td>' + esc(c.kind || 'voice') + '</td><td>' + src + '</td></tr>';
+              }).join('') + '</tbody></table>'
+            : '<div class="muted">No call requests yet. They\'ll appear here when customers tap "Talk to a live agent" or start an ad-page call.</div>');
+
+        el.innerHTML = '<div class="head"><h2>Call desk</h2></div>' + explain +
+          '<div class="panel"><h3>Live-agent hotline</h3>' + cfgHtml + '</div>' +
+          '<div class="panel"><h3>Call requests & calls</h3>' + callsHtml + '</div>';
+
+        var save = $('cd_save');
+        if (save) save.onclick = async function () {
+          var v = $('cd_phone').value.trim();
+          if (!v) return alert('Enter a phone number.');
+          this.textContent = '…';
+          var r = await sb.from('system_config').upsert({ key: 'live_agent_phone', value: v }, { onConflict: 'key' });
+          this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+        };
       }
 
       // ─── AI Conversations (Sarvam chat + voice-call transcripts) ─────────

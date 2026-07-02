@@ -10,7 +10,7 @@ import {
 import * as FileSystem from 'expo-file-system/legacy';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackHeader } from '@/components/ui/BackHeader';
@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { Text } from '@/components/ui/Text';
+import { useConfig } from '@/features/config/hooks';
 import {
   chatWithSarvam,
   speechToText,
@@ -25,6 +26,8 @@ import {
   type SarvamChatMessage,
 } from '@/features/sarvam/api';
 import { cn } from '@/lib/cn';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
 
@@ -62,6 +65,31 @@ export default function SarvamVoiceCall() {
   const [state, setState] = useState<CallState>('setup');
   const [messages, setMessages] = useState<SarvamChatMessage[]>([]);
   const [note, setNote] = useState<string | null>(null);
+  const profile = useAuth((s) => s.profile);
+  // Live-agent hotline — admin-editable in web admin → ☎️ Call desk.
+  const { data: agentPhone } = useConfig<string>('live_agent_phone', '');
+
+  /** Human escalation: log the request for the admin Call desk, then dial. */
+  async function callLiveAgent() {
+    if (!agentPhone) return;
+    // best-effort log — the call proceeds even if this fails
+    await supabase
+      .from('call_logs')
+      .insert({
+        initiator: [profile?.full_name, profile?.phone].filter(Boolean).join(' · ') || 'App user',
+        kind: 'voice',
+        room: 'live-agent',
+      })
+      .then(
+        () => {},
+        () => {},
+      );
+    try {
+      await Linking.openURL(`tel:${String(agentPhone).replace(/\s+/g, '')}`);
+    } catch {
+      Alert.alert(t('tools.voice.liveAgent'), String(agentPhone));
+    }
+  }
 
   // Release any playing audio when leaving the screen.
   useEffect(() => {
@@ -224,6 +252,14 @@ export default function SarvamVoiceCall() {
             left={<Ionicons name="call" size={18} color="#FFFFFF" />}
             onPress={startCall}
           />
+          {agentPhone ? (
+            <Button
+              title={t('tools.voice.liveAgent')}
+              variant="outline"
+              left={<Ionicons name="person" size={16} color={color.ink} />}
+              onPress={callLiveAgent}
+            />
+          ) : null}
           {note ? (
             <Card className="border-gold/40 bg-gold/5">
               <Text variant="caption">{note}</Text>
@@ -255,6 +291,12 @@ export default function SarvamVoiceCall() {
         <Text variant="label" className="text-ink">{t(statusKey)}</Text>
         <Text variant="caption" className="ml-auto">{lang.label}</Text>
       </View>
+      {agentPhone ? (
+        <Pressable onPress={callLiveAgent} className="mx-5 mt-2 flex-row items-center gap-1.5 self-start rounded-full border border-line bg-surface px-3 py-1.5">
+          <Ionicons name="person" size={13} color={color.red} />
+          <Text className="text-[12px] font-semibold text-ink">{t('tools.voice.liveAgent')}</Text>
+        </Pressable>
+      ) : null}
 
       {/* Transcript */}
       <ScrollView

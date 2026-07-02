@@ -376,7 +376,8 @@
       "didntCatch": "Didn't catch that — please speak again.",
       "notEnabled": "Voice AI is not enabled yet.",
       "unavailable": "The assistant isn't available right now.",
-      "noVoice": "Couldn't generate the voice reply."
+      "noVoice": "Couldn't generate the voice reply.",
+      "liveAgent": "Talk to a live agent"
     }
   },
   "vastu": {
