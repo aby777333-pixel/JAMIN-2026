@@ -87,6 +87,19 @@ const PROMPTS: Record<string, (i: any) => Spec> = {
     maxTokens: 400,
     json: true,
   }),
+  revival: (i) => ({
+    system:
+      BRAND_SYSTEM +
+      ' You write short, warm WhatsApp messages that re-engage quiet property leads. ' +
+      'Never pushy, never guilt-tripping; one gentle value hook and one easy question.',
+    prompt:
+      `Write ONE WhatsApp message (max 60 words, friendly Indian English, no signature) to re-engage a lead.\n` +
+      `Name: ${i.name ?? 'there'}\n${i.property ? `They liked property: ${i.property}\n` : ''}` +
+      `${i.source ? `They originally came via: ${i.source}\n` : ''}` +
+      `${i.days_quiet ? `Quiet for: ${i.days_quiet} days\n` : ''}` +
+      'End with a light question that is easy to answer.',
+    maxTokens: 300,
+  }),
   assistant: (i) => ({
     system:
       BRAND_SYSTEM +
