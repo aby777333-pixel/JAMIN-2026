@@ -1274,16 +1274,24 @@
         var rcfg = await sb.from('system_config').select('value').eq('key', 'lead_routing').maybeSingle();
         var routing = (rcfg.data && rcfg.data.value) || { enabled: false, pool: [], cursor: 0 };
         var agentsQ = await sb.from('profiles').select('id,full_name, role:roles(level,name)').order('full_name');
-        var agents = (agentsQ.data || []).filter(function (a) { return a.role && a.role.level != null && a.role.level <= 6; });
+        var allMembers = agentsQ.data || [];
+        // Default = agent-level roles only (level ≤ 6); "Show all" lists every member.
+        var rtShowAll = !!window.__rt_showall;
+        var agents = rtShowAll
+          ? allMembers
+          : allMembers.filter(function (a) { return a.role && a.role.level != null && a.role.level <= 6; });
         var poolSet = {}; (routing.pool || []).forEach(function (id) { poolSet[id] = true; });
         var routingHtml = '<div class="panel"><h3>Lead routing pool</h3>' +
           '<div class="muted" style="font-size:12px;margin-bottom:8px">Pick the agents who receive round-robin auto-assignments. Use “Assign” on a lead to hand it to the next agent in the pool.</div>' +
           '<div class="row" style="gap:6px;margin-bottom:8px">' +
             '<button id="rt_all" class="btn-o btn-sm">Select all</button>' +
-            '<button id="rt_none" class="btn-o btn-sm">Deselect all</button></div>' +
+            '<button id="rt_none" class="btn-o btn-sm">Deselect all</button>' +
+            '<button id="rt_show" class="btn-o btn-sm">' + (rtShowAll ? 'Show agents only' : 'Show all') + '</button>' +
+            '<span class="muted" style="align-self:center;font-size:12px">' + agents.length + (rtShowAll ? ' members (everyone)' : ' agents') + '</span></div>' +
           '<div class="row" style="flex-wrap:wrap;gap:6px">' +
           agents.map(function (a) {
-            return '<label style="display:inline-flex;align-items:center;gap:4px;border:1px solid #e6e7e2;border-radius:8px;padding:4px 8px"><input type="checkbox" class="rt_agent" value="' + a.id + '"' + (poolSet[a.id] ? ' checked' : '') + ' /> ' + esc(a.full_name || '(unnamed)') + '</label>';
+            var roleTag = rtShowAll && a.role && a.role.name ? ' <span class="muted" style="font-size:10px">(' + esc(a.role.name) + ')</span>' : '';
+            return '<label style="display:inline-flex;align-items:center;gap:4px;border:1px solid #e6e7e2;border-radius:8px;padding:4px 8px"><input type="checkbox" class="rt_agent" value="' + a.id + '"' + (poolSet[a.id] ? ' checked' : '') + ' /> ' + esc(a.full_name || '(unnamed)') + roleTag + '</label>';
           }).join('') + '</div>' +
           '<div class="row" style="margin-top:8px"><button id="rt_save" class="btn btn-sm">Save pool</button> <span id="rt_count" class="muted" style="align-self:center"></span></div></div>';
         // Owner filter — view one agent's leads, then "All owners" restores the full list.
@@ -1341,9 +1349,19 @@
           document.querySelectorAll('.rt_agent').forEach(function (cb) { cb.checked = false; });
           rtRefreshCount();
         };
+        var rtShow = $('rt_show');
+        if (rtShow) rtShow.onclick = function () {
+          window.__rt_showall = !rtShowAll;
+          renderCrm();
+        };
         var rtSave = $('rt_save');
         if (rtSave) rtSave.onclick = async function () {
           var pool = Array.prototype.slice.call(document.querySelectorAll('.rt_agent:checked')).map(function (c) { return c.value; });
+          // Preserve saved pool members hidden by the current view (e.g. a non-agent
+          // member while "agents only" is shown) — only visible chips are editable.
+          var visible = {};
+          document.querySelectorAll('.rt_agent').forEach(function (cb) { visible[cb.value] = true; });
+          (routing.pool || []).forEach(function (id) { if (!visible[id] && pool.indexOf(id) === -1) pool.push(id); });
           this.textContent = '…';
           var r = await sb.from('system_config').update({ value: { enabled: pool.length > 0, pool: pool, cursor: (routing.cursor || 0) } }).eq('key', 'lead_routing');
           this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message); else renderCrm();
