@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Pressable, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, Share, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Button } from '@/components/ui/Button';
@@ -13,7 +14,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
 import { useQueryClient } from '@tanstack/react-query';
 import { callAI } from '@/features/ai/api';
-import { LEAD_STATUSES, setLeadScore, type FollowUp, type LeadStatus } from '@/features/leads/api';
+import { LEAD_STATUSES, listLeadEvents, setLeadScore, type FollowUp, type LeadStatus } from '@/features/leads/api';
 import {
   useCreateFollowUp,
   useFollowUps,
@@ -40,6 +41,36 @@ export default function LeadDetail() {
   const updateDeal = useUpdateLeadDeal();
   const smartScore = useScoreLead();
   const [scoring, setScoring] = useState(false);
+  const [reviving, setReviving] = useState(false);
+  // Unified timeline from the lead engine (0072) — everything this person did.
+  const { data: events = [] } = useQuery({
+    queryKey: ['lead_events', id],
+    queryFn: () => listLeadEvents(id as string),
+    enabled: !!id,
+  });
+
+  /** AI drafts a warm WhatsApp re-engagement message, then opens the share sheet. */
+  async function draftRevival() {
+    if (!lead) return;
+    setReviving(true);
+    try {
+      const res = await callAI('revival', {
+        name: lead.contact?.name,
+        source: lead.source ?? undefined,
+        property: lead.property?.plot_code,
+      });
+      const phoneDigits = (lead.contact?.phone ?? '').replace(/[^\d]/g, '');
+      if (phoneDigits) {
+        await Linking.openURL(`https://wa.me/${phoneDigits}?text=${encodeURIComponent(res.output)}`);
+      } else {
+        await Share.share({ message: res.output });
+      }
+    } catch (e) {
+      Alert.alert('Could not draft', errMessage(e));
+    } finally {
+      setReviving(false);
+    }
+  }
 
   async function scoreSmart() {
     if (!lead) return;
@@ -114,12 +145,20 @@ export default function LeadDetail() {
           <StatusPill status={lead.status} />
         </View>
         {phone ? (
-          <Pressable
-            onPress={() => Linking.openURL(`tel:${phone}`)}
-            className="flex-row items-center gap-2">
-            <Ionicons name="call" size={16} color={color.red} />
-            <Text className="font-mono text-[14px] text-red">{phone}</Text>
-          </Pressable>
+          <View className="flex-row items-center gap-4">
+            <Pressable
+              onPress={() => Linking.openURL(`tel:${phone}`)}
+              className="flex-row items-center gap-2">
+              <Ionicons name="call" size={16} color={color.red} />
+              <Text className="font-mono text-[14px] text-red">{phone}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => Linking.openURL(`https://wa.me/${String(phone).replace(/[^\d]/g, '')}`)}
+              className="flex-row items-center gap-1.5">
+              <Ionicons name="logo-whatsapp" size={16} color={color.success} />
+              <Text className="text-[13px] font-semibold" style={{ color: color.success }}>WhatsApp</Text>
+            </Pressable>
+          </View>
         ) : null}
         <Text variant="caption">
           {lead.source ?? 'lead'} · {new Date(lead.created_at).toLocaleDateString('en-IN')}
@@ -202,6 +241,30 @@ export default function LeadDetail() {
           ))}
         </View>
       </View>
+
+      <Button
+        title={reviving ? 'Drafting…' : '💬 AI revival message → WhatsApp'}
+        variant="secondary"
+        loading={reviving}
+        onPress={draftRevival}
+      />
+
+      {events.length > 0 ? (
+        <Card className="gap-2">
+          <Text variant="label">Timeline — everything they did</Text>
+          {events.map((e) => (
+            <View key={e.id} className="flex-row items-start gap-2">
+              <Ionicons name="ellipse" size={7} color={color.gold} style={{ marginTop: 6 }} />
+              <View className="flex-1">
+                <Text variant="body" className="text-[13px]">{e.summary ?? e.kind}</Text>
+                <Text variant="caption">
+                  {e.kind} · {new Date(e.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </Card>
+      ) : null}
 
       <DripCard leadId={lead.id} />
 

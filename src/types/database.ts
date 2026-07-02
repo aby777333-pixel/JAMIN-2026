@@ -1507,6 +1507,7 @@ export type Database = {
           id: string
           lead_id: string
           note: string | null
+          notified_at: string | null
           status: string
         }
         Insert: {
@@ -1515,6 +1516,7 @@ export type Database = {
           id?: string
           lead_id: string
           note?: string | null
+          notified_at?: string | null
           status?: string
         }
         Update: {
@@ -1523,6 +1525,7 @@ export type Database = {
           id?: string
           lead_id?: string
           note?: string | null
+          notified_at?: string | null
           status?: string
         }
         Relationships: [
@@ -1669,6 +1672,41 @@ export type Database = {
           },
         ]
       }
+      lead_events: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          kind: string
+          lead_id: string
+          summary: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          kind: string
+          lead_id: string
+          summary?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          kind?: string
+          lead_id?: string
+          summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_score_factors: {
         Row: {
           band: string | null
@@ -1748,14 +1786,18 @@ export type Database = {
           created_at: string
           expected_close: string | null
           id: string
+          last_touch_at: string
+          lost_reason: string | null
           owner_id: string
           property_id: string | null
           score: number
           score_band: string | null
+          sla_notified_at: string | null
           source: string | null
           stage_changed_at: string
           status: string
           updated_at: string
+          user_id: string | null
           value: number | null
         }
         Insert: {
@@ -1763,14 +1805,18 @@ export type Database = {
           created_at?: string
           expected_close?: string | null
           id?: string
+          last_touch_at?: string
+          lost_reason?: string | null
           owner_id: string
           property_id?: string | null
           score?: number
           score_band?: string | null
+          sla_notified_at?: string | null
           source?: string | null
           stage_changed_at?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
           value?: number | null
         }
         Update: {
@@ -1778,14 +1824,18 @@ export type Database = {
           created_at?: string
           expected_close?: string | null
           id?: string
+          last_touch_at?: string
+          lost_reason?: string | null
           owner_id?: string
           property_id?: string | null
           score?: number
           score_band?: string | null
+          sla_notified_at?: string | null
           source?: string | null
           stage_changed_at?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
           value?: number | null
         }
         Relationships: [
@@ -1801,6 +1851,13 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3639,6 +3696,19 @@ export type Database = {
         Returns: number
       }
       can_see_thread: { Args: { t: string }; Returns: boolean }
+      capture_lead: {
+        Args: {
+          p_data?: Json
+          p_name: string
+          p_phone: string
+          p_property: string
+          p_source: string
+          p_stage?: string
+          p_summary: string
+          p_user: string
+        }
+        Returns: string
+      }
       checkin_site_visit: {
         Args: { p_lat: number; p_lng: number; p_visit: string }
         Returns: Json
@@ -3666,6 +3736,7 @@ export type Database = {
         Args: { p_lead: string; p_sequence: string }
         Returns: string
       }
+      escalate_stale_leads: { Args: never; Returns: Json }
       evaluate_badges: { Args: { p_user: string }; Returns: undefined }
       express_cobroke_interest: {
         Args: { p_listing: string; p_message?: string }
@@ -3704,6 +3775,7 @@ export type Database = {
       }
       is_shortlist_member: { Args: { p_sl: string }; Returns: boolean }
       join_shortlist: { Args: { p_token: string }; Returns: string }
+      lead_daily_digest: { Args: never; Returns: undefined }
       lead_score_band: { Args: { p_score: number }; Returns: string }
       log_admin_action: {
         Args: {
@@ -3760,6 +3832,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      pick_pool_agent: { Args: { p_territory?: string }; Returns: string }
       pipeline_summary: {
         Args: never
         Returns: {

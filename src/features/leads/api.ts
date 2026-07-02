@@ -27,6 +27,26 @@ export interface FollowUp {
   status: string;
 }
 
+export interface LeadEvent {
+  id: string;
+  kind: string;
+  summary: string | null;
+  data: Record<string, unknown>;
+  created_at: string;
+}
+
+/** Unified timeline (lead engine, 0072): everything this person did, newest first. */
+export async function listLeadEvents(leadId: string): Promise<LeadEvent[]> {
+  const { data, error } = await supabase
+    .from('lead_events')
+    .select('id, kind, summary, data, created_at')
+    .eq('lead_id', leadId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return (data ?? []) as unknown as LeadEvent[];
+}
+
 const LEAD_SELECT =
   'id, status, source, contact, property_id, score, score_band, value, expected_close, stage_changed_at, created_at, owner_id, property:properties(plot_code, project:projects(name))';
 

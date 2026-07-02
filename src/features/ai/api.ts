@@ -10,6 +10,7 @@ export type AIFeature =
   | 'video_script'
   | 'brochure_copy'
   | 'lead_score'
+  | 'revival'
   | 'assistant';
 
 export interface AIResult {

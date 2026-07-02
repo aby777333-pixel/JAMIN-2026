@@ -1304,19 +1304,33 @@
         var ownerNames = {};
         rows.forEach(function (l) { if (l.owner && l.owner.full_name) ownerNames[l.owner.full_name] = true; });
         var ownerFilter = window.__crm_owner || 'all';
-        var filterHtml = '<div class="row" style="margin:4px 0 8px;align-items:center;gap:8px">' +
+        var crmQ = (window.__crm_q || '').toLowerCase();
+        var crmStatus = window.__crm_status || 'all';
+        var crmView = window.__crm_view || 'table';
+        var filterHtml = '<div class="row" style="margin:4px 0 8px;align-items:center;gap:8px;flex-wrap:wrap">' +
           '<span class="muted" style="font-size:12px">Show leads of</span>' +
-          '<select id="crm_owner" class="inp" style="height:36px;width:220px">' +
+          '<select id="crm_owner" class="inp" style="height:36px;width:200px">' +
             '<option value="all"' + (ownerFilter === 'all' ? ' selected' : '') + '>All owners (' + rows.length + ')</option>' +
             '<option value="__none__"' + (ownerFilter === '__none__' ? ' selected' : '') + '>Unassigned</option>' +
             Object.keys(ownerNames).sort().map(function (n) {
               return '<option value="' + esc(n) + '"' + (ownerFilter === n ? ' selected' : '') + '>' + esc(n) + '</option>';
             }).join('') +
-          '</select></div>';
+          '</select>' +
+          '<input id="crm_q" class="inp" style="height:36px;width:220px" placeholder="🔍 Search name / phone / plot" value="' + esc(window.__crm_q || '') + '" />' +
+          '<select id="crm_status" class="inp" style="height:36px;width:130px">' +
+            ['all'].concat(LEAD_STATUSES).map(function (s) { return '<option value="' + s + '"' + (s === crmStatus ? ' selected' : '') + '>' + (s === 'all' ? 'All statuses' : s) + '</option>'; }).join('') +
+          '</select>' +
+          '<button id="crm_view" class="btn-o btn-sm">' + (crmView === 'board' ? '☰ Table view' : '▦ Board view') + '</button></div>';
         var shown = rows.filter(function (l) {
-          if (ownerFilter === 'all') return true;
-          if (ownerFilter === '__none__') return !l.owner || !l.owner.full_name;
-          return !!l.owner && l.owner.full_name === ownerFilter;
+          if (ownerFilter === '__none__' && l.owner && l.owner.full_name) return false;
+          if (ownerFilter !== 'all' && ownerFilter !== '__none__' && (!l.owner || l.owner.full_name !== ownerFilter)) return false;
+          if (crmStatus !== 'all' && l.status !== crmStatus) return false;
+          if (crmQ) {
+            var c = l.contact || {};
+            var hay = ((c.name || '') + ' ' + (c.phone || '') + ' ' + (l.property ? l.property.plot_code : '') + ' ' + (l.source || '')).toLowerCase();
+            if (hay.indexOf(crmQ) === -1) return false;
+          }
+          return true;
         });
 
         // Source performance (which channels bring & convert leads) + SLA health.
@@ -1343,10 +1357,31 @@
             '<span class="pill ' + (staleCount ? 'sold' : 'available') + '">' + staleCount + ' waiting 24h+</span>' +
             '<button id="sla_run" class="btn-o btn-sm">Run SLA check now</button>' +
             '<button id="digest_run" class="btn-o btn-sm">Send digest to admins now</button></div></div>';
+        // Kanban board view — cards per stage with ◀ ▶ movement.
+        var boardHtml = '<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">' +
+          LEAD_STATUSES.map(function (st) {
+            var col = shown.filter(function (l) { return l.status === st; });
+            return '<div style="min-width:210px;flex:1;background:#f4f4f1;border-radius:12px;padding:8px">' +
+              '<div style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">' + st + ' <span class="muted">(' + col.length + ')</span></div>' +
+              (col.length ? col.map(function (l) {
+                var c = l.contact || {};
+                return '<div class="panel" style="margin:0 0 8px;padding:8px 10px" data-bid="' + l.id + '">' +
+                  '<div style="font-weight:600;font-size:13px">' + esc(c.name || '—') + (isStale(l) ? ' ⏰' : '') + '</div>' +
+                  (c.phone ? '<div class="mono muted" style="font-size:11px">' + esc(c.phone) + '</div>' : '') +
+                  '<div class="muted" style="font-size:11px">' + esc(l.source || '') + (l.property ? ' · ' + esc(l.property.plot_code) : '') + (l.value ? ' · ' + inr(l.value) : '') + '</div>' +
+                  '<div class="row" style="gap:4px;margin-top:6px">' +
+                    (st !== 'new' ? '<button class="btn-o btn-sm bm_prev" title="Move back">◀</button>' : '') +
+                    (st !== 'lost' ? '<button class="btn-o btn-sm bm_next" title="Move forward">▶</button>' : '') +
+                  '</div></div>';
+              }).join('') : '<div class="muted" style="font-size:11px">—</div>') +
+            '</div>';
+          }).join('') + '</div>';
+
         el.innerHTML = '<div class="head"><h2>CRM / Leads</h2></div>' +
           '<div class="stat-row"><div class="stat"><div class="n">' + rows.length + '</div><div class="l">Leads</div></div>' +
             '<div class="stat"><div class="n">' + rows.filter(function (l) { return l.status === 'won'; }).length + '</div><div class="l">Won</div></div></div>' +
           pipeHtml + routingHtml + srcHtml + filterHtml +
+          (crmView === 'board' ? boardHtml :
           (shown.length ? '<table><thead><tr><th>Contact</th><th>Owner</th><th>Property</th><th>Source</th><th>Score</th><th>Value (₹)</th><th>Close</th><th>Status</th><th></th></tr></thead><tbody>' +
           shown.map(function (l) {
             var c = l.contact || {};
@@ -1365,10 +1400,44 @@
               '<td><input class="inp lead_close" type="date" style="width:130px;height:34px" value="' + (l.expected_close || '') + '" /></td>' +
               '<td><select class="inp lead_status" style="width:110px;height:34px">' + LEAD_STATUSES.map(function (s) { return '<option value="' + s + '"' + (s === l.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></td>' +
               '<td style="white-space:nowrap"><button class="btn-o btn-sm lead_details" title="Timeline & follow-ups">☰ Details</button> <button class="btn-o btn-sm lead_smart" title="AI lead scoring">⚡ Score</button> <button class="btn-o btn-sm lead_assign" title="Round-robin assign to the pool">→ Assign</button></td></tr>';
-          }).join('') + '</tbody></table>' : '<div class="muted">' + (rows.length ? 'No leads for this owner — choose “All owners” to see the full list.' : 'No leads yet.') + '</div>');
-        // Owner filter: re-render with the chosen owner; "All owners" restores everything.
+          }).join('') + '</tbody></table>' : '<div class="muted">' + (rows.length ? 'No leads match these filters — clear the search/status/owner filters to see everything.' : 'No leads yet.') + '</div>'));
+        // Filters: any change re-renders; clearing restores the full list.
         var ownerSel = $('crm_owner');
         if (ownerSel) ownerSel.onchange = function () { window.__crm_owner = this.value; renderCrm(); };
+        var qBox = $('crm_q');
+        if (qBox) {
+          qBox.onchange = function () { window.__crm_q = this.value.trim(); renderCrm(); };
+          qBox.onkeydown = function (e) { if (e.key === 'Enter') { window.__crm_q = this.value.trim(); renderCrm(); } };
+        }
+        var stSel = $('crm_status');
+        if (stSel) stSel.onchange = function () { window.__crm_status = this.value; renderCrm(); };
+        var vBtn = $('crm_view');
+        if (vBtn) vBtn.onclick = function () { window.__crm_view = (crmView === 'board' ? 'table' : 'board'); renderCrm(); };
+        // Board: ◀ ▶ stage movement (lost asks why, same as the table).
+        var ORDER = LEAD_STATUSES;
+        el.querySelectorAll('[data-bid]').forEach(function (card) {
+          var bid = card.dataset.bid;
+          var l = rows.find(function (x) { return x.id === bid; });
+          if (!l) return;
+          function move(dir) {
+            var i = ORDER.indexOf(l.status);
+            var next = ORDER[Math.min(Math.max(i + dir, 0), ORDER.length - 1)];
+            if (next === l.status) return;
+            var upd = { status: next };
+            if (next === 'lost') {
+              var why = prompt('Why was this lead lost?', 'Budget mismatch');
+              if (why === null) return;
+              upd.lost_reason = why.trim() || null;
+            }
+            sb.from('leads').update(upd).eq('id', bid).then(function (r) {
+              if (r.error) alert(r.error.message); else renderCrm();
+            });
+          }
+          var prev = card.querySelector('.bm_prev');
+          if (prev) prev.onclick = function () { move(-1); };
+          var nxt = card.querySelector('.bm_next');
+          if (nxt) nxt.onclick = function () { move(1); };
+        });
         // Routing pool: select/deselect all + live selection count.
         // Ticked agents ALSO filter the leads table below (live); with nothing
         // ticked the FULL list always shows again.
