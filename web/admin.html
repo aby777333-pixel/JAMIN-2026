@@ -1498,20 +1498,95 @@
       async function renderTerritories() {
         await loadLookups();
         var el = $('tabTerritories');
-        el.innerHTML = '<div class="head"><h2>Territories</h2></div>' +
+        el.innerHTML = '<div class="head"><h2>Territories</h2></div><div class="muted">Loading…</div>';
+        // Fresh rows (with created_at) + member counts per territory.
+        var results = await Promise.all([
+          sb.from('territories').select('id,name,parent_id,created_at').order('name'),
+          sb.from('profiles').select('territory_id')
+        ]);
+        var tq = results[0], pq = results[1];
+        if (tq.error) { el.innerHTML = '<div class="head"><h2>Territories</h2></div><div class="muted">' + esc(tq.error.message) + '</div>'; return; }
+        var terr = tq.data || [];
+        var memberCount = {};
+        ((pq.data) || []).forEach(function (p) { if (p.territory_id) memberCount[p.territory_id] = (memberCount[p.territory_id] || 0) + 1; });
+
+        // Build the hierarchy: children per parent + depth-first order for the tree view.
+        var byParent = {};
+        terr.forEach(function (t) { var k = t.parent_id || ''; (byParent[k] = byParent[k] || []).push(t); });
+        var ordered = [];
+        (function walk(pid, depth) {
+          (byParent[pid] || []).forEach(function (t) { ordered.push({ t: t, depth: depth }); walk(t.id, depth + 1); });
+        })('', 0);
+        // Orphans whose parent row was deleted still need to show up.
+        var seen = {}; ordered.forEach(function (o) { seen[o.t.id] = true; });
+        terr.forEach(function (t) { if (!seen[t.id]) ordered.push({ t: t, depth: 0 }); });
+
+        /** ids of `id` + all its descendants — invalid as a new parent (would loop). */
+        function subtreeIds(id) {
+          var out = { }; out[id] = true;
+          (function walk2(pid) { (byParent[pid] || []).forEach(function (c) { out[c.id] = true; walk2(c.id); }); })(id);
+          return out;
+        }
+
+        var explain =
+          '<div class="panel" style="background:#f2f9f4;border-color:#bfe3cb"><h3>What territories do</h3>' +
+          '<div style="font-size:13px;line-height:1.7">' +
+          '• Territories are your <b>geographic sales structure</b> — e.g. <i>Kerala → Ernakulam → Kakkanad</i>. Nest them with the Parent field.<br />' +
+          '• Assign each member to a territory in <b>👤 Users &amp; roles</b>. Regional Managers &amp; State Heads then oversee their own territory\'s teams, and team analytics show every member\'s territory.<br />' +
+          '• Deleting a territory never deletes people — members and child territories are simply left without one (re-assign them afterwards).</div></div>';
+
+        el.innerHTML = '<div class="head"><h2>Territories</h2></div>' + explain +
           '<div class="panel"><h3>Add territory</h3><div class="row">' +
             '<input id="tr_name" class="inp" style="max-width:240px" placeholder="Territory name (e.g. Karnataka)" />' +
-            '<select id="tr_parent" class="inp" style="max-width:220px"><option value="">— no parent —</option>' + opt(state.territories, null, function (x) { return esc(x.name); }) + '</select>' +
+            '<select id="tr_parent" class="inp" style="max-width:220px"><option value="">— no parent (top level) —</option>' +
+              ordered.map(function (o) { return '<option value="' + o.t.id + '">' + '  '.repeat(o.depth) + esc(o.t.name) + '</option>'; }).join('') +
+            '</select>' +
             '<button id="tr_add" class="btn btn-sm">Add</button></div></div>' +
-          (state.territories.length ? '<table><thead><tr><th>Name</th><th>Parent</th></tr></thead><tbody>' +
-          state.territories.map(function (t) { var pr = state.territories.find(function (x) { return x.id === t.parent_id; }); return '<tr><td>' + esc(t.name) + '</td><td class="muted">' + esc(pr ? pr.name : '—') + '</td></tr>'; }).join('') + '</tbody></table>'
+          (ordered.length ? '<table><thead><tr><th>Territory</th><th>Parent</th><th>Members</th><th>Created</th><th></th></tr></thead><tbody>' +
+          ordered.map(function (o) {
+            var t = o.t;
+            var invalid = subtreeIds(t.id);
+            var parentOpts = '<option value="">— none (top level) —</option>' + ordered
+              .filter(function (x) { return !invalid[x.t.id]; })
+              .map(function (x) { return '<option value="' + x.t.id + '"' + (x.t.id === t.parent_id ? ' selected' : '') + '>' + '  '.repeat(x.depth) + esc(x.t.name) + '</option>'; }).join('');
+            return '<tr data-id="' + t.id + '">' +
+              '<td><span style="display:inline-block;width:' + (o.depth * 18) + 'px"></span>' + (o.depth ? '↳ ' : '') +
+                '<input class="inp tr_name2" style="width:180px;height:36px" value="' + esc(t.name) + '" /></td>' +
+              '<td><select class="inp tr_parent2" style="height:36px;max-width:220px">' + parentOpts + '</select></td>' +
+              '<td>' + (memberCount[t.id] || 0) + '</td>' +
+              '<td class="muted">' + (t.created_at ? new Date(t.created_at).toLocaleDateString('en-IN') : '—') + '</td>' +
+              '<td><button class="btn btn-sm tr_save">Save</button> <button class="btn btn-sm tr_del" style="background:#fee;color:#c00">Del</button></td></tr>';
+          }).join('') + '</tbody></table>'
           : '<div class="muted">No territories yet — add one above. Assign members to territories in Users &amp; roles.</div>');
+
         $('tr_add').onclick = async function () {
           var name = $('tr_name').value.trim(); if (!name) return;
           var body = { name: name }; if ($('tr_parent').value) body.parent_id = $('tr_parent').value;
           var r = await sb.from('territories').insert(body);
           if (r.error) return alert(r.error.message); renderTerritories();
         };
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          tr.querySelector('.tr_save').onclick = async function () {
+            var name = tr.querySelector('.tr_name2').value.trim();
+            if (!name) return alert('Name is required.');
+            this.textContent = '…';
+            var pv = tr.querySelector('.tr_parent2').value;
+            var r = await sb.from('territories').update({ name: name, parent_id: pv || null }).eq('id', id);
+            this.textContent = r.error ? 'Err' : 'Saved';
+            if (r.error) alert(r.error.message); else renderTerritories();
+          };
+          tr.querySelector('.tr_del').onclick = async function () {
+            var kids = (byParent[id] || []).length;
+            var members = memberCount[id] || 0;
+            var msg = 'Delete this territory?' +
+              (kids ? '\n• ' + kids + ' child territor' + (kids === 1 ? 'y' : 'ies') + ' will move to top level.' : '') +
+              (members ? '\n• ' + members + ' member' + (members === 1 ? '' : 's') + ' will be left without a territory.' : '');
+            if (!confirm(msg)) return;
+            var r = await sb.from('territories').delete().eq('id', id);
+            if (r.error) return alert(r.error.message); renderTerritories();
+          };
+        });
       }
 
       // ─── App Content (admin-editable strings/config the app reads live) ──
