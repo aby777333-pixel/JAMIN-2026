@@ -55,3 +55,31 @@ export async function translateText(text: string, target: string, source = 'auto
   }
   return data as SarvamResult;
 }
+
+export interface SarvamChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+/**
+ * Indian-language AI chat via the sarvam Edge Function (Sarvam-M). `language` is a
+ * human label (e.g. "हिन्दी") that nudges the reply language. Inert until a Sarvam
+ * key is configured server-side (returns { configured:false, message }).
+ */
+export async function chatWithSarvam(messages: SarvamChatMessage[], language?: string): Promise<SarvamResult> {
+  const { data, error } = await supabase.functions.invoke('sarvam', {
+    body: { action: 'chat', messages, language },
+  });
+  if (error) {
+    let message = error.message;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const body = await (error as any).context?.json?.();
+      if (body?.message || body?.error) message = body.message ?? body.error;
+    } catch {
+      /* keep default */
+    }
+    throw new Error(message);
+  }
+  return data as SarvamResult;
+}

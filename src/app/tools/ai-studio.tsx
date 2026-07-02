@@ -25,6 +25,65 @@ const FEATURES: { key: AIFeature; label: string }[] = [
   { key: 'brochure_copy', label: 'Brochure copy' },
 ];
 
+type Tool = {
+  icon: keyof typeof Ionicons.glyphMap;
+  titleKey: string;
+  subKey: string;
+  route: string;
+};
+
+const SECTIONS: { titleKey: string; tools: Tool[] }[] = [
+  {
+    titleKey: 'tools.aiStudio.secCreate',
+    tools: [
+      { icon: 'sparkles', titleKey: 'tools.aiStudio.imageCard', subKey: 'tools.aiStudio.imageSub', route: '/tools/ai-image' },
+      { icon: 'color-wand', titleKey: 'tools.aiStudio.stagingCard', subKey: 'tools.aiStudio.stagingSub', route: '/tools/staging' },
+      { icon: 'images', titleKey: 'tools.aiStudio.posterCard', subKey: 'tools.aiStudio.posterSub', route: '/tools/poster' },
+    ],
+  },
+  {
+    titleKey: 'tools.aiStudio.secCapture',
+    tools: [
+      { icon: 'camera', titleKey: 'tools.aiStudio.adCard', subKey: 'tools.aiStudio.adSub', route: '/tools/ad-creator' },
+    ],
+  },
+  {
+    titleKey: 'tools.aiStudio.secLanguage',
+    tools: [
+      { icon: 'chatbubble-ellipses', titleKey: 'tools.aiStudio.sarvamCard', subKey: 'tools.aiStudio.sarvamSub', route: '/tools/sarvam-chat' },
+      { icon: 'language', titleKey: 'tools.aiStudio.translateCard', subKey: 'tools.aiStudio.translateSub', route: '/tools/translate' },
+    ],
+  },
+];
+
+/** A capability chip for the footer strip (matches the AI suite vision). */
+const CAPS = [
+  { icon: 'videocam' as const, key: 'tools.aiStudio.capVideo' },
+  { icon: 'camera' as const, key: 'tools.aiStudio.capCamera' },
+  { icon: 'sparkles' as const, key: 'tools.aiStudio.capImage' },
+  { icon: 'language' as const, key: 'tools.aiStudio.capTranslate' },
+  { icon: 'chatbubbles' as const, key: 'tools.aiStudio.capChat' },
+  { icon: 'color-wand' as const, key: 'tools.aiStudio.capStage' },
+];
+
+function ToolCard({ tool }: { tool: Tool }) {
+  const { t } = useTranslation();
+  return (
+    <Pressable onPress={() => router.push(tool.route as never)}>
+      <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
+        <View className="h-11 w-11 items-center justify-center rounded-xl bg-gold/20">
+          <Ionicons name={tool.icon} size={22} color={color.goldDeep} />
+        </View>
+        <View className="flex-1">
+          <Text variant="title" className="text-[14px]">{t(tool.titleKey)}</Text>
+          <Text variant="caption">{t(tool.subKey)}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={color.muted} />
+      </Card>
+    </Pressable>
+  );
+}
+
 export default function AiStudio() {
   const { t } = useTranslation();
   const gen = useAIGenerate();
@@ -66,57 +125,30 @@ export default function AiStudio() {
 
       <Text variant="caption">{t('tools.aiStudio.intro')}</Text>
 
-      <Pressable onPress={() => router.push('/tools/poster')}>
-        <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
-          <View className="h-11 w-11 items-center justify-center rounded-xl bg-gold/20">
-            <Ionicons name="image" size={22} color={color.goldDeep} />
-          </View>
-          <View className="flex-1">
-            <Text variant="title" className="text-[14px]">{t('tools.aiStudio.posterCard')}</Text>
-            <Text variant="caption">{t('tools.aiStudio.posterSub')}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={color.muted} />
-        </Card>
-      </Pressable>
+      {SECTIONS.map((section) => (
+        <View key={section.titleKey} className="gap-2">
+          <Text variant="label" className="uppercase tracking-[1px] text-muted">{t(section.titleKey)}</Text>
+          {section.tools.map((tool) => (
+            <ToolCard key={tool.route} tool={tool} />
+          ))}
+        </View>
+      ))}
 
-      <Pressable onPress={() => router.push('/tools/ai-image')}>
-        <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
-          <View className="h-11 w-11 items-center justify-center rounded-xl bg-gold/20">
-            <Ionicons name="sparkles" size={22} color={color.goldDeep} />
+      {/* Capability footer strip */}
+      <View className="flex-row flex-wrap gap-2 rounded-2xl border border-line bg-surface p-3">
+        {CAPS.map((c) => (
+          <View key={c.key} className="flex-row items-center gap-1.5 rounded-full bg-paper px-2.5 py-1">
+            <Ionicons name={c.icon} size={13} color={color.red} />
+            <Text className="text-[11px] font-medium text-ink">{t(c.key)}</Text>
           </View>
-          <View className="flex-1">
-            <Text variant="title" className="text-[14px]">{t('tools.aiStudio.imageCard')}</Text>
-            <Text variant="caption">{t('tools.aiStudio.imageSub')}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={color.muted} />
-        </Card>
-      </Pressable>
+        ))}
+      </View>
 
-      <Pressable onPress={() => router.push('/tools/staging')}>
-        <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
-          <View className="h-11 w-11 items-center justify-center rounded-xl bg-gold/20">
-            <Ionicons name="color-wand" size={22} color={color.goldDeep} />
-          </View>
-          <View className="flex-1">
-            <Text variant="title" className="text-[14px]">{t('tools.aiStudio.stagingCard')}</Text>
-            <Text variant="caption">{t('tools.aiStudio.stagingSub')}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={color.muted} />
-        </Card>
-      </Pressable>
-
-      <Pressable onPress={() => router.push('/tools/translate')}>
-        <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
-          <View className="h-11 w-11 items-center justify-center rounded-xl bg-gold/20">
-            <Ionicons name="language" size={22} color={color.goldDeep} />
-          </View>
-          <View className="flex-1">
-            <Text variant="title" className="text-[14px]">{t('tools.aiStudio.translateCard')}</Text>
-            <Text variant="caption">{t('tools.aiStudio.translateSub')}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={color.muted} />
-        </Card>
-      </Pressable>
+      {/* AI Copywriter */}
+      <View className="gap-2 pt-1">
+        <Text variant="label" className="uppercase tracking-[1px] text-muted">{t('tools.aiStudio.secWrite')}</Text>
+        <Text variant="caption">{t('tools.aiStudio.writeIntro')}</Text>
+      </View>
 
       <View className="flex-row flex-wrap gap-2">
         {FEATURES.map((f) => (

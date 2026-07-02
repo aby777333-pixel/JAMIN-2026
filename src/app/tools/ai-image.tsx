@@ -44,11 +44,15 @@ const COMPONENTS: { group: string; items: string[] }[] = [
 
 const RATIO: Record<string, number> = { '4:3': 3 / 4, '1:1': 1, '16:9': 9 / 16, '9:16': 16 / 9 };
 
+// Visual style applied to the generated image (matches the AI suite vision).
+const STYLES = ['Modern', 'Tropical', 'Luxury', 'Rural', 'Urban', 'Cinematic'];
+
 export default function AiImage() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [prompt, setPrompt] = useState('');
   const [aspect, setAspect] = useState('4:3');
+  const [style, setStyle] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -62,7 +66,8 @@ export default function AiImage() {
     setNote(null);
     setUrl(null);
     try {
-      const res = await generateImage(prompt.trim(), aspect);
+      const finalPrompt = style ? `${prompt.trim()}, ${style.toLowerCase()} style` : prompt.trim();
+      const res = await generateImage(finalPrompt, aspect);
       if (res.url) setUrl(res.url);
       else setNote(res.message ?? t('tools.aiImage.couldNotGen'));
     } catch (e) {
@@ -214,6 +219,15 @@ export default function AiImage() {
               </View>
             </View>
           ))}
+        </View>
+
+        <View className="gap-1.5">
+          <Text variant="label">{t('tools.aiImage.style')}</Text>
+          <View className="flex-row flex-wrap gap-2">
+            {STYLES.map((s) => (
+              <Chip key={s} label={s} active={style === s} onPress={() => setStyle((cur) => (cur === s ? null : s))} />
+            ))}
+          </View>
         </View>
 
         <View className="gap-1.5">

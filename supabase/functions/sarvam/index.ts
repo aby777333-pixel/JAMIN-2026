@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
     const { data: u } = await asUser.auth.getUser();
     if (!u?.user) return json({ error: 'unauthorized' }, 401);
 
-    const { action, text, source, target } = await req.json().catch(() => ({}));
+    const { action, text, source, target, messages, language } = await req.json().catch(() => ({}));
 
     const key = await resolveKey();
     if (!key) {
@@ -47,6 +47,45 @@ Deno.serve(async (req) => {
         configured: false,
         message: 'Sarvam AI is not enabled yet. Add a Sarvam API key to switch it on.',
       });
+    }
+
+    if (action === 'chat') {
+      // Indian-language real-estate assistant via Sarvam-M chat completions.
+      // `messages` = [{ role:'user'|'assistant', content }]; `language` (label)
+      // nudges the reply language. Inert until a Sarvam key is set.
+      const history = Array.isArray(messages) ? messages : [];
+      const clean = history
+        .filter((m: unknown): m is { role: string; content: string } =>
+          !!m && typeof (m as { content?: unknown }).content === 'string')
+        .slice(-16)
+        .map((m) => ({
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: String(m.content).slice(0, 4000),
+        }));
+      if (clean.length === 0) return json({ error: 'messages required' }, 400);
+
+      const langLine = language && typeof language === 'string'
+        ? ` Always reply in ${language} (use the Indian script for that language). Keep property/legal terms clear.`
+        : ' Reply in the same language the user writes in.';
+      const system = {
+        role: 'system',
+        content:
+          "You are JAMIN Properties' friendly real-estate assistant for Indian buyers, agents and " +
+          'partners. Help with property advice, locality guidance, pricing talk-tracks, home loans, ' +
+          'Vastu basics, negotiation and documentation. Be concise, warm and practical. Brand line: ' +
+          '"Signature for Fortune."' + langLine,
+      };
+
+      const res = await fetch('https://api.sarvam.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'api-subscription-key': key, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'sarvam-m', messages: [system, ...clean], temperature: 0.5, max_tokens: 700 }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) return json({ error: d?.error?.message ?? d?.message ?? 'Chat failed', detail: d }, 502);
+      const reply = d?.choices?.[0]?.message?.content;
+      if (typeof reply !== 'string' || !reply.trim()) return json({ error: 'No reply from the model.' }, 502);
+      return json({ configured: true, text: reply.trim() });
     }
 
     if (action === 'translate') {

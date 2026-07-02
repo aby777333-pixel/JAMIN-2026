@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import * as MediaLibrary from 'expo-media-library';
+import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Linking, Platform, Pressable, ScrollView, Share, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,11 +26,15 @@ import { publishAd } from '@/features/marketing/ad';
 import { logArtifactShare, shareImageFile } from '@/features/marketing/share';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/stores/auth';
+import { cn } from '@/lib/cn';
 import { color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
 
 interface Capture {
-  uri: string;
+  uri: string; // the still shown/stamped (a video's extracted frame, or the photo)
+  kind: 'image' | 'video';
+  sourceUri?: string; // original video file (played back on the shared ad page)
+  videoMime?: string;
   lat?: number;
   lng?: number;
   place?: string;
@@ -41,9 +46,12 @@ export default function AdCreator() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [perm, requestPerm] = useCameraPermissions();
+  const [micPerm, requestMicPerm] = useMicrophonePermissions();
   const cameraRef = useRef<CameraView>(null);
   const frameRef = useRef<View>(null);
   const [capture, setCapture] = useState<Capture | null>(null);
+  const [mode, setMode] = useState<'photo' | 'video'>('photo');
+  const [recording, setRecording] = useState(false);
   const [format, setFormat] = useState<AdFormatKey>('post');
   const [busy, setBusy] = useState(false);
   const [enhancing, setEnhancing] = useState(false);
@@ -76,35 +84,84 @@ export default function AdCreator() {
     }
   }
 
-  async function withLocation(uri: string) {
-    let lat: number | undefined;
-    let lng: number | undefined;
-    let place: string | undefined;
+  /** Best-effort geo lookup — the ad still generates without it. */
+  async function getLocation(): Promise<{ lat?: number; lng?: number; place?: string }> {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const pos = await Location.getCurrentPositionAsync({});
-        lat = pos.coords.latitude;
-        lng = pos.coords.longitude;
-        const geo = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
-        const g = geo[0];
-        place = [g?.district ?? g?.subregion, g?.city ?? g?.region].filter(Boolean).join(', ');
-      }
+      if (status !== 'granted') return {};
+      const pos = await Location.getCurrentPositionAsync({});
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const geo = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+      const g = geo[0];
+      const place = [g?.district ?? g?.subregion, g?.city ?? g?.region].filter(Boolean).join(', ');
+      return { lat, lng, place };
     } catch {
-      // location optional — ad still generates without it
+      return {};
     }
+  }
+
+  /** Commit a captured/picked photo. */
+  async function useImage(uri: string) {
+    const loc = await getLocation();
     setEnhanced(false);
-    setCapture({ uri, lat, lng, place, at: new Date() });
+    setCapture({ uri, kind: 'image', at: new Date(), ...loc });
+  }
+
+  /** Commit a captured/picked video — a clean frame is extracted for the stamped still. */
+  async function useVideo(videoUri: string, videoMime = 'video/mp4') {
+    let thumb = videoUri;
+    try {
+      const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, { time: 1000, quality: 0.9 });
+      thumb = uri;
+    } catch {
+      // fall back to the raw uri; the still may not render but sharing still works
+    }
+    const loc = await getLocation();
+    setEnhanced(false);
+    setCapture({ uri: thumb, kind: 'video', sourceUri: videoUri, videoMime, at: new Date(), ...loc });
   }
 
   async function takePhoto() {
     const shot = await cameraRef.current?.takePictureAsync({ quality: 0.85 });
-    if (shot?.uri) await withLocation(shot.uri);
+    if (shot?.uri) await useImage(shot.uri);
   }
 
-  async function pickPhoto() {
-    const res = await ImagePicker.launchImageLibraryAsync({ quality: 0.85, mediaTypes: ['images'] });
-    if (!res.canceled && res.assets[0]?.uri) await withLocation(res.assets[0].uri);
+  async function startRecording() {
+    if (!perm?.granted) return;
+    if (!micPerm?.granted) {
+      const r = await requestMicPerm();
+      if (!r.granted) {
+        Alert.alert(t('tools.adCreator.micNeeded'), t('tools.adCreator.micNeededBody'));
+        return;
+      }
+    }
+    setRecording(true);
+    try {
+      // recordAsync resolves when stopRecording() is called (or maxDuration hits).
+      const video = await cameraRef.current?.recordAsync({ maxDuration: 60 });
+      if (video?.uri) await useVideo(video.uri);
+    } catch (e) {
+      Alert.alert(t('tools.adCreator.recordFailed'), errMessage(e));
+    } finally {
+      setRecording(false);
+    }
+  }
+
+  function stopRecording() {
+    cameraRef.current?.stopRecording();
+  }
+
+  async function pickMedia() {
+    const res = await ImagePicker.launchImageLibraryAsync({
+      quality: 0.85,
+      mediaTypes: ['images', 'videos'],
+      videoMaxDuration: 60,
+    });
+    if (res.canceled || !res.assets[0]?.uri) return;
+    const a = res.assets[0];
+    if (a.type === 'video') await useVideo(a.uri, a.mimeType ?? 'video/mp4');
+    else await useImage(a.uri);
   }
 
   async function persist(): Promise<string | null> {
@@ -179,6 +236,8 @@ export default function AdCreator() {
             agentPhone: profile.phone,
             agentReferral: profile.referral_code,
             capturedAt: capture?.at.toISOString(),
+            videoUri: capture?.kind === 'video' ? capture.sourceUri : undefined,
+            videoMime: capture?.videoMime,
           });
           const caption =
             `🏡 Real property — captured live${capture?.place ? ` · ${capture.place}` : ''}\n` +
@@ -225,9 +284,38 @@ export default function AdCreator() {
     return (
       <Screen scroll={false} contentClassName="pt-2">
         <BackHeader title={t('tools.adCreator.title')} />
+
+        {/* Photo / Video mode toggle */}
+        <View className="mt-1 flex-row self-center rounded-full border border-line bg-surface p-1">
+          <Pressable
+            onPress={() => !recording && setMode('photo')}
+            className={cn('flex-row items-center gap-1.5 rounded-full px-4 py-1.5', mode === 'photo' && 'bg-ink')}>
+            <Ionicons name="camera" size={15} color={mode === 'photo' ? '#FFFFFF' : color.ink} />
+            <Text className={cn('text-[13px] font-semibold', mode === 'photo' ? 'text-white' : 'text-ink')}>
+              {t('tools.adCreator.photo')}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => !recording && setMode('video')}
+            className={cn('flex-row items-center gap-1.5 rounded-full px-4 py-1.5', mode === 'video' && 'bg-ink')}>
+            <Ionicons name="videocam" size={15} color={mode === 'video' ? '#FFFFFF' : color.ink} />
+            <Text className={cn('text-[13px] font-semibold', mode === 'video' ? 'text-white' : 'text-ink')}>
+              {t('tools.adCreator.video')}
+            </Text>
+          </Pressable>
+        </View>
+
         <View className="mt-2 flex-1 overflow-hidden rounded-3xl bg-charcoal">
           {perm.granted ? (
-            <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" />
+            <>
+              <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" mode={mode === 'video' ? 'video' : 'picture'} />
+              {recording ? (
+                <View className="absolute left-3 top-3 flex-row items-center gap-1.5 rounded-full bg-red px-2.5 py-1">
+                  <View className="h-2 w-2 rounded-full bg-white" />
+                  <Text className="text-[11px] font-bold text-white">{t('tools.adCreator.rec')}</Text>
+                </View>
+              ) : null}
+            </>
           ) : (
             <View className="flex-1 items-center justify-center gap-3 p-6">
               <Ionicons name="camera" size={36} color={color.gold} />
@@ -236,12 +324,29 @@ export default function AdCreator() {
             </View>
           )}
         </View>
+
         <View className="mt-3 flex-row gap-3">
           <View className="flex-1">
-            <Button title={t('tools.adCreator.upload')} variant="outline" onPress={pickPhoto} />
+            <Button title={t('tools.adCreator.upload')} variant="outline" onPress={pickMedia} disabled={recording} />
           </View>
           <View className="flex-[2]">
-            <Button title={t('tools.adCreator.captureLive')} onPress={takePhoto} disabled={!perm.granted} />
+            {mode === 'photo' ? (
+              <Button title={t('tools.adCreator.captureLive')} onPress={takePhoto} disabled={!perm.granted} />
+            ) : recording ? (
+              <Button
+                title={t('tools.adCreator.stopRec')}
+                variant="secondary"
+                onPress={stopRecording}
+                left={<Ionicons name="stop" size={16} color={color.ink} />}
+              />
+            ) : (
+              <Button
+                title={t('tools.adCreator.recordVideo')}
+                onPress={startRecording}
+                disabled={!perm.granted}
+                left={<Ionicons name="videocam" size={16} color="#FFFFFF" />}
+              />
+            )}
           </View>
         </View>
         <Text variant="caption" className="mt-2 text-center">{t('tools.adCreator.stampNote')}</Text>
@@ -274,9 +379,17 @@ export default function AdCreator() {
               <View className="rounded-lg bg-red px-2 py-1">
                 <Text className="font-bold text-[10px] uppercase tracking-[1px] text-white">JAMIN Properties</Text>
               </View>
-              <View className="flex-row items-center gap-1 rounded-lg bg-black/55 px-2 py-1">
-                <Ionicons name="location" size={11} color={color.gold} />
-                <Text className="font-medium text-[10px] text-white">Taken on site</Text>
+              <View className="flex-row items-center gap-1.5">
+                {capture.kind === 'video' ? (
+                  <View className="flex-row items-center gap-1 rounded-lg bg-red/90 px-2 py-1">
+                    <Ionicons name="videocam" size={11} color="#FFFFFF" />
+                    <Text className="font-medium text-[10px] text-white">Video</Text>
+                  </View>
+                ) : null}
+                <View className="flex-row items-center gap-1 rounded-lg bg-black/55 px-2 py-1">
+                  <Ionicons name="location" size={11} color={color.gold} />
+                  <Text className="font-medium text-[10px] text-white">Taken on site</Text>
+                </View>
               </View>
             </View>
 
@@ -391,13 +504,20 @@ export default function AdCreator() {
         </ScrollView>
 
         <View className="mt-5 gap-3">
-          <Button
-            title={enhancing ? t('tools.adCreator.enhancing') : enhanced ? t('tools.adCreator.enhanceAgain') : t('tools.adCreator.enhance')}
-            variant="secondary"
-            loading={enhancing}
-            disabled={busy}
-            onPress={onEnhance}
-          />
+          {capture.kind === 'image' ? (
+            <Button
+              title={enhancing ? t('tools.adCreator.enhancing') : enhanced ? t('tools.adCreator.enhanceAgain') : t('tools.adCreator.enhance')}
+              variant="secondary"
+              loading={enhancing}
+              disabled={busy}
+              onPress={onEnhance}
+            />
+          ) : (
+            <View className="flex-row items-center gap-2 rounded-2xl border border-gold/40 bg-gold/5 px-3 py-2.5">
+              <Ionicons name="film" size={16} color={color.goldDeep} />
+              <Text variant="caption" className="flex-1">{t('tools.adCreator.videoNote')}</Text>
+            </View>
+          )}
           <Button title={t('tools.adCreator.shareAd')} loading={busy} onPress={onShare} />
           <View className="flex-row gap-3">
             <View className="flex-1">

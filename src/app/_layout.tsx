@@ -97,7 +97,11 @@ export default function RootLayout() {
             <Stack.Screen name="tools/poster" />
             <Stack.Screen name="tools/ad-creator" />
             <Stack.Screen name="tools/ai-studio" />
+            <Stack.Screen name="tools/ai-image" />
             <Stack.Screen name="tools/ai-assistant" />
+            <Stack.Screen name="tools/sarvam-chat" />
+            <Stack.Screen name="tools/translate" />
+            <Stack.Screen name="tools/valuation" />
             <Stack.Screen name="brochures/index" />
             <Stack.Screen name="brochures/[id]" />
             <Stack.Screen name="compare" />
