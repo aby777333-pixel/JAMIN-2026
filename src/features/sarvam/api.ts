@@ -74,7 +74,7 @@ export interface SarvamTtsResult {
 }
 
 /** Speech-to-text (saarika:v2.5) — base64 audio in, transcript out. Auto-detects the language. */
-export async function speechToText(audioBase64: string, mime = 'audio/m4a'): Promise<SarvamSttResult> {
+export async function speechToText(audioBase64: string, mime = 'audio/mp4'): Promise<SarvamSttResult> {
   const { data, error } = await supabase.functions.invoke('sarvam', {
     body: { action: 'stt', audio_base64: audioBase64, mime },
   });

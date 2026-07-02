@@ -63,7 +63,9 @@ export default function Chat() {
       ) : (
         <KeyboardAvoidingView
           className="flex-1"
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          // Android needs an explicit behavior with edge-to-edge on, or the phone
+          // keyboard covers the input (iOS: padding, Android: height — same as Screen).
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <FlatList
             ref={listRef}
             data={messages}

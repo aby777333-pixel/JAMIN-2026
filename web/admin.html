@@ -124,6 +124,7 @@
         <button class="nav-i" data-tab="forms">📋 Form Builder</button>
         <button class="nav-i" data-tab="features">🧩 Features</button>
         <button class="nav-i" data-tab="aisuite">🤖 AI Suite</button>
+        <button class="nav-i" data-tab="aiconvos">📞 AI Conversations</button>
         <button class="nav-i" data-tab="rewards">🏆 Rewards</button>
         <button class="nav-i" data-tab="referrals">🔗 Referrals</button>
         <button class="nav-i" data-tab="commissions">💰 Commissions</button>
@@ -171,6 +172,7 @@
         <div id="tabForms" class="hidden"></div>
         <div id="tabFeatures" class="hidden"></div>
         <div id="tabAisuite" class="hidden"></div>
+        <div id="tabAiconvos" class="hidden"></div>
         <div id="tabRewards" class="hidden"></div>
         <div id="tabReferrals" class="hidden"></div>
         <div id="tabCommissions" class="hidden"></div>
@@ -282,7 +284,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'aisuite', 'rewards', 'referrals', 'commissions', 'usermedia', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'moderation', 'insights', 'audit', 'exports', 'festivals'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'aisuite', 'aiconvos', 'rewards', 'referrals', 'commissions', 'usermedia', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'moderation', 'insights', 'audit', 'exports', 'festivals'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -299,6 +301,7 @@
         if (tab === 'forms') renderFormBuilder();
         if (tab === 'features') renderFeatures();
         if (tab === 'aisuite') renderAiSuite();
+        if (tab === 'aiconvos') renderAiConvos();
         if (tab === 'rewards') renderRewards();
         if (tab === 'referrals') renderReferrals();
         if (tab === 'commissions') renderCommissions();
@@ -1746,6 +1749,67 @@
             if (r.error) { alert(r.error.message); this.checked = !this.checked; }
           };
         });
+      }
+
+      // ─── AI Conversations (Sarvam chat + voice-call transcripts) ─────────
+      async function renderAiConvos() {
+        var el = $('tabAiconvos');
+        el.innerHTML = '<div class="head"><h2>AI Conversations</h2></div><div class="muted">Loading…</div>';
+        var kind = window.__ac_kind || 'all';
+        var q = sb.from('ai_generations')
+          .select('feature,input,output,created_at,user:profiles(full_name,phone)')
+          .in('feature', kind === 'all' ? ['sarvam_chat', 'sarvam_voice', 'assistant'] : [kind])
+          .order('created_at', { ascending: false })
+          .limit(50);
+        var r = await q;
+
+        var explain =
+          '<div class="panel" style="background:#f2f9f4;border-color:#bfe3cb"><h3>How AI calls & chats are answered</h3>' +
+          '<div style="font-size:13px;line-height:1.7">' +
+          '• <b>AI Voice Call</b> and <b>Sarvam AI Chat</b> are answered <b>automatically by the AI assistant</b> (Sarvam, in the user\'s language) — no staff needed, 24×7.<br />' +
+          '• Every turn is logged below (transcript only, never audio) so you can monitor quality and follow up on hot enquiries yourself — the user\'s name and phone appear on each row.<br />' +
+          '• When a customer wants a <b>human</b>, they use <b>Live chat</b> (💬 tab) — that one is answered by you/your team. Property-ad enquiries land in <b>Ad chats</b> (📲 tab).</div></div>';
+
+        var rowsHtml;
+        if (r.error) {
+          rowsHtml = '<div class="muted">' + esc(r.error.message) + '</div>';
+        } else {
+          var rows = r.data || [];
+          rowsHtml = rows.length
+            ? rows.map(function (g) {
+                var isVoice = g.feature === 'sarvam_voice';
+                var input = g.input || {};
+                var who = (g.user && g.user.full_name) || 'Unknown user';
+                var phone = (g.user && g.user.phone) ? ' · <span class="mono">' + esc(g.user.phone) + '</span>' : '';
+                var lang = input.language || input.detected_language || '';
+                // sales-assistant rows log the full messages array; surface the last user line.
+                if (!input.message && Array.isArray(input.messages)) {
+                  for (var mi = input.messages.length - 1; mi >= 0; mi--) {
+                    var mm = input.messages[mi];
+                    if (mm && mm.role === 'user' && typeof mm.content === 'string') { input = Object.assign({}, input, { message: mm.content.slice(0, 500) }); break; }
+                  }
+                }
+                return '<div class="panel" style="margin-bottom:10px">' +
+                  '<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px">' +
+                    '<div><b>' + (isVoice ? '🎙️ Voice' : g.feature === 'assistant' ? '🤖 Sales assistant' : '💬 Chat') + '</b> — ' + esc(who) + phone +
+                      (lang ? ' · <span class="muted">' + esc(String(lang)) + '</span>' : '') + '</div>' +
+                    '<div class="muted">' + new Date(g.created_at).toLocaleString('en-IN') + '</div></div>' +
+                  (input.message ? '<div style="background:#fff5f5;border:1px solid #f3d5d5;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:13px"><b>User:</b> ' + esc(input.message) + '</div>' : '') +
+                  '<div style="background:#f7f7f5;border:1px solid #e6e7e2;border-radius:8px;padding:8px 10px;font-size:13px;white-space:pre-wrap">' +
+                    '<b>' + (isVoice ? 'User said (transcript):' : 'AI replied:') + '</b> ' + esc(g.output || '—') + '</div>' +
+                  '</div>';
+              }).join('')
+            : '<div class="muted">No AI conversations yet. They\'ll appear here as users talk to the assistant.</div>';
+        }
+
+        el.innerHTML = '<div class="head"><h2>AI Conversations</h2>' +
+          '<select id="ac_kind" class="inp" style="height:36px;width:190px">' +
+            [['all', 'All conversations'], ['sarvam_chat', '💬 Sarvam chat'], ['sarvam_voice', '🎙️ Voice calls'], ['assistant', '🤖 Sales assistant']].map(function (o) {
+              return '<option value="' + o[0] + '"' + (o[0] === kind ? ' selected' : '') + '>' + o[1] + '</option>';
+            }).join('') +
+          '</select></div>' + explain + rowsHtml;
+
+        $('ac_kind').onchange = function () { window.__ac_kind = this.value; renderAiConvos(); };
       }
 
       // ─── Rewards (badges, gamification rules, leaderboard, recent awards) ───

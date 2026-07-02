@@ -89,6 +89,23 @@ Deno.serve(async (req) => {
       if (!res.ok) return json({ error: d?.error?.message ?? d?.message ?? 'Chat failed', detail: d }, 502);
       const reply = d?.choices?.[0]?.message?.content;
       if (typeof reply !== 'string' || !reply.trim()) return json({ error: 'No reply from the model.' }, 502);
+
+      // Log the turn so admins can monitor conversations (AI Conversations console).
+      // Best-effort: a logging failure never breaks the chat.
+      try {
+        const svc = createClient(SUPABASE_URL, SERVICE_KEY);
+        const lastUser = clean.filter((m) => m.role === 'user').pop();
+        await svc.from('ai_generations').insert({
+          user_id: u.user.id,
+          feature: 'sarvam_chat',
+          input: { language: language ?? null, message: (lastUser?.content ?? '').slice(0, 2000), turns: clean.length },
+          output: reply.trim().slice(0, 4000),
+          meta: { model: 'sarvam-30b' },
+          status: 'done',
+        });
+      } catch {
+        /* ignore */
+      }
       return json({ configured: true, text: reply.trim() });
     }
 
@@ -100,8 +117,12 @@ Deno.serve(async (req) => {
       }
       const bin = Uint8Array.from(atob(audio_base64), (c) => c.charCodeAt(0));
       const form = new FormData();
-      const kind = typeof mime === 'string' && mime ? mime : 'audio/wav';
-      const ext = kind.includes('mp4') || kind.includes('m4a') ? 'm4a' : kind.includes('mpeg') ? 'mp3' : 'wav';
+      // Sarvam rejects 'audio/m4a' but accepts 'audio/mp4' / 'audio/x-m4a' — expo-audio
+      // recordings are AAC in an MP4 container, so normalize the label.
+      let kind = typeof mime === 'string' && mime ? mime.toLowerCase() : 'audio/wav';
+      if (kind === 'audio/m4a' || kind === 'audio/aac-m4a') kind = 'audio/mp4';
+      if (kind === 'audio/3gpp' || kind === 'audio/3gp') kind = 'audio/mp4';
+      const ext = kind.includes('mp4') || kind.includes('m4a') ? 'm4a' : kind.includes('mpeg') || kind.includes('mp3') ? 'mp3' : 'wav';
       form.append('file', new Blob([bin], { type: kind }), `speech.${ext}`);
       form.append('model', 'saarika:v2.5');
 
@@ -112,6 +133,21 @@ Deno.serve(async (req) => {
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) return json({ error: d?.error?.message ?? d?.message ?? 'Transcription failed', detail: d }, 502);
+
+      // Log the voice turn (transcript only, never audio) for the admin console.
+      try {
+        const svc = createClient(SUPABASE_URL, SERVICE_KEY);
+        await svc.from('ai_generations').insert({
+          user_id: u.user.id,
+          feature: 'sarvam_voice',
+          input: { detected_language: d?.language_code ?? null },
+          output: String(d?.transcript ?? '').slice(0, 4000),
+          meta: { model: 'saarika:v2.5' },
+          status: 'done',
+        });
+      } catch {
+        /* ignore */
+      }
       return json({ configured: true, text: d?.transcript ?? '', language_code: d?.language_code ?? null });
     }
 

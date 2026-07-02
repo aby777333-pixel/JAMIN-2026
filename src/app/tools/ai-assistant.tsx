@@ -56,9 +56,9 @@ export default function AiAssistant() {
         <BackHeader title="AI Assistant" />
       </View>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
-        keyboardVerticalOffset={insets.top + 8}>
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 8 : 0}>
         <ScrollView
           ref={scroller}
           className="flex-1"

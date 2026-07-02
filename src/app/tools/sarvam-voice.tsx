@@ -125,8 +125,10 @@ export default function SarvamVoiceCall() {
       if (!uri) throw new Error(t('tools.voice.noAudio'));
 
       // 1) Speech → text
+      // expo-audio records AAC in an MP4 container; Sarvam accepts 'audio/mp4'
+      // (it rejects the 'audio/m4a' label — the edge fn also normalizes it).
       const b64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
-      const stt = await speechToText(b64, 'audio/m4a');
+      const stt = await speechToText(b64, 'audio/mp4');
       if (stt.configured === false) {
         setNote(stt.message ?? t('tools.voice.notEnabled'));
         setState('ready');
