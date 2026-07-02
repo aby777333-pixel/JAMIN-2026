@@ -103,6 +103,8 @@ export default function RootLayout() {
             <Stack.Screen name="tools/sarvam-voice" />
             <Stack.Screen name="tools/translate" />
             <Stack.Screen name="tools/valuation" />
+            <Stack.Screen name="blessing" />
+            <Stack.Screen name="nri" />
             <Stack.Screen name="brochures/index" />
             <Stack.Screen name="brochures/[id]" />
             <Stack.Screen name="compare" />

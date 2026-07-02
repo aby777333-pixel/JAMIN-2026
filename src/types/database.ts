@@ -459,39 +459,21 @@ export type Database = {
         }
         Relationships: []
       }
-      festivals: {
+      app_secrets: {
         Row: {
-          active: boolean
-          blurb: string | null
-          created_at: string
-          festival_date: string
-          id: string
-          key: string | null
-          name: string
-          sort_order: number
+          key: string
           updated_at: string
+          value: string
         }
         Insert: {
-          active?: boolean
-          blurb?: string | null
-          created_at?: string
-          festival_date: string
-          id?: string
-          key?: string | null
-          name: string
-          sort_order?: number
+          key: string
           updated_at?: string
+          value: string
         }
         Update: {
-          active?: boolean
-          blurb?: string | null
-          created_at?: string
-          festival_date?: string
-          id?: string
-          key?: string | null
-          name?: string
-          sort_order?: number
+          key?: string
           updated_at?: string
+          value?: string
         }
         Relationships: []
       }
@@ -1482,6 +1464,42 @@ export type Database = {
           },
         ]
       }
+      festivals: {
+        Row: {
+          active: boolean
+          blurb: string | null
+          created_at: string
+          festival_date: string
+          id: string
+          key: string | null
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          blurb?: string | null
+          created_at?: string
+          festival_date: string
+          id?: string
+          key?: string | null
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          blurb?: string | null
+          created_at?: string
+          festival_date?: string
+          id?: string
+          key?: string | null
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       follow_ups: {
         Row: {
           created_at: string
@@ -2026,6 +2044,53 @@ export type Database = {
           },
         ]
       }
+      nri_requests: {
+        Row: {
+          country: string | null
+          created_at: string
+          id: string
+          kind: string
+          name: string | null
+          notes: string | null
+          phone: string | null
+          preferred_time: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string | null
+          notes?: string | null
+          phone?: string | null
+          preferred_time?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string | null
+          notes?: string | null
+          phone?: string | null
+          preferred_time?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nri_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offers: {
         Row: {
           amount: number
@@ -2243,6 +2308,7 @@ export type Database = {
           role_id: string | null
           status: string
           territory_id: string | null
+          tradition: string | null
           updated_at: string
         }
         Insert: {
@@ -2263,6 +2329,7 @@ export type Database = {
           role_id?: string | null
           status?: string
           territory_id?: string | null
+          tradition?: string | null
           updated_at?: string
         }
         Update: {
@@ -2283,6 +2350,7 @@ export type Database = {
           role_id?: string | null
           status?: string
           territory_id?: string | null
+          tradition?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -3531,6 +3599,15 @@ export type Database = {
           p_title: string
         }
         Returns: string
+      }
+      admin_ai_key_status: {
+        Args: never
+        Returns: {
+          configured: boolean
+          last_updated: string
+          provider: string
+          secret_key: string
+        }[]
       }
       agent_public_profile: { Args: { p_code: string }; Returns: Json }
       app_audit: {

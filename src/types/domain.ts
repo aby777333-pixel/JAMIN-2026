@@ -37,6 +37,8 @@ export interface Profile {
   kyc_status: KycStatus;
   territory_id: string | null;
   language: string;
+  /** Faith/tradition for personalised dates & checklists (0071); null = not chosen. */
+  tradition?: string | null;
   status: string;
   created_at: string;
 }

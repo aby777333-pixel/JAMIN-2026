@@ -25,6 +25,8 @@ const ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string;
   { icon: 'school', label: 'Training Academy', sub: 'Courses, quizzes & certificates', href: '/academy' },
   { icon: 'compass', label: 'Vastu & Muhurat', sub: 'Facing, numerology & auspicious dates', href: '/vastu' },
   { icon: 'home', label: 'Griha Pravesh', sub: 'House-warming checklist & muhurat', href: '/griha-pravesh' },
+  { icon: 'heart-circle', label: 'Blessing Scheduler', sub: 'House-blessing dates & checklists — every tradition', href: '/blessing' },
+  { icon: 'globe', label: 'NRI Corner', sub: 'Gulf & overseas buyers: docs, POA, FX, video visits', href: '/nri' },
   { icon: 'cash', label: 'Home loans', sub: 'Compare lenders, get pre-approved', href: '/loans' },
   { icon: 'folder', label: 'Document vault', sub: 'Agreements, IDs & KYC in one place', href: '/documents' },
   { icon: 'apps', label: "What's included", sub: 'Explore all platform features', href: '/features' },

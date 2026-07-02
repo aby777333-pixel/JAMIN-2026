@@ -33,6 +33,7 @@ import { CobrokeSheet } from '@/features/cobroke/CobrokeSheet';
 import { AiPropertyPanel } from '@/features/ai/AiPropertyPanel';
 import { FortunePanel } from '@/features/astro/FortunePanel';
 import { InvestValueCard } from '@/features/invest/InvestValueCard';
+import { SacredPlacesCard } from '@/features/faith/SacredPlacesCard';
 import { JourneyTracker } from '@/features/journey/JourneyTracker';
 import { useMyWatchIds, useToggleWatch } from '@/features/watch/hooks';
 import { OfferSheet } from '@/features/offers/OfferSheet';
@@ -281,6 +282,9 @@ export default function PropertyDetail() {
           <Detail key={k} label={k} value={String(v)} />
         ))}
       </Card>
+
+      {/* Faith & practicality — sacred places, Qibla, land checks (renders only with coords). */}
+      <SacredPlacesCard lat={lat} lng={lng} attrs={property.attrs} />
 
       {isPartner ? (
         <CommissionPreview

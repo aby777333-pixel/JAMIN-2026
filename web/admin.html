@@ -126,6 +126,8 @@
         <button class="nav-i" data-tab="aisuite">🤖 AI Suite</button>
         <button class="nav-i" data-tab="aiconvos">📞 AI Conversations</button>
         <button class="nav-i" data-tab="calldesk">☎️ Call desk</button>
+        <button class="nav-i" data-tab="faith">🕊️ Faith & Culture</button>
+        <button class="nav-i" data-tab="nridesk">🌏 NRI desk</button>
         <button class="nav-i" data-tab="rewards">🏆 Rewards</button>
         <button class="nav-i" data-tab="referrals">🔗 Referrals</button>
         <button class="nav-i" data-tab="commissions">💰 Commissions</button>
@@ -175,6 +177,8 @@
         <div id="tabAisuite" class="hidden"></div>
         <div id="tabAiconvos" class="hidden"></div>
         <div id="tabCalldesk" class="hidden"></div>
+        <div id="tabFaith" class="hidden"></div>
+        <div id="tabNridesk" class="hidden"></div>
         <div id="tabRewards" class="hidden"></div>
         <div id="tabReferrals" class="hidden"></div>
         <div id="tabCommissions" class="hidden"></div>
@@ -286,7 +290,7 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'aisuite', 'aiconvos', 'calldesk', 'rewards', 'referrals', 'commissions', 'usermedia', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'moderation', 'insights', 'audit', 'exports', 'festivals'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'aisuite', 'aiconvos', 'calldesk', 'faith', 'nridesk', 'rewards', 'referrals', 'commissions', 'usermedia', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'moderation', 'insights', 'audit', 'exports', 'festivals'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
@@ -305,6 +309,8 @@
         if (tab === 'aisuite') renderAiSuite();
         if (tab === 'aiconvos') renderAiConvos();
         if (tab === 'calldesk') renderCallDesk();
+        if (tab === 'faith') renderFaith();
+        if (tab === 'nridesk') renderNriDesk();
         if (tab === 'rewards') renderRewards();
         if (tab === 'referrals') renderReferrals();
         if (tab === 'commissions') renderCommissions();
@@ -1939,6 +1945,185 @@
           var r = await sb.from('system_config').upsert({ key: 'live_agent_phone', value: v }, { onConflict: 'key' });
           this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
         };
+      }
+
+      // ─── Faith & Culture (tradition adoption, festivals, feature toggles) ─
+      async function renderFaith() {
+        var el = $('tabFaith');
+        el.innerHTML = '<div class="head"><h2>Faith & Culture</h2></div><div class="muted">Loading…</div>';
+        var FAITH_FEATURES = ['my_tradition', 'qibla_direction', 'blessing_scheduler', 'sacred_places', 'land_practicals'];
+        var results = await Promise.all([
+          sb.from('profiles').select('tradition'),
+          sb.from('festivals').select('id,name,festival_date,active').gte('festival_date', new Date().toISOString().slice(0, 10)).order('festival_date').limit(12),
+          sb.from('app_features').select('id,key,name,description,enabled').in('key', FAITH_FEATURES).order('sort_order'),
+          sb.from('app_content').select('key,label,value').eq('grp', 'Buying guides').order('sort_order')
+        ]);
+        var profs = results[0], fests = results[1], feats = results[2], guides = results[3];
+
+        var explain =
+          '<div class="panel" style="background:#f2f9f4;border-color:#bfe3cb"><h3>We sell to every community</h3>' +
+          '<div style="font-size:13px;line-height:1.7">' +
+          '• Buyers pick <b>My Tradition</b> (Hindu / Muslim / Christian / Sikh / Jain / other) in the app\'s Blessing Scheduler — dates, checklists and festivals personalise to it.<br />' +
+          '• <b>Qibla direction</b> and <b>sacred places nearby</b> (temple / church / mosque / gurdwara) show on every property with coordinates.<br />' +
+          '• Festival dates (incl. Eid, Christmas, Gurpurab, Onam, Paryushan…) live in the <b>🪔 Festivals</b> tab — lunar dates are approximations, adjust them there.<br />' +
+          '• We celebrate every tradition and <b>never</b> filter properties or buyers by community.</div></div>';
+
+        // Tradition adoption
+        var counts = {};
+        ((profs.data) || []).forEach(function (p) { var k = p.tradition || '(not chosen)'; counts[k] = (counts[k] || 0) + 1; });
+        var adoptHtml = profs.error ? '<div class="muted">' + esc(profs.error.message) + '</div>'
+          : '<table><thead><tr><th>Tradition</th><th>Members</th></tr></thead><tbody>' +
+            Object.keys(counts).sort().map(function (k) {
+              return '<tr><td style="text-transform:capitalize">' + esc(k) + '</td><td>' + counts[k] + '</td></tr>';
+            }).join('') + '</tbody></table>';
+
+        // Upcoming festivals (read-only glance; editing lives in Festivals tab)
+        var festHtml = fests.error ? '<div class="muted">' + esc(fests.error.message) + '</div>'
+          : ((fests.data || []).length
+            ? '<table><thead><tr><th>Date</th><th>Festival</th><th>On</th></tr></thead><tbody>' +
+              fests.data.map(function (f) {
+                return '<tr><td class="muted">' + new Date(f.festival_date + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) + '</td>' +
+                  '<td>' + esc(f.name) + '</td><td>' + (f.active ? '✅' : '—') + '</td></tr>';
+              }).join('') + '</tbody></table>' +
+              '<div class="muted" style="margin-top:6px">Edit names, dates & banners in the 🪔 Festivals tab (lunar dates are best-known approximations).</div>'
+            : '<div class="muted">No upcoming festivals — add them in the Festivals tab.</div>');
+
+        // Feature toggles
+        var featHtml = feats.error ? '<div class="muted">' + esc(feats.error.message) + '</div>'
+          : '<table><thead><tr><th>On</th><th>Feature</th><th>Description</th></tr></thead><tbody>' +
+            (feats.data || []).map(function (f) {
+              return '<tr data-id="' + f.id + '"><td><input type="checkbox" class="fa_en"' + (f.enabled ? ' checked' : '') + ' /></td>' +
+                '<td><b>' + esc(f.name) + '</b></td><td class="muted">' + esc(f.description || '') + '</td></tr>';
+            }).join('') + '</tbody></table>';
+
+        // Buying guides (women buyer, govt schemes, joint family, practicals, milestones)
+        var guideHtml = guides.error ? '<div class="muted">' + esc(guides.error.message) + '</div>'
+          : (guides.data || []).map(function (g) {
+              return '<div style="margin-bottom:10px" data-k="' + esc(g.key) + '"><b style="font-size:13px">' + esc(g.label) + '</b>' +
+                '<textarea class="inp fa_guide" style="width:100%;min-height:64px;margin-top:4px;font-size:12px">' + esc(g.value || '') + '</textarea>' +
+                '<button class="btn btn-sm fa_gsave" style="margin-top:4px">Save</button></div>';
+            }).join('');
+
+        el.innerHTML = '<div class="head"><h2>Faith & Culture</h2></div>' + explain +
+          '<div class="panel"><h3>Tradition adoption</h3>' + adoptHtml + '</div>' +
+          '<div class="panel"><h3>Upcoming festivals (all faiths)</h3>' + festHtml + '</div>' +
+          '<div class="panel"><h3>Features</h3>' + featHtml + '</div>' +
+          '<div class="panel"><h3>Buying guides (shown in the app — edit freely)</h3>' + guideHtml + '</div>';
+
+        el.querySelectorAll('tr[data-id] .fa_en').forEach(function (cb) {
+          cb.onchange = async function () {
+            var id = this.closest('tr').dataset.id;
+            var r = await sb.from('app_features').update({ enabled: this.checked }).eq('id', id);
+            if (r.error) { alert(r.error.message); this.checked = !this.checked; }
+          };
+        });
+        el.querySelectorAll('[data-k] .fa_gsave').forEach(function (btn) {
+          btn.onclick = async function () {
+            var box = this.closest('[data-k]');
+            this.textContent = '…';
+            var r = await sb.from('app_content').update({ value: box.querySelector('.fa_guide').value, updated_at: new Date().toISOString() }).eq('key', box.dataset.k);
+            this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+        });
+      }
+
+      // ─── NRI desk (contacts, FX rates, requests, guides) ──────────────────
+      async function renderNriDesk() {
+        var el = $('tabNridesk');
+        el.innerHTML = '<div class="head"><h2>NRI desk</h2></div><div class="muted">Loading…</div>';
+        var results = await Promise.all([
+          sb.from('system_config').select('key,value').in('key', ['nri_support_phone', 'nri_support_whatsapp', 'nri_fx_rates']),
+          sb.from('nri_requests').select('id,name,phone,country,preferred_time,kind,notes,status,created_at').order('created_at', { ascending: false }).limit(50),
+          sb.from('app_content').select('key,label,value').eq('grp', 'NRI desk').order('sort_order')
+        ]);
+        var cfg = results[0], reqs = results[1], guides = results[2];
+        var conf = {};
+        ((cfg.data) || []).forEach(function (c) { conf[c.key] = c.value; });
+        var rates = conf.nri_fx_rates && typeof conf.nri_fx_rates === 'object' ? conf.nri_fx_rates : {};
+
+        var explain =
+          '<div class="panel" style="background:#f2f9f4;border-color:#bfe3cb"><h3>How the NRI desk works</h3>' +
+          '<div style="font-size:13px;line-height:1.7">' +
+          '• Overseas buyers open <b>NRI Corner</b> in the app: currency view, best-time-to-call, document/POA/tax guides, and one-tap <b>Call me back / Video site visit / Docs help</b> requests.<br />' +
+          '• Requests land below with the buyer\'s country and preferred window — work them from <b>new → contacted → done</b>.<br />' +
+          '• The support phone/WhatsApp below are <b>MOCK numbers</b> — replace before launch. FX rates are indicative; update them as needed.</div></div>';
+
+        var phoneHtml =
+          '<div class="row" style="align-items:center;gap:8px;flex-wrap:wrap">' +
+          '<input id="nd_phone" class="inp" style="max-width:220px" value="' + esc(String(conf.nri_support_phone || '')) + '" placeholder="Support phone" />' +
+          '<input id="nd_wa" class="inp" style="max-width:220px" value="' + esc(String(conf.nri_support_whatsapp || '')) + '" placeholder="WhatsApp number" />' +
+          '<button id="nd_csave" class="btn btn-sm">Save contacts</button></div>';
+
+        var CURR = ['USD', 'AED', 'SAR', 'QAR', 'KWD', 'OMR', 'BHD', 'GBP', 'EUR', 'SGD'];
+        var fxHtml = '<div class="row" style="flex-wrap:wrap;gap:8px">' +
+          CURR.map(function (c) {
+            return '<label style="display:inline-flex;align-items:center;gap:4px;font-size:12px">' + c +
+              ' <input class="inp nd_fx" data-c="' + c + '" type="number" step="0.1" style="width:90px;height:34px" value="' + (rates[c] != null ? rates[c] : '') + '" /></label>';
+          }).join('') +
+          '</div><div class="row" style="margin-top:8px"><button id="nd_fxsave" class="btn btn-sm">Save rates</button> <span class="muted" style="align-self:center;font-size:12px">₹ per 1 unit of each currency (indicative).</span></div>';
+
+        var KINDS = { callback: '📞 Callback', video_visit: '🎥 Video visit', docs_help: '📄 Docs / POA' };
+        var reqHtml = reqs.error ? '<div class="muted">' + esc(reqs.error.message) + '</div>'
+          : ((reqs.data || []).length
+            ? '<table><thead><tr><th>When</th><th>Buyer</th><th>Country</th><th>Request</th><th>Preferred window</th><th>Status</th></tr></thead><tbody>' +
+              reqs.data.map(function (r) {
+                return '<tr data-id="' + r.id + '">' +
+                  '<td class="muted">' + new Date(r.created_at).toLocaleString('en-IN') + '</td>' +
+                  '<td>' + esc(r.name || '—') + (r.phone ? '<br><span class="muted mono">' + esc(r.phone) + '</span>' : '') + '</td>' +
+                  '<td>' + esc(r.country || '—') + '</td>' +
+                  '<td>' + (KINDS[r.kind] || esc(r.kind)) + '</td>' +
+                  '<td class="muted" style="font-size:12px">' + esc(r.preferred_time || '—') + '</td>' +
+                  '<td><select class="inp nd_status" style="height:34px;width:120px">' +
+                    ['new', 'contacted', 'done'].map(function (s) { return '<option value="' + s + '"' + (s === r.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') +
+                  '</select></td></tr>';
+              }).join('') + '</tbody></table>'
+            : '<div class="muted">No NRI requests yet — they\'ll appear when buyers tap "Call me back" in NRI Corner.</div>');
+
+        var guideHtml = guides.error ? '<div class="muted">' + esc(guides.error.message) + '</div>'
+          : (guides.data || []).map(function (g) {
+              return '<div style="margin-bottom:10px" data-k="' + esc(g.key) + '"><b style="font-size:13px">' + esc(g.label) + '</b>' +
+                '<textarea class="inp nd_guide" style="width:100%;min-height:64px;margin-top:4px;font-size:12px">' + esc(g.value || '') + '</textarea>' +
+                '<button class="btn btn-sm nd_gsave" style="margin-top:4px">Save</button></div>';
+            }).join('');
+
+        el.innerHTML = '<div class="head"><h2>NRI desk</h2></div>' + explain +
+          '<div class="panel"><h3>Support contacts (mock — replace before launch)</h3>' + phoneHtml + '</div>' +
+          '<div class="panel"><h3>Indicative FX rates (₹)</h3>' + fxHtml + '</div>' +
+          '<div class="panel"><h3>Requests</h3>' + reqHtml + '</div>' +
+          '<div class="panel"><h3>App guide texts (edit freely)</h3>' + guideHtml + '</div>';
+
+        $('nd_csave').onclick = async function () {
+          this.textContent = '…';
+          var r1 = await sb.from('system_config').upsert({ key: 'nri_support_phone', value: $('nd_phone').value.trim() }, { onConflict: 'key' });
+          var r2 = await sb.from('system_config').upsert({ key: 'nri_support_whatsapp', value: $('nd_wa').value.trim() }, { onConflict: 'key' });
+          this.textContent = (r1.error || r2.error) ? 'Err' : 'Saved';
+          if (r1.error || r2.error) alert((r1.error || r2.error).message);
+        };
+        $('nd_fxsave').onclick = async function () {
+          this.textContent = '…';
+          var next = {};
+          el.querySelectorAll('.nd_fx').forEach(function (inp) {
+            var v = parseFloat(inp.value);
+            if (!isNaN(v) && v > 0) next[inp.dataset.c] = v;
+          });
+          var r = await sb.from('system_config').upsert({ key: 'nri_fx_rates', value: next }, { onConflict: 'key' });
+          this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+        };
+        el.querySelectorAll('tr[data-id] .nd_status').forEach(function (sel) {
+          sel.onchange = async function () {
+            var id = this.closest('tr').dataset.id;
+            var r = await sb.from('nri_requests').update({ status: this.value }).eq('id', id);
+            if (r.error) alert(r.error.message);
+          };
+        });
+        el.querySelectorAll('[data-k] .nd_gsave').forEach(function (btn) {
+          btn.onclick = async function () {
+            var box = this.closest('[data-k]');
+            this.textContent = '…';
+            var r = await sb.from('app_content').update({ value: box.querySelector('.nd_guide').value, updated_at: new Date().toISOString() }).eq('key', box.dataset.k);
+            this.textContent = r.error ? 'Err' : 'Saved'; if (r.error) alert(r.error.message);
+          };
+        });
       }
 
       // ─── AI Conversations (Sarvam chat + voice-call transcripts) ─────────
