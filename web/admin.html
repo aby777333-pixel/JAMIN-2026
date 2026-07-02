@@ -1265,7 +1265,7 @@
       async function renderCrm() {
         var el = $('tabCrm');
         el.innerHTML = '<div class="head"><h2>CRM / Leads</h2></div><div class="muted">Loading…</div>';
-        var q = await sb.from('leads').select('id,source,status,contact,score,score_band,value,expected_close,created_at, owner:profiles!owner_id(full_name), property:properties(plot_code)').order('created_at', { ascending: false }).limit(300);
+        var q = await sb.from('leads').select('id,source,status,contact,score,score_band,value,expected_close,created_at,owner_id, owner:profiles!owner_id(full_name), property:properties(plot_code)').order('created_at', { ascending: false }).limit(300);
         if (q.error) { el.innerHTML = '<div class="head"><h2>CRM / Leads</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
         var rows = q.data || [];
         // Deal pipeline rollup (server-side, RLS-safe).
@@ -1288,7 +1288,7 @@
           : allMembers.filter(function (a) { return a.role && a.role.level != null && a.role.level <= 6; });
         var poolSet = {}; (routing.pool || []).forEach(function (id) { poolSet[id] = true; });
         var routingHtml = '<div class="panel"><h3>Lead routing pool</h3>' +
-          '<div class="muted" style="font-size:12px;margin-bottom:8px">Pick the agents who receive round-robin auto-assignments. Use “Assign” on a lead to hand it to the next agent in the pool.</div>' +
+          '<div class="muted" style="font-size:12px;margin-bottom:8px">Pick the agents who receive round-robin auto-assignments. Use “Assign” on a lead to hand it to the next agent in the pool. Ticking agents also filters the lead list below — deselect all to see every lead again.</div>' +
           '<div class="row" style="gap:6px;margin-bottom:8px">' +
             '<button id="rt_all" class="btn-o btn-sm">Select all</button>' +
             '<button id="rt_none" class="btn-o btn-sm">Deselect all</button>' +
@@ -1326,7 +1326,7 @@
           shown.map(function (l) {
             var c = l.contact || {};
             var band = l.score_band ? '<br><span class="pill ' + (l.score_band === 'hot' ? 'available' : l.score_band === 'warm' ? 'reserved' : 'sold') + '">' + l.score_band + '</span>' : '';
-            return '<tr data-id="' + l.id + '"><td>' + esc(c.name || c.full_name || '—') + (c.phone ? '<br><span class="muted">' + esc(c.phone) + '</span>' : '') + '</td>' +
+            return '<tr data-id="' + l.id + '" data-owner="' + (l.owner_id || '') + '"><td>' + esc(c.name || c.full_name || '—') + (c.phone ? '<br><span class="muted">' + esc(c.phone) + '</span>' : '') + '</td>' +
               '<td>' + esc(l.owner ? l.owner.full_name : '—') + '</td><td class="mono">' + esc(l.property ? l.property.plot_code : '') + '</td>' +
               '<td>' + esc(l.source || '') + '</td><td class="mono">' + (l.score == null ? '—' : l.score) + band + '</td>' +
               '<td><input class="inp lead_value" type="number" step="0.01" style="width:120px;height:36px" value="' + (l.value == null ? '' : l.value) + '" /></td>' +
@@ -1338,10 +1338,21 @@
         var ownerSel = $('crm_owner');
         if (ownerSel) ownerSel.onchange = function () { window.__crm_owner = this.value; renderCrm(); };
         // Routing pool: select/deselect all + live selection count.
+        // Ticked agents ALSO filter the leads table below (live); with nothing
+        // ticked the FULL list always shows again.
         function rtRefreshCount() {
-          var n = document.querySelectorAll('.rt_agent:checked').length;
+          var checked = Array.prototype.slice.call(document.querySelectorAll('.rt_agent:checked')).map(function (c) { return c.value; });
           var c = $('rt_count');
-          if (c) c.textContent = n + ' selected · ' + ((routing.pool || []).length) + ' in saved pool';
+          if (c) {
+            c.textContent = checked.length + ' selected · ' + ((routing.pool || []).length) + ' in saved pool' +
+              (checked.length ? ' · showing only their leads below — deselect all to see everyone' : '');
+          }
+          // Live-filter the leads table by the ticked agents (owner match).
+          var set = {};
+          checked.forEach(function (id) { set[id] = true; });
+          el.querySelectorAll('tr[data-owner]').forEach(function (tr) {
+            tr.style.display = checked.length === 0 || set[tr.dataset.owner] ? '' : 'none';
+          });
         }
         rtRefreshCount();
         document.querySelectorAll('.rt_agent').forEach(function (cb) { cb.addEventListener('change', rtRefreshCount); });
