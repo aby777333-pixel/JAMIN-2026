@@ -10,8 +10,9 @@ const BASE = 'flex-row items-center justify-center rounded-2xl px-5 h-13 min-h-[
 const VARIANT: Record<Variant, { box: string; label: string; spinner: string }> = {
   primary: { box: 'bg-red active:bg-red-deep', label: 'text-white', spinner: '#FFFFFF' },
   secondary: { box: 'bg-gold active:bg-gold-deep', label: 'text-ink', spinner: '#1A1A1A' },
-  outline: { box: 'border border-line bg-surface active:bg-paper', label: 'text-ink', spinner: '#1A1A1A' },
-  ghost: { box: 'bg-transparent active:bg-paper', label: 'text-ink', spinner: '#1A1A1A' },
+  // Warm gold tint instead of plain white so secondary actions carry colour.
+  outline: { box: 'border border-gold/50 bg-gold/10 active:bg-gold/20', label: 'text-ink', spinner: '#1A1A1A' },
+  ghost: { box: 'bg-transparent active:bg-paper', label: 'text-red-deep', spinner: '#C70000' },
 };
 
 export interface ButtonProps extends Omit<PressableProps, 'children'> {

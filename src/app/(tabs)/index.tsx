@@ -289,12 +289,8 @@ function QuickLink({
         style={{ backgroundColor: `${tint}2E` }}>
         <Ionicons name={icon} size={20} color={tint} />
       </View>
-      <Text
-        variant="title"
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.7}
-        className="flex-1 text-[15px]">
+      {/* Fixed size (no auto-shrink) so every tile's label reads the same. */}
+      <Text variant="title" numberOfLines={1} className="flex-1 text-[14px]">
         {label}
       </Text>
     </Pressable>

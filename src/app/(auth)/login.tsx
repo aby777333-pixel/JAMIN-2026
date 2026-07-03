@@ -75,6 +75,8 @@ export default function Login() {
         <Logo width={260} showTagline />
       </View>
 
+      {/* Translucent card keeps every letter readable over the bright backdrop. */}
+      <View className="gap-6 rounded-3xl bg-white/90 p-5">
       <View className="gap-2">
         <Text variant="h1" className="text-center">
           {t('auth.welcome')}
@@ -143,21 +145,22 @@ export default function Login() {
           }}
           hitSlop={8}
           className="self-center">
-          <Text className="font-semibold text-[13px] text-red">
+          <Text className="font-semibold text-[14px] text-red">
             {usePassword ? 'Use email code instead' : 'Sign in with password'}
           </Text>
         </Pressable>
 
         <Pressable onPress={() => router.push('/(auth)/register')} hitSlop={8} className="mt-1 self-center">
-          <Text className="text-[13px] text-muted">
-            New to JAMIN? <Text className="font-semibold text-red">Create an account</Text>
+          <Text className="text-[14px] text-ink">
+            New to JAMIN? <Text className="font-semibold text-[14px] text-red">Create an account</Text>
           </Text>
         </Pressable>
       </View>
 
-      <Text variant="caption" className="text-center text-muted">
+      <Text variant="caption" className="text-center text-ink/70">
         {t('brand.tagline')}
       </Text>
+      </View>
     </Screen>
   );
 }
