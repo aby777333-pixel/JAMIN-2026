@@ -143,7 +143,7 @@ export default function AiStudio() {
 
       <View className="flex-row flex-wrap gap-2">
         {FEATURES.map((f) => (
-          <Chip key={f.key} label={t(`tools.aiStudio.feat.${f.key}`)} active={feature === f.key} onPress={() => setFeature(f.key)} />
+          <Chip key={f.key} label={t(`tools.aiStudio.feat.${f.key}`)} tone={4} active={feature === f.key} onPress={() => setFeature(f.key)} />
         ))}
       </View>
 

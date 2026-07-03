@@ -17,8 +17,22 @@ import { Chip } from '@/components/ui/Chip';
 import { Text } from '@/components/ui/Text';
 import { virtualStage } from '@/features/ai/api';
 import { shareImageFile } from '@/features/marketing/share';
-import { color } from '@/theme/tokens';
+import { accentFor, color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
+
+/** Section label with a dot in the section's accent colour. */
+function GroupLabel({ tone, children, caption }: { tone: number; children: string; caption?: boolean }) {
+  return (
+    <View className="flex-row items-center gap-1.5">
+      <View className="h-2 w-2 rounded-full" style={{ backgroundColor: accentFor(tone).main }} />
+      <Text variant={caption ? 'caption' : 'label'}>{children}</Text>
+    </View>
+  );
+}
+
+/** Palette slots per picker — greenery lands on green, water on blue, etc. */
+const TONE = { type: 0, goal: 5, style: 6 } as const;
+const elementTone = (gi: number) => gi + 3;
 
 /** Property types — staging is NOT room-only; it works for every kind of real estate. */
 const TYPES = [
@@ -253,30 +267,30 @@ export default function PropertyStudio() {
 
         {/* Property type */}
         <View className="gap-1.5">
-          <Text variant="label">{t('tools.studio.propertyType')}</Text>
+          <GroupLabel tone={TONE.type}>{t('tools.studio.propertyType')}</GroupLabel>
           <View className="flex-row flex-wrap gap-2">
             {TYPES.map((x) => (
-              <Chip key={x.key} label={x.label} active={type === x.key} onPress={() => selectType(x.key)} />
+              <Chip key={x.key} label={x.label} tone={TONE.type} active={type === x.key} onPress={() => selectType(x.key)} />
             ))}
           </View>
         </View>
 
         {/* Goal */}
         <View className="gap-1.5">
-          <Text variant="label">{t('tools.studio.goal')}</Text>
+          <GroupLabel tone={TONE.goal}>{t('tools.studio.goal')}</GroupLabel>
           <View className="flex-row flex-wrap gap-2">
             {GOALS.map((g) => (
-              <Chip key={g.key} label={g.label} active={goal === g.key} onPress={() => setGoal(g.key)} />
+              <Chip key={g.key} label={g.label} tone={TONE.goal} active={goal === g.key} onPress={() => setGoal(g.key)} />
             ))}
           </View>
         </View>
 
         {/* Style */}
         <View className="gap-1.5">
-          <Text variant="label">{t('tools.studio.style')}</Text>
+          <GroupLabel tone={TONE.style}>{t('tools.studio.style')}</GroupLabel>
           <View className="flex-row flex-wrap gap-2">
             {STYLES.map((s) => (
-              <Chip key={s} label={s} active={style === s} onPress={() => setStyle(s)} />
+              <Chip key={s} label={s} tone={TONE.style} active={style === s} onPress={() => setStyle(s)} />
             ))}
           </View>
         </View>
@@ -291,12 +305,12 @@ export default function PropertyStudio() {
               </Text>
             ) : null}
           </View>
-          {ELEMENTS.map((grp) => (
+          {ELEMENTS.map((grp, gi) => (
             <View key={grp.group} className="gap-1">
-              <Text variant="caption">{grp.group}</Text>
+              <GroupLabel tone={elementTone(gi)} caption>{grp.group}</GroupLabel>
               <View className="flex-row flex-wrap gap-2">
                 {grp.items.map((it) => (
-                  <Chip key={it} label={it} active={elements.includes(it)} onPress={() => toggleElement(it)} />
+                  <Chip key={it} label={it} tone={elementTone(gi)} active={elements.includes(it)} onPress={() => toggleElement(it)} />
                 ))}
               </View>
             </View>

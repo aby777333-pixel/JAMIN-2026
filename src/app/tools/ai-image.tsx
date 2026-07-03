@@ -20,8 +20,22 @@ import { generateImage } from '@/features/ai/api';
 import { shareImageFile } from '@/features/marketing/share';
 import { SITE_HOST } from '@/lib/site';
 import { useAuth } from '@/stores/auth';
-import { color } from '@/theme/tokens';
+import { accentFor, color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
+
+/** Section label with a dot in the section's accent colour. */
+function GroupLabel({ tone, children, caption }: { tone: number; children: string; caption?: boolean }) {
+  return (
+    <View className="flex-row items-center gap-1.5">
+      <View className="h-2 w-2 rounded-full" style={{ backgroundColor: accentFor(tone).main }} />
+      <Text variant={caption ? 'caption' : 'label'}>{children}</Text>
+    </View>
+  );
+}
+
+/** Palette slots per picker — nature lands on green, style/format contrast. */
+const TONE = { ideas: 2, style: 0, format: 5 } as const;
+const elementTone = (gi: number) => gi + 3;
 
 const ASPECTS = [
   { key: '4:3', label: 'Flyer 4:3' },
@@ -260,22 +274,22 @@ export default function AiImage() {
         />
 
         <View className="gap-1.5">
-          <Text variant="label">{t('tools.aiImage.quickIdeas')}</Text>
+          <GroupLabel tone={TONE.ideas}>{t('tools.aiImage.quickIdeas')}</GroupLabel>
           <View className="gap-2">
             {PRESETS.map((p) => (
-              <Chip key={p} label={p.length > 42 ? `${p.slice(0, 42)}…` : p} active={prompt === p} onPress={() => setPrompt(p)} />
+              <Chip key={p} label={p.length > 42 ? `${p.slice(0, 42)}…` : p} tone={TONE.ideas} active={prompt === p} onPress={() => setPrompt(p)} />
             ))}
           </View>
         </View>
 
         <View className="gap-2">
           <Text variant="label">{t('tools.aiImage.addElements')}</Text>
-          {COMPONENTS.map((g) => (
+          {COMPONENTS.map((g, gi) => (
             <View key={g.group} className="gap-1">
-              <Text variant="caption">{g.group}</Text>
+              <GroupLabel tone={elementTone(gi)} caption>{g.group}</GroupLabel>
               <View className="flex-row flex-wrap gap-2">
                 {g.items.map((it) => (
-                  <Chip key={it} label={it} active={hasElement(prompt, it)} onPress={() => toggleElement(it)} />
+                  <Chip key={it} label={it} tone={elementTone(gi)} active={hasElement(prompt, it)} onPress={() => toggleElement(it)} />
                 ))}
               </View>
             </View>
@@ -283,19 +297,19 @@ export default function AiImage() {
         </View>
 
         <View className="gap-1.5">
-          <Text variant="label">{t('tools.aiImage.style')}</Text>
+          <GroupLabel tone={TONE.style}>{t('tools.aiImage.style')}</GroupLabel>
           <View className="flex-row flex-wrap gap-2">
             {STYLES.map((s) => (
-              <Chip key={s} label={s} active={style === s} onPress={() => setStyle((cur) => (cur === s ? null : s))} />
+              <Chip key={s} label={s} tone={TONE.style} active={style === s} onPress={() => setStyle((cur) => (cur === s ? null : s))} />
             ))}
           </View>
         </View>
 
         <View className="gap-1.5">
-          <Text variant="label">{t('tools.aiImage.format')}</Text>
+          <GroupLabel tone={TONE.format}>{t('tools.aiImage.format')}</GroupLabel>
           <View className="flex-row flex-wrap gap-2">
             {ASPECTS.map((a) => (
-              <Chip key={a.key} label={a.label} active={aspect === a.key} onPress={() => setAspect(a.key)} />
+              <Chip key={a.key} label={a.label} tone={TONE.format} active={aspect === a.key} onPress={() => setAspect(a.key)} />
             ))}
           </View>
         </View>
