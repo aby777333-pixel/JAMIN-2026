@@ -13,6 +13,7 @@ import { Screen } from '@/components/ui/Screen';
 import { StatCard } from '@/components/ui/StatCard';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
+import { WelcomeTour } from '@/components/WelcomeTour';
 import { FestivalBanner } from '@/features/astro/FestivalBanner';
 import { PropertyCard } from '@/features/buyer/components/PropertyCard';
 import { useFeaturedProperties, useRecentlySold, useToggleWishlist, useWishlistIds } from '@/features/buyer/hooks';
@@ -103,6 +104,8 @@ export default function Home() {
           </Pressable>
         </View>
       </View>
+
+      <WelcomeTour />
 
       <FestivalBanner />
 
