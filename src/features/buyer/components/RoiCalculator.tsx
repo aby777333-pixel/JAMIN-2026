@@ -31,7 +31,7 @@ export function RoiCalculator({ price }: { price: number }) {
   const roi = roiPercent(price, future);
 
   return (
-    <Card className="gap-3">
+    <Card className="gap-3" accent={6}>
       <Text variant="title">ROI Calculator</Text>
       <View className="flex-row gap-3">
         <View className="flex-1">

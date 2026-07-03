@@ -47,7 +47,7 @@ export default function Documents() {
       <BackHeader title="Document vault" />
       <Text variant="caption">Securely store agreements, IDs and KYC documents for your deals.</Text>
 
-      <Card className="gap-3">
+      <Card className="gap-3" accent={2}>
         <Text variant="title" className="text-[14px]">Add a document</Text>
         <Input label="Title" placeholder="e.g. Sale agreement" value={title} onChangeText={setTitle} />
         <View className="flex-row flex-wrap gap-2">

@@ -77,7 +77,7 @@ export default function Loans() {
         ))
       )}
 
-      <Card className="gap-3">
+      <Card className="gap-3" accent={5}>
         <Text variant="title" className="text-[14px]">Request pre-approval</Text>
         <Input label="Loan amount (₹)" value={amount} onChangeText={setAmount} keyboardType="numeric" />
         <View className="flex-row gap-3">

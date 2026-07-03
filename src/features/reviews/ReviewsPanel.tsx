@@ -64,7 +64,7 @@ export function ReviewsPanel({ projectId }: { projectId: string }) {
         </Pressable>
       </View>
 
-      <Card className="flex-row items-center gap-3">
+      <Card className="flex-row items-center gap-3" accent={7}>
         <Text className="font-mono-bold text-[26px] text-ink">
           {rating && rating.review_count > 0 ? rating.avg_rating.toFixed(1) : '—'}
         </Text>

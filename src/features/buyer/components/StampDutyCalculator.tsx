@@ -33,7 +33,7 @@ export function StampDutyCalculator({ price }: { price: number }) {
   const total = round2(money(price).plus(duty).plus(reg));
 
   return (
-    <Card className="gap-3">
+    <Card className="gap-3" accent={2}>
       <Text variant="title">Stamp duty & registration</Text>
       <Text variant="caption">Pick the state for accurate rates. Defaults to {rates.default ?? 6}%.</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2">

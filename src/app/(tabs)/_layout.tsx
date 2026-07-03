@@ -34,7 +34,13 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: color.muted,
         tabBarStyle: {
           backgroundColor: color.surface,
-          borderTopColor: color.line,
+          // Floating elevated bar instead of a flat hairline.
+          borderTopWidth: 0,
+          shadowColor: color.charcoal,
+          shadowOpacity: 0.12,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: -4 },
+          elevation: 16,
           // Edge-to-edge is on (app.json) so the Android system nav bar overlays
           // the app — lift the tab bar above it with the bottom safe-area inset.
           height: 64 + insets.bottom,

@@ -64,7 +64,7 @@ export default function Requirements() {
         and again whenever a matching property drops in price.
       </Text>
 
-      <Card className="gap-3">
+      <Card className="gap-3" accent={3}>
         <Input label="Preferred location / area" value={location} onChangeText={setLocation} placeholder="e.g. Whitefield, Bengaluru" />
         <View className="flex-row gap-3">
           <View className="flex-1">

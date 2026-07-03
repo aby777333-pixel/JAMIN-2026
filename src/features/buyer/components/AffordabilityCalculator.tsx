@@ -42,7 +42,7 @@ export function AffordabilityCalculator({ price }: { price: number }) {
   const affordsThis = maxPrice.greaterThanOrEqualTo(money(price));
 
   return (
-    <Card className="gap-3">
+    <Card className="gap-3" accent={3}>
       <Text variant="title">Affordability</Text>
       <View className="flex-row gap-3">
         <View className="flex-1">

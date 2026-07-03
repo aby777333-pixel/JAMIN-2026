@@ -46,7 +46,7 @@ export function RentVsBuyCalculator({ price }: { price: number }) {
   const cheaperToBuy = interestPaid.lessThan(totalRent);
 
   return (
-    <Card className="gap-3">
+    <Card className="gap-3" accent={4}>
       <Text variant="title">Rent vs buy</Text>
       <View className="flex-row gap-3">
         <View className="flex-1">

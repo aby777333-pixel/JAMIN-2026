@@ -38,7 +38,7 @@ export function AiPropertyPanel({ ctx, description }: { ctx: PropAiCtx; descript
   }
 
   return (
-    <Card className="gap-3">
+    <Card className="gap-3" accent={0}>
       <View className="flex-row items-center gap-2">
         <Ionicons name="sparkles" size={18} color={color.gold} />
         <Text variant="title" className="text-[14px]">Ask AI about this property</Text>

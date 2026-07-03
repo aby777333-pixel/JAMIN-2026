@@ -38,7 +38,7 @@ export function EmiCalculator({ price }: { price: number }) {
   const interest = round2(total.minus(principal));
 
   return (
-    <Card className="gap-3">
+    <Card className="gap-3" accent={5}>
       <Text variant="title">EMI Calculator</Text>
       <View className="flex-row gap-3">
         <View className="flex-1">
