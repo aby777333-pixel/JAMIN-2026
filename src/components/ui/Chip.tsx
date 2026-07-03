@@ -2,6 +2,7 @@ import { Pressable } from 'react-native';
 
 import { Text } from './Text';
 import { cn } from '@/lib/cn';
+import { tap } from '@/lib/haptics';
 import { accentFor } from '@/theme/tokens';
 
 /** Stable label → palette slot, so untoned chips get a consistent colour. */
@@ -30,7 +31,7 @@ export function Chip({
   const a = accentFor(tone ?? hashTone(label));
   return (
     <Pressable
-      onPress={onPress}
+      onPress={onPress ? () => { tap(); onPress(); } : undefined}
       className="rounded-full border px-3.5 py-2"
       style={
         active

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { Sheet } from '@/features/buyer/components/EnquirySheet';
+import { success } from '@/lib/haptics';
 import { useMakeOffer } from './hooks';
 import { errMessage } from '@/lib/errors';
 
@@ -33,6 +34,7 @@ export function OfferSheet({
     }
     try {
       await make.mutateAsync({ propertyId, amount: a, message: message.trim() || undefined });
+      success();
       onClose();
       setAmount('');
       setMessage('');

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { can } from '@/lib/access';
+import { tap } from '@/lib/haptics';
 import { accents, color } from '@/theme/tokens';
 import { useAuth } from '@/stores/auth';
 
@@ -28,6 +29,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      screenListeners={{ tabPress: () => tap() }}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: color.red,
