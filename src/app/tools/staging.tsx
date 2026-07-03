@@ -220,7 +220,7 @@ export default function PropertyStudio() {
   const preview = result ?? uri;
 
   return (
-    <View className="flex-1 bg-paper">
+    <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
       <ScrollView
         contentContainerClassName="px-5 gap-4"
         contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}

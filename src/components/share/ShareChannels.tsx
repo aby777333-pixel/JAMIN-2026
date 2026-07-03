@@ -3,19 +3,19 @@ import { Pressable, View } from 'react-native';
 
 import { Text } from '@/components/ui/Text';
 import { shareToChannel, type Channel } from '@/features/marketing/share';
-import { color } from '@/theme/tokens';
 
-const CHANNELS: { key: Channel; icon: keyof typeof Ionicons.glyphMap; label: string }[] = [
-  { key: 'whatsapp', icon: 'logo-whatsapp', label: 'WhatsApp' },
-  { key: 'telegram', icon: 'paper-plane', label: 'Telegram' },
-  { key: 'facebook', icon: 'logo-facebook', label: 'Facebook' },
-  { key: 'twitter', icon: 'logo-twitter', label: 'X' },
-  { key: 'linkedin', icon: 'logo-linkedin', label: 'LinkedIn' },
-  { key: 'karochat', icon: 'chatbubbles', label: 'KaroChat' },
-  { key: 'sms', icon: 'chatbubble', label: 'SMS' },
-  { key: 'email', icon: 'mail', label: 'Email' },
-  { key: 'copy', icon: 'copy', label: 'Copy' },
-  { key: 'system', icon: 'ellipsis-horizontal', label: 'More' },
+/** Each channel carries its brand colour — tiles get a soft tint of it. */
+const CHANNELS: { key: Channel; icon: keyof typeof Ionicons.glyphMap; label: string; tint: string }[] = [
+  { key: 'whatsapp', icon: 'logo-whatsapp', label: 'WhatsApp', tint: '#25D366' },
+  { key: 'telegram', icon: 'paper-plane', label: 'Telegram', tint: '#229ED9' },
+  { key: 'facebook', icon: 'logo-facebook', label: 'Facebook', tint: '#1877F2' },
+  { key: 'twitter', icon: 'logo-twitter', label: 'X', tint: '#111111' },
+  { key: 'linkedin', icon: 'logo-linkedin', label: 'LinkedIn', tint: '#0A66C2' },
+  { key: 'karochat', icon: 'chatbubbles', label: 'KaroChat', tint: '#FD0001' },
+  { key: 'sms', icon: 'chatbubble', label: 'SMS', tint: '#12A594' },
+  { key: 'email', icon: 'mail', label: 'Email', tint: '#D9A514' },
+  { key: 'copy', icon: 'copy', label: 'Copy', tint: '#8E4EC6' },
+  { key: 'system', icon: 'ellipsis-horizontal', label: 'More', tint: '#74746E' },
 ];
 
 /** Per-channel link sharing (§5.07 sharing channels). "More" opens the full OS sheet. */
@@ -37,9 +37,10 @@ export function ShareChannels({
             onShare?.(c.key);
             void shareToChannel(c.key, text, url);
           }}
-          className="w-[31%] items-center gap-1 rounded-2xl border border-line bg-surface py-3">
-          <Ionicons name={c.icon} size={22} color={color.ink} />
-          <Text variant="caption">{c.label}</Text>
+          className="w-[31%] items-center gap-1 rounded-2xl border py-3"
+          style={{ backgroundColor: `${c.tint}14`, borderColor: `${c.tint}45` }}>
+          <Ionicons name={c.icon} size={22} color={c.tint} />
+          <Text variant="caption" className="text-ink">{c.label}</Text>
         </Pressable>
       ))}
     </View>

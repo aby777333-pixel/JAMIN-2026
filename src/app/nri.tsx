@@ -13,7 +13,7 @@ import { Text } from '@/components/ui/Text';
 import { useConfig } from '@/features/config/hooks';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/stores/auth';
-import { color } from '@/theme/tokens';
+import { accentFor, color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
 
 /** Gulf + common NRI countries with their IST offset (hours; IST = UTC+5:30). */
@@ -225,23 +225,26 @@ export default function NriCorner() {
       {/* Guides (admin-editable content) */}
       <View className="gap-2">
         <Text variant="label">NRI guides</Text>
-        {(guides.data ?? []).map((g) => (
-          <Pressable key={g.key} onPress={() => setOpenGuide(openGuide === g.key ? null : g.key)}>
-            <Card className="gap-1.5">
-              <View className="flex-row items-center gap-2">
-                <Ionicons
-                  name={openGuide === g.key ? 'chevron-down' : 'chevron-forward'}
-                  size={16}
-                  color={color.muted}
-                />
-                <Text variant="title" className="flex-1 text-[14px]">{g.label}</Text>
-              </View>
-              {openGuide === g.key ? (
-                <Text variant="body" className="text-[13px] leading-5">{g.value ?? ''}</Text>
-              ) : null}
-            </Card>
-          </Pressable>
-        ))}
+        {(guides.data ?? []).map((g, gi) => {
+          const a = accentFor(gi);
+          return (
+            <Pressable key={g.key} onPress={() => setOpenGuide(openGuide === g.key ? null : g.key)}>
+              <Card className="gap-1.5" style={{ backgroundColor: a.soft, borderColor: a.main + '55' }}>
+                <View className="flex-row items-center gap-2">
+                  <Ionicons
+                    name={openGuide === g.key ? 'chevron-down' : 'chevron-forward'}
+                    size={16}
+                    color={a.main}
+                  />
+                  <Text variant="title" className="flex-1 text-[14px]">{g.label}</Text>
+                </View>
+                {openGuide === g.key ? (
+                  <Text variant="body" className="text-[13px] leading-5">{g.value ?? ''}</Text>
+                ) : null}
+              </Card>
+            </Pressable>
+          );
+        })}
         {guides.isLoading ? <Text variant="caption">Loading guides…</Text> : null}
       </View>
 

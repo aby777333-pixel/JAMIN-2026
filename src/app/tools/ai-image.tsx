@@ -184,7 +184,7 @@ export default function AiImage() {
   const previewRatio = RATIO[aspect] ?? 3 / 4;
 
   return (
-    <View className="flex-1 bg-paper">
+    <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
       {/* 'padding' on BOTH platforms: with Android edgeToEdgeEnabled the window
           no longer resizes, so the keyboard covers the prompt input without it. */}
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">

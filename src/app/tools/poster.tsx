@@ -315,7 +315,7 @@ export default function PosterMaker() {
   const frameH = Math.min(frameW * (fmt.h / fmt.w), 640);
 
   return (
-    <View className="flex-1 bg-paper">
+    <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
       <ScrollView
         contentContainerClassName="px-5"
         contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}
