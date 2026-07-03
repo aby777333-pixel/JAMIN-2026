@@ -86,3 +86,12 @@ export function useUpdateLeadDeal() {
     },
   });
 }
+
+export function useAgentDigest(enabled: boolean) {
+  return useQuery({
+    queryKey: ['agent-digest'],
+    queryFn: api.getAgentDigest,
+    enabled,
+    staleTime: 60_000,
+  });
+}

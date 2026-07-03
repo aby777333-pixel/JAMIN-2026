@@ -17,7 +17,7 @@ import { FestivalBanner } from '@/features/astro/FestivalBanner';
 import { PropertyCard } from '@/features/buyer/components/PropertyCard';
 import { useFeaturedProperties, useRecentlySold, useToggleWishlist, useWishlistIds } from '@/features/buyer/hooks';
 import { useAnnouncements, useContent } from '@/features/content/hooks';
-import { useLeads } from '@/features/leads/hooks';
+import { useAgentDigest, useLeads } from '@/features/leads/hooks';
 import { useUnreadCount } from '@/features/notifications/api';
 import { shareReferral } from '@/features/share/referral';
 import { useDownline } from '@/features/team/hooks';
@@ -53,6 +53,7 @@ export default function Home() {
   const { data: unread = 0 } = useUnreadCount();
   const { data: featured = [] } = useFeaturedProperties(8);
   const { data: recentlySold = [] } = useRecentlySold(6);
+  const { data: digest } = useAgentDigest(isPartner);
   const { data: savedIds } = useWishlistIds();
   const toggleSave = useToggleWishlist();
   const { get } = useContent();
@@ -225,6 +226,29 @@ export default function Home() {
             )}
           />
         </View>
+      ) : null}
+
+      {/* Today at a glance — follow-ups due / stale / new leads (partners). */}
+      {isPartner && digest && (digest.followupsDue > 0 || digest.staleLeads > 0 || digest.newToday > 0) && get('home.show_digest') !== 'off' ? (
+        <Pressable onPress={() => router.push('/leads')}>
+          <Card accent={5} className="gap-2">
+            <Text variant="label">Today at a glance</Text>
+            <View className="flex-row justify-between">
+              <View className="items-center flex-1">
+                <Text className="font-mono-bold text-[20px]" style={{ color: '#3E63DD' }}>{digest.followupsDue}</Text>
+                <Text variant="caption">follow-ups due</Text>
+              </View>
+              <View className="items-center flex-1">
+                <Text className="font-mono-bold text-[20px]" style={{ color: '#E5484D' }}>{digest.staleLeads}</Text>
+                <Text variant="caption">waiting 24h+</Text>
+              </View>
+              <View className="items-center flex-1">
+                <Text className="font-mono-bold text-[20px]" style={{ color: '#30A46C' }}>{digest.newToday}</Text>
+                <Text variant="caption">new today</Text>
+              </View>
+            </View>
+          </Card>
+        </Pressable>
       ) : null}
 
       {isPartner ? (

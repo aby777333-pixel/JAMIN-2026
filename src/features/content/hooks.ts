@@ -16,6 +16,7 @@ export const CONTENT_DEFAULTS: Record<string, string> = {
   'support.hours': 'Mon–Sat, 10am–7pm IST',
   'social.website': SITE_URL,
   'home.show_sold': 'on',
+  'home.show_digest': 'on',
   'calc.emi_down_pct': '20',
   'calc.emi_rate': '9',
   'calc.emi_years': '10',

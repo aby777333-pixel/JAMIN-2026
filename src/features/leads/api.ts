@@ -156,3 +156,37 @@ export async function pipelineSummary(): Promise<PipelineStage[]> {
     total_value: Number(r.total_value ?? 0),
   }));
 }
+
+export interface AgentDigest {
+  followupsDue: number;
+  staleLeads: number;
+  newToday: number;
+}
+
+/** Today-at-a-glance counts for the Home digest card (RLS scopes to own leads). */
+export async function getAgentDigest(): Promise<AgentDigest> {
+  const now = new Date();
+  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  const staleBefore = new Date(now.getTime() - 24 * 3600_000).toISOString();
+  const [fu, stale, fresh] = await Promise.all([
+    supabase
+      .from('follow_ups')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'pending')
+      .lte('due_at', now.toISOString()),
+    supabase
+      .from('leads')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'new')
+      .lt('last_touch_at', staleBefore),
+    supabase
+      .from('leads')
+      .select('id', { count: 'exact', head: true })
+      .gte('created_at', dayStart),
+  ]);
+  return {
+    followupsDue: fu.count ?? 0,
+    staleLeads: stale.count ?? 0,
+    newToday: fresh.count ?? 0,
+  };
+}
