@@ -110,6 +110,48 @@
       .muted { color:var(--muted); font-size:13px; }
       select.inp { height:48px; }
       @media (max-width:760px){ .shell{ grid-template-columns:1fr; } .side{ display:flex; gap:6px; overflow-x:auto; } .nav-i{ width:auto; white-space:nowrap; } .who{ display:none; } .grid2{ grid-template-columns:1fr; } }
+
+      /* ── Flashier skin (visual only — overrides above, no markup/JS changes) ── */
+      /* Soft mesh-gradient canvas behind the content. */
+      .main {
+        background:
+          radial-gradient(1100px 520px at 92% -12%, rgba(62,99,221,.09), transparent 60%),
+          radial-gradient(900px 480px at -12% 18%, rgba(229,72,77,.08), transparent 55%),
+          radial-gradient(820px 440px at 55% 112%, rgba(48,164,108,.08), transparent 55%),
+          var(--paper);
+      }
+      .login-wrap {
+        background:
+          radial-gradient(900px 480px at 85% -10%, rgba(62,99,221,.10), transparent 60%),
+          radial-gradient(760px 420px at 0% 100%, rgba(229,72,77,.10), transparent 55%),
+          var(--paper);
+      }
+      .login { box-shadow:0 18px 50px rgba(32,32,32,.14); border-radius:20px; }
+      /* Glassy, lifting cards. */
+      .panel { background:rgba(255,255,255,.86); backdrop-filter:blur(6px); box-shadow:0 6px 18px rgba(32,32,32,.05); transition:transform .15s ease, box-shadow .15s ease; }
+      .panel:hover { transform:translateY(-2px); box-shadow:0 12px 28px rgba(32,32,32,.10); }
+      .stat { box-shadow:0 4px 14px rgba(32,32,32,.05); transition:transform .15s ease, box-shadow .15s ease; }
+      .stat:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 10px 22px rgba(32,32,32,.10); }
+      /* Gradient buttons with coloured glow. */
+      .btn { background:linear-gradient(135deg,#ff4d42,var(--red) 45%,var(--red-deep)); box-shadow:0 4px 12px rgba(253,0,1,.25); transition:transform .12s ease, box-shadow .12s ease; }
+      .btn:hover { background:linear-gradient(135deg,var(--red),var(--red-deep)); transform:translateY(-1px); box-shadow:0 7px 18px rgba(253,0,1,.32); }
+      .btn-g { background:linear-gradient(135deg,#ffd34d,var(--gold) 50%,var(--gold-deep)); box-shadow:0 4px 12px rgba(251,188,21,.30); }
+      .btn-g:hover { background:linear-gradient(135deg,var(--gold),var(--gold-deep)); }
+      .btn-o { transition:transform .12s ease, background .12s ease; }
+      .btn-o:hover { transform:translateY(-1px); }
+      /* Tables: dark gradient header, golden row hover. */
+      table { box-shadow:0 4px 14px rgba(32,32,32,.05); }
+      th { background:linear-gradient(180deg,#2b2b31,#202020); color:rgba(255,255,255,.85); }
+      tbody tr { transition:background .12s ease; }
+      tbody tr:hover td { background:rgba(251,188,21,.07); }
+      /* Inputs glow on focus. */
+      .inp:focus { border-color:var(--red); box-shadow:0 0 0 3px rgba(253,0,1,.12); }
+      /* Sidebar nudge + brand scrollbar. */
+      .nav-i { transition:transform .12s ease, filter .12s ease; }
+      .nav-i:hover { transform:translateX(3px); }
+      ::-webkit-scrollbar { width:10px; height:10px; }
+      ::-webkit-scrollbar-track { background:transparent; }
+      ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--red),var(--gold)); border-radius:99px; border:2px solid var(--paper); }
     </style>
   </head>
   <body>
