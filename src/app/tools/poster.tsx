@@ -49,16 +49,22 @@ export default function PosterMaker() {
   const { t } = useTranslation();
   const profile = useAuth((s) => s.profile);
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ imageUri?: string }>();
+  const params = useLocalSearchParams<{
+    imageUri?: string;
+    title?: string;
+    price?: string;
+    location?: string;
+  }>();
   const frameRef = useRef<View>(null);
-  // Seed the background from an AI-generated image passed by the AI Image Generator.
+  // Seed the background from an AI-generated image passed by the AI Image
+  // Generator — or a full prefill from the property "Auto flyer" button.
   const [media, setMedia] = useState<Media | null>(() =>
     params.imageUri ? { uri: params.imageUri, kind: 'image' } : null,
   );
   const [format, setFormat] = useState<AdFormatKey>('flyer');
-  const [title, setTitle] = useState('');
-  const [price, setPrice] = useState('');
-  const [location, setLocation] = useState('');
+  const [title, setTitle] = useState(params.title ?? '');
+  const [price, setPrice] = useState(params.price ?? '');
+  const [location, setLocation] = useState(params.location ?? '');
   const [highlights, setHighlights] = useState('');
   const [tagline, setTagline] = useState('');
   const [busy, setBusy] = useState(false);

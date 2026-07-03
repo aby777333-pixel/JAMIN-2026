@@ -62,6 +62,15 @@ export default function PropertyDetail() {
   const role = useAuth((s) => s.profile?.role_slug);
   const myId = useAuth((s) => s.profile?.id);
   const isPartner = !!role && role !== 'buyer';
+  // First listing photo, tolerant of both string and {url} media entries.
+  const flyerImage = (() => {
+    const m = property?.media;
+    if (!Array.isArray(m) || !m.length) return null;
+    const first = m[0] as unknown;
+    if (typeof first === 'string') return first;
+    if (first && typeof first === 'object' && 'url' in first) return String((first as { url: unknown }).url);
+    return null;
+  })();
   const toggle = useToggleWishlist();
   const reserve = useReserveProperty();
   const submitPhotos = useSubmitPhotos();
@@ -295,6 +304,31 @@ export default function PropertyDetail() {
             property_type_id: property.property_type_id,
           }}
         />
+      ) : null}
+
+      {/* Auto flyer: property photo + details land in the flyer maker prefilled. */}
+      {isPartner && flyerImage ? (
+        <Pressable
+          onPress={() =>
+            router.push({
+              pathname: '/tools/poster',
+              params: {
+                imageUri: flyerImage,
+                title: String((property.attrs as Record<string, unknown>)?.title ?? '').slice(0, 60) || `${property.plot_code} for sale`,
+                price: String(property.price ?? ''),
+                location: String((property.attrs as Record<string, unknown>)?.location ?? ''),
+              },
+            })
+          }>
+          <Card accent={0} className="flex-row items-center gap-3">
+            <Ionicons name="sparkles" size={20} color="#E5484D" />
+            <View className="flex-1">
+              <Text variant="title" className="text-[14px]">Auto-create flyer</Text>
+              <Text variant="caption">One tap: photo, title & price drop into the flyer maker, branded with your card.</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={color.muted} />
+          </Card>
+        </Pressable>
       ) : null}
 
       {isPartner ? (
