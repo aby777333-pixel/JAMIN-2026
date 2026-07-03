@@ -3960,6 +3960,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      accept_counter_offer: { Args: { p_offer: string }; Returns: undefined }
       withdraw_offer: { Args: { p_offer: string }; Returns: undefined }
     }
     Enums: {
