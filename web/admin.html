@@ -183,6 +183,26 @@
       /* Tactile buttons + brand selection colour. */
       .btn:active, .btn-g:active, .btn-o:active { transform:translateY(0) scale(.97); }
       ::selection { background:rgba(251,188,21,.35); }
+
+      /* ── Dark mode (toggle in the sidebar; preference persisted) ── */
+      body.dark { --paper:#131316; --surface:#1d1d21; --ink:#ECECEA; --muted:#A4A49D; --line:#2E2E33; color:var(--ink); }
+      body.dark .main {
+        background:
+          radial-gradient(rgba(255,255,255,.05) 1px, transparent 1.5px),
+          radial-gradient(1100px 520px at 92% -12%, rgba(62,99,221,.16), transparent 60%),
+          radial-gradient(900px 480px at -12% 18%, rgba(229,72,77,.13), transparent 55%),
+          radial-gradient(820px 440px at 55% 112%, rgba(48,164,108,.13), transparent 55%),
+          var(--paper);
+        background-size: 26px 26px, auto, auto, auto, auto;
+      }
+      body.dark .login-wrap { background:var(--paper); }
+      body.dark .login { background:var(--surface); }
+      body.dark .panel { background:rgba(29,29,33,.88); }
+      body.dark .inp { background:#232328; color:var(--ink); }
+      body.dark .btn-o { background:rgba(251,188,21,.16); color:var(--ink); }
+      body.dark tbody tr:nth-child(even) td { background:rgba(255,255,255,.025); }
+      body.dark tbody tr:hover td { background:rgba(251,188,21,.10); }
+      #themeToggle { margin-top:12px; background:rgba(255,255,255,.10); border-left-color:transparent; }
     </style>
   </head>
   <body>
@@ -3910,6 +3930,72 @@
       }
 
       boot();
+    </script>
+    <script>
+      /* ── Visual extras: dark-mode toggle + count-up stat numbers ─────────────
+         Self-contained and read-only towards the app logic: no shared state,
+         no data writes — safe to remove wholesale. */
+      (function () {
+        // Dark mode — persisted, button injected into the sidebar.
+        var KEY = 'jamin_admin_theme';
+        function applyTheme(mode) {
+          document.body.classList.toggle('dark', mode === 'dark');
+          var b = document.getElementById('themeToggle');
+          if (b) b.textContent = mode === 'dark' ? '☀️ Light mode' : '🌙 Dark mode';
+        }
+        function mountToggle() {
+          var side = document.querySelector('.side');
+          if (!side || document.getElementById('themeToggle')) return;
+          var b = document.createElement('button');
+          b.id = 'themeToggle';
+          b.className = 'nav-i';
+          b.type = 'button';
+          b.onclick = function () {
+            var next = document.body.classList.contains('dark') ? 'light' : 'dark';
+            try { localStorage.setItem(KEY, next); } catch (e) { /* private mode */ }
+            applyTheme(next);
+          };
+          var who = side.querySelector('.who');
+          side.insertBefore(b, who || null);
+          var saved = 'light';
+          try { saved = localStorage.getItem(KEY) || 'light'; } catch (e) { /* private mode */ }
+          applyTheme(saved);
+        }
+
+        // Count-up: animate freshly rendered .stat .n numbers (once per node).
+        function countUp(el) {
+          if (el.dataset.counted) return;
+          el.dataset.counted = '1';
+          var txt = el.textContent.trim();
+          var m = txt.match(/^([^\d]*)([\d,]+)([\s\S]*)$/);
+          if (!m) return;
+          var target = parseInt(m[2].replace(/,/g, ''), 10);
+          if (!isFinite(target) || target <= 0 || target > 1e9) return;
+          var prefix = m[1], suffix = m[3], grouped = m[2].indexOf(',') >= 0;
+          var t0 = performance.now(), dur = 650;
+          function fmt(n) { return grouped ? n.toLocaleString('en-IN') : String(n); }
+          function tick(now) {
+            var p = Math.min(1, (now - t0) / dur);
+            var eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+            el.textContent = prefix + fmt(Math.round(target * eased)) + suffix;
+            if (p < 1) requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+        }
+        function scan(root) {
+          if (root.nodeType !== 1) return;
+          if (root.matches && root.matches('.stat .n')) countUp(root);
+          if (root.querySelectorAll) root.querySelectorAll('.stat .n').forEach(countUp);
+        }
+        var main = document.querySelector('.main');
+        if (main) {
+          new MutationObserver(function (muts) {
+            muts.forEach(function (mu) { mu.addedNodes.forEach(scan); });
+          }).observe(main, { childList: true, subtree: true });
+          scan(main);
+        }
+        mountToggle();
+      })();
     </script>
   </body>
 </html>
