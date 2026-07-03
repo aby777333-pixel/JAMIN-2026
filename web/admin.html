@@ -208,6 +208,26 @@
       body.dark [style*="background:#f"] { color:#1a1a1a; }
       body.dark [style*="background:#f"] .muted { color:#74746E; }
       #themeToggle { margin-top:12px; background:rgba(255,255,255,.10); border-left-color:transparent; }
+
+      /* ── Activity radar: blinking tab + bulb + toast pop-ups ── */
+      @keyframes actGlow { 0%,100% { filter:brightness(1); } 50% { filter:brightness(1.85); } }
+      @keyframes bulbBlink { 0%,100% { opacity:1; } 50% { opacity:.2; } }
+      .nav-i.activity { animation: actGlow 1s ease-in-out infinite; }
+      .nav-i.activity::after {
+        content:''; flex:none; margin-left:auto; width:9px; height:9px; border-radius:99px;
+        background:#FFD23F; box-shadow:0 0 10px 3px rgba(255,210,63,.85);
+        animation: bulbBlink 1s ease-in-out infinite;
+      }
+      #actToasts { position:fixed; right:18px; bottom:18px; z-index:9999; display:flex; flex-direction:column; gap:10px; }
+      .actToast {
+        display:flex; align-items:center; gap:10px; background:#202020; color:#fff;
+        border-radius:14px; padding:12px 16px; box-shadow:0 10px 30px rgba(0,0,0,.35);
+        cursor:pointer; max-width:320px; animation: toastIn .25s ease;
+      }
+      .actToast small { color:rgba(255,255,255,.65); }
+      .actToast .bulb { flex:none; width:10px; height:10px; border-radius:99px; background:#FFD23F; box-shadow:0 0 10px 3px rgba(255,210,63,.8); animation: bulbBlink 1s infinite; }
+      .actToast.out { opacity:0; transition:opacity .4s; }
+      @keyframes toastIn { from { transform:translateY(8px); opacity:0; } to { transform:none; opacity:1; } }
     </style>
   </head>
   <body>
@@ -4000,6 +4020,101 @@
           scan(main);
         }
         mountToggle();
+      })();
+    </script>
+    <script>
+      /* ── Activity radar: any app activity blinks its admin tab (glow + bulb)
+         and pops a toast. Read-only: subscribes to Realtime INSERTs and touches
+         only CSS classes/toasts — no app state, safe to remove wholesale. */
+      (function () {
+        var ACT = {
+          ad_messages: ['adchats', 'New ad-chat message'],
+          chat_threads: ['chat', 'New live-chat conversation'],
+          messages: ['chat', 'New live-chat message'],
+          offers: ['offers', 'New offer'],
+          site_visits: ['visits', 'New site-visit booking'],
+          buyer_requirements: ['requirements', 'New buyer requirement'],
+          nri_requests: ['nridesk', 'New NRI request'],
+          form_submissions: ['formsubs', 'New form submission'],
+          property_media_submissions: ['submissions', 'New photo submission'],
+          leads: ['crm', 'New lead'],
+          web_signups: ['crm', 'New website signup'],
+          payments: ['payments', 'Payment activity'],
+          withdrawals: ['approvals', 'New withdrawal request'],
+          bookings: ['approvals', 'New booking'],
+          reviews: ['reviews', 'New review'],
+          user_media: ['usermedia', 'New user upload'],
+          ai_generations: ['aiconvos', 'New AI conversation'],
+          call_logs: ['calldesk', 'New call request'],
+          shared_ads: ['sharedads', 'New shared ad'],
+          disputes: ['moderation', 'New dispute'],
+          shortlists: ['shortlists', 'New shortlist'],
+        };
+        var lastToast = {};
+
+        function activeTab() {
+          var a = document.querySelector('.nav-i.active');
+          return a ? a.dataset.tab : null;
+        }
+
+        function toast(label, tab, tabName) {
+          var wrap = document.getElementById('actToasts');
+          if (!wrap) { wrap = document.createElement('div'); wrap.id = 'actToasts'; document.body.appendChild(wrap); }
+          var el = document.createElement('div');
+          el.className = 'actToast';
+          var bulb = document.createElement('span'); bulb.className = 'bulb';
+          var txt = document.createElement('div');
+          var b = document.createElement('b'); b.textContent = label;
+          var s = document.createElement('small'); s.textContent = 'Open ' + tabName;
+          txt.appendChild(b); txt.appendChild(document.createElement('br')); txt.appendChild(s);
+          el.appendChild(bulb); el.appendChild(txt);
+          el.onclick = function () {
+            var btn = document.querySelector('.nav-i[data-tab="' + tab + '"]');
+            if (btn) { btn.classList.remove('activity'); btn.click(); }
+            el.remove();
+          };
+          wrap.appendChild(el);
+          setTimeout(function () { el.classList.add('out'); setTimeout(function () { el.remove(); }, 450); }, 6500);
+        }
+
+        function ping(table) {
+          var m = ACT[table]; if (!m) return;
+          var tab = m[0], label = m[1];
+          if (activeTab() === tab) return; // you're already looking at it
+          var btn = document.querySelector('.nav-i[data-tab="' + tab + '"]');
+          if (btn) btn.classList.add('activity');
+          var now = Date.now();
+          if (lastToast[tab] && now - lastToast[tab] < 8000) return; // coalesce bursts
+          lastToast[tab] = now;
+          toast(label, tab, btn ? btn.textContent.trim() : tab);
+          try {
+            if (window.Notification && Notification.permission === 'granted') {
+              new Notification('JAMIN Admin', { body: label });
+            }
+          } catch (e) { /* ignore */ }
+        }
+        window.__actPing = ping; // manual test hook
+
+        function start() {
+          var ch = sb.channel('admin-activity');
+          Object.keys(ACT).forEach(function (t) {
+            ch.on('postgres_changes', { event: 'INSERT', schema: 'public', table: t }, function () { ping(t); });
+          });
+          ch.subscribe();
+        }
+
+        // Opening a tab clears its blink (attach immediately — tabs exist pre-login).
+        document.querySelectorAll('.side > .nav-i').forEach(function (btn) {
+          btn.addEventListener('click', function () { btn.classList.remove('activity'); });
+        });
+
+        (function boot() {
+          var app = document.getElementById('appView');
+          if (typeof sb === 'undefined' || !sb || !app || app.classList.contains('hidden')) {
+            return setTimeout(boot, 900); // wait for login
+          }
+          start();
+        })();
       })();
     </script>
   </body>
