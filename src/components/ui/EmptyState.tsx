@@ -18,8 +18,13 @@ export function EmptyState({
 }) {
   return (
     <View className="flex-1 items-center justify-center gap-3 px-6 py-16">
-      <View className="h-16 w-16 items-center justify-center rounded-2xl bg-red/10">
-        <Ionicons name={icon} size={28} color={color.red} />
+      {/* Warm halo behind the icon tile so empty screens feel designed, not broken. */}
+      <View className="h-24 w-24 items-center justify-center rounded-full bg-gold/10">
+        <View
+          className="h-16 w-16 items-center justify-center rounded-2xl border border-red/20 bg-red/10"
+          style={{ shadowColor: color.red, shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 3 }}>
+          <Ionicons name={icon} size={28} color={color.red} />
+        </View>
       </View>
       <Text variant="h2" className="text-center">
         {title}

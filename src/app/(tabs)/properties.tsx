@@ -2,10 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, Pressable, ScrollView, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/ui/EmptyState';
+import { PropertyCardSkeleton } from '@/components/ui/Skeleton';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { FilterBar } from '@/features/buyer/components/FilterBar';
@@ -50,8 +51,14 @@ export default function Properties() {
         keyExtractor={(p) => p.id}
         contentContainerClassName="px-5 pb-8 gap-3"
         showsVerticalScrollIndicator={false}
-        onRefresh={refetch}
-        refreshing={isRefetching}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            colors={[color.red, color.gold]}
+            tintColor={color.red}
+          />
+        }
         ListHeaderComponent={
           <View className="gap-3 pb-1 pt-2">
             <Text variant="h1">{t('tabs.properties')}</Text>
@@ -145,8 +152,10 @@ export default function Properties() {
         )}
         ListEmptyComponent={
           isLoading ? (
-            <View className="items-center py-20">
-              <ActivityIndicator color={color.red} />
+            <View className="gap-3">
+              <PropertyCardSkeleton />
+              <PropertyCardSkeleton />
+              <PropertyCardSkeleton />
             </View>
           ) : isError ? (
             <EmptyState icon="cloud-offline" title={t('properties.couldntLoad')} body={t('properties.couldntLoadBody')} />
