@@ -14,15 +14,18 @@ export function ImageBackdrop({
   source,
   height = 260,
   opacity = 0.9,
+  fill = false,
 }: {
   source: number | { uri: string };
   height?: number;
   opacity?: number;
+  /** Cover the whole screen (full-bleed background) instead of a top hero band. */
+  fill?: boolean;
 }) {
   return (
     <View
       pointerEvents="none"
-      style={{ position: 'absolute', left: 0, right: 0, top: 0, height, opacity }}>
+      style={{ position: 'absolute', left: 0, right: 0, top: 0, ...(fill ? { bottom: 0 } : { height }), opacity }}>
       <Image source={source} style={{ width: '100%', height: '100%' }} contentFit="cover" />
       {/* fade the bottom of the image into the page */}
       <Svg

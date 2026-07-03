@@ -8,6 +8,8 @@ export const BG = {
   network: require('../../../assets/images/backgrounds/network.jpg'),
   // Entry-flow landscape backdrops.
   opening: require('../../../assets/images/backgrounds/opening.jpg'),
+  // Full-screen login background — water-droplet figures on moss (owner-picked pin).
+  login: require('../../../assets/images/backgrounds/login.jpg'),
   register: require('../../../assets/images/backgrounds/register.jpg'),
   onboarding: require('../../../assets/images/backgrounds/onboarding.jpg'),
   verify: require('../../../assets/images/backgrounds/verify.jpg'),

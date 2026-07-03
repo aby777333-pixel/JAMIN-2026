@@ -69,7 +69,7 @@ export default function Login() {
     <Screen
       scroll
       keyboardAvoiding
-      backdrop={<ImageBackdrop source={BG.opening} height={480} />}
+      backdrop={<ImageBackdrop source={BG.login} fill />}
       contentClassName="grow justify-center gap-8 py-8">
       <View className="items-center gap-3">
         <Logo width={260} showTagline />
