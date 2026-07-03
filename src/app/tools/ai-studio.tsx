@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { useAIGenerate, type AIFeature } from '@/features/ai/api';
-import { color } from '@/theme/tokens';
+import { accentFor, color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
 
 const FEATURES: { key: AIFeature; label: string }[] = [
@@ -57,30 +57,24 @@ const SECTIONS: { titleKey: string; tools: Tool[] }[] = [
   },
 ];
 
-/** A capability chip for the footer strip (matches the AI suite vision). */
-const CAPS = [
-  { icon: 'videocam' as const, key: 'tools.aiStudio.capVideo' },
-  { icon: 'camera' as const, key: 'tools.aiStudio.capCamera' },
-  { icon: 'sparkles' as const, key: 'tools.aiStudio.capImage' },
-  { icon: 'language' as const, key: 'tools.aiStudio.capTranslate' },
-  { icon: 'chatbubbles' as const, key: 'tools.aiStudio.capChat' },
-  { icon: 'call' as const, key: 'tools.aiStudio.capVoice' },
-  { icon: 'color-wand' as const, key: 'tools.aiStudio.capStage' },
-];
-
-function ToolCard({ tool }: { tool: Tool }) {
+function ToolCard({ tool, index }: { tool: Tool; index: number }) {
   const { t } = useTranslation();
+  const a = accentFor(index);
   return (
     <Pressable onPress={() => router.push(tool.route as never)}>
-      <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
-        <View className="h-11 w-11 items-center justify-center rounded-xl bg-gold/20">
-          <Ionicons name={tool.icon} size={22} color={color.goldDeep} />
+      <Card
+        className="flex-row items-center gap-3"
+        style={{ backgroundColor: a.soft, borderColor: a.main + '55' }}>
+        <View
+          className="h-11 w-11 items-center justify-center rounded-xl"
+          style={{ backgroundColor: a.main }}>
+          <Ionicons name={tool.icon} size={22} color="#FFFFFF" />
         </View>
         <View className="flex-1">
           <Text variant="title" className="text-[14px]">{t(tool.titleKey)}</Text>
           <Text variant="caption">{t(tool.subKey)}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={18} color={color.muted} />
+        <Ionicons name="chevron-forward" size={18} color={a.main} />
       </Card>
     </Pressable>
   );
@@ -127,24 +121,19 @@ export default function AiStudio() {
 
       <Text variant="caption">{t('tools.aiStudio.intro')}</Text>
 
-      {SECTIONS.map((section) => (
+      {SECTIONS.map((section, si) => (
         <View key={section.titleKey} className="gap-2">
           <Text variant="label" className="uppercase tracking-[1px] text-muted">{t(section.titleKey)}</Text>
-          {section.tools.map((tool) => (
-            <ToolCard key={tool.route} tool={tool} />
+          {section.tools.map((tool, ti) => (
+            <ToolCard
+              key={tool.route}
+              tool={tool}
+              // Continuous palette index across sections so no two neighbours match.
+              index={SECTIONS.slice(0, si).reduce((n, s) => n + s.tools.length, 0) + ti}
+            />
           ))}
         </View>
       ))}
-
-      {/* Capability footer strip */}
-      <View className="flex-row flex-wrap gap-2 rounded-2xl border border-line bg-surface p-3">
-        {CAPS.map((c) => (
-          <View key={c.key} className="flex-row items-center gap-1.5 rounded-full bg-paper px-2.5 py-1">
-            <Ionicons name={c.icon} size={13} color={color.red} />
-            <Text className="text-[11px] font-medium text-ink">{t(c.key)}</Text>
-          </View>
-        ))}
-      </View>
 
       {/* AI Copywriter */}
       <View className="gap-2 pt-1">

@@ -22,6 +22,27 @@ export const color = {
 
 export type ColorToken = keyof typeof color;
 
+/**
+ * Harmonized accent palette for colorful surfaces (tab bar, tool cards, menu
+ * rows). Cycles so neighbouring items always contrast; `main` for icons/active
+ * states, `soft` for tinted fills that stay readable under ink text.
+ */
+export const accents = [
+  { main: '#E5484D', soft: 'rgba(229,72,77,0.12)' }, //   coral
+  { main: '#F76B15', soft: 'rgba(247,107,21,0.12)' }, //  orange
+  { main: '#D9A514', soft: 'rgba(217,165,20,0.14)' }, //  amber
+  { main: '#30A46C', soft: 'rgba(48,164,108,0.12)' }, //  green
+  { main: '#12A594', soft: 'rgba(18,165,148,0.12)' }, //  teal
+  { main: '#3E63DD', soft: 'rgba(62,99,221,0.12)' }, //   blue
+  { main: '#8E4EC6', soft: 'rgba(142,78,198,0.12)' }, //  violet
+  { main: '#D6409F', soft: 'rgba(214,64,159,0.12)' }, //  pink
+] as const;
+
+/** Accent for the item at position `i` in a list (wraps around the palette). */
+export function accentFor(i: number) {
+  return accents[i % accents.length];
+}
+
 /** Typeface keys registered via expo-font in the root layout. */
 export const font = {
   regular: 'Inter_400Regular',

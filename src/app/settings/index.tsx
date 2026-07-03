@@ -12,7 +12,7 @@ import { Text } from '@/components/ui/Text';
 import { SITE_URL } from '@/lib/site';
 import { can } from '@/lib/access';
 import { useAuth } from '@/stores/auth';
-import { color } from '@/theme/tokens';
+import { accentFor, color } from '@/theme/tokens';
 
 const ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string; href: string }[] = [
   { icon: 'person-circle', label: 'Edit profile', sub: 'Name, phone, designation, photo', href: '/profile' },
@@ -81,20 +81,25 @@ export default function Settings() {
         </Pressable>
       ) : null}
 
-      {ITEMS.map((it) => (
-        <Pressable key={it.href} onPress={() => router.push(it.href as never)}>
-          <Card className="flex-row items-center gap-3">
-            <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
-              <Ionicons name={it.icon} size={18} color={color.red} />
-            </View>
-            <View className="flex-1">
-              <Text variant="title">{it.label}</Text>
-              <Text variant="caption">{it.sub}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={color.muted} />
-          </Card>
-        </Pressable>
-      ))}
+      {ITEMS.map((it, i) => {
+        const a = accentFor(i);
+        return (
+          <Pressable key={it.href} onPress={() => router.push(it.href as never)}>
+            <Card className="flex-row items-center gap-3">
+              <View
+                className="h-10 w-10 items-center justify-center rounded-xl"
+                style={{ backgroundColor: a.soft }}>
+                <Ionicons name={it.icon} size={18} color={a.main} />
+              </View>
+              <View className="flex-1">
+                <Text variant="title">{it.label}</Text>
+                <Text variant="caption">{it.sub}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={color.muted} />
+            </Card>
+          </Pressable>
+        );
+      })}
 
       {can(profile, 'sell') && profile?.referral_code ? (
         <Pressable onPress={shareMyPage}>

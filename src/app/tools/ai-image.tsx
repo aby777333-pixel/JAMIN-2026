@@ -3,11 +3,13 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import * as MediaLibrary from 'expo-media-library';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { captureRef } from 'react-native-view-shot';
 
+import { AgentStamp } from '@/components/brand/AgentStamp';
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -16,6 +18,8 @@ import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { generateImage } from '@/features/ai/api';
 import { shareImageFile } from '@/features/marketing/share';
+import { SITE_HOST } from '@/lib/site';
+import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
 
@@ -50,6 +54,8 @@ const STYLES = ['Modern', 'Tropical', 'Luxury', 'Rural', 'Urban', 'Cinematic'];
 export default function AiImage() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const profile = useAuth((s) => s.profile);
+  const frameRef = useRef<View>(null);
   const [prompt, setPrompt] = useState('');
   const [aspect, setAspect] = useState('4:3');
   const [style, setStyle] = useState<string | null>(null);
@@ -90,9 +96,23 @@ export default function AiImage() {
     }
   }
 
+  /**
+   * Capture the on-screen branded frame (image + JAMIN badge + agent card + QR
+   * + website) so saves/shares carry the full branding, like the poster maker.
+   * Falls back to the raw image if the capture fails.
+   */
+  async function toBranded(): Promise<string | null> {
+    if (!url) return null;
+    try {
+      return await captureRef(frameRef, { format: 'jpg', quality: 0.95 });
+    } catch {
+      return toLocal();
+    }
+  }
+
   async function onSave() {
     setBusy(true);
-    const local = await toLocal();
+    const local = await toBranded();
     if (local) {
       try {
         if (Platform.OS === 'web') {
@@ -115,20 +135,36 @@ export default function AiImage() {
 
   async function onShare() {
     setBusy(true);
-    const local = await toLocal();
+    const local = await toBranded();
     if (local) await shareImageFile(local, 'Made with JAMIN Properties');
     setBusy(false);
   }
 
   async function onUseInFlyer() {
     setBusy(true);
+    // Raw (unbranded) image — the flyer maker applies its own branding layer.
     const local = await toLocal();
     setBusy(false);
     if (local) router.push({ pathname: '/tools/poster', params: { imageUri: local } });
   }
 
-  function addElement(term: string) {
-    setPrompt((p) => (p.trim() ? `${p.replace(/\s+$/, '')}, ${term}` : term));
+  /** Is this element already part of the prompt? Drives the chip highlight. */
+  function hasElement(p: string, term: string) {
+    return p.toLowerCase().includes(term.toLowerCase());
+  }
+
+  /** Tap to add an element; tap again to remove it (chip shows the state). */
+  function toggleElement(term: string) {
+    setPrompt((p) => {
+      if (hasElement(p, term)) {
+        const i = p.toLowerCase().indexOf(term.toLowerCase());
+        return (p.slice(0, i) + p.slice(i + term.length))
+          .replace(/,\s*,/g, ',')
+          .replace(/(^[\s,]+|[\s,]+$)/g, '')
+          .replace(/\s{2,}/g, ' ');
+      }
+      return p.trim() ? `${p.replace(/\s+$/, '')}, ${term}` : term;
+    });
   }
 
   const previewRatio = RATIO[aspect] ?? 3 / 4;
@@ -149,11 +185,33 @@ export default function AiImage() {
 
         <Card className="items-center gap-3">
           {url ? (
-            <Image
-              source={{ uri: url }}
-              style={{ width: '100%', aspectRatio: 1 / previewRatio, borderRadius: 14 }}
-              contentFit="cover"
-            />
+            // Branded frame — captured as-is on Save/Share (like the poster maker):
+            // JAMIN badge, agent card with referral QR, and the website.
+            <View
+              ref={frameRef}
+              collapsable={false}
+              className="w-full overflow-hidden rounded-2xl bg-charcoal">
+              <Image
+                source={{ uri: url }}
+                style={{ width: '100%', aspectRatio: 1 / previewRatio }}
+                contentFit="cover"
+              />
+              <View style={{ position: 'absolute', top: 10, left: 10 }} className="rounded-lg bg-red px-2 py-1">
+                <Text className="font-bold text-[10px] uppercase tracking-[1px] text-white">JAMIN Properties</Text>
+              </View>
+              <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }} className="bg-black/65 px-3 pb-2 pt-2.5">
+                <AgentStamp
+                  name={profile?.full_name ?? 'JAMIN Partner'}
+                  phone={profile?.phone}
+                  referralCode={profile?.referral_code ?? 'JAMIN'}
+                  photoUrl={profile?.photo_url}
+                  qrSize={44}
+                />
+                <Text className="mt-1.5 text-center font-medium text-[9px] uppercase tracking-[1.5px] text-white/80">
+                  {SITE_HOST}
+                </Text>
+              </View>
+            </View>
           ) : (
             <View
               className="w-full items-center justify-center rounded-2xl bg-paper"
@@ -205,7 +263,7 @@ export default function AiImage() {
           <Text variant="label">{t('tools.aiImage.quickIdeas')}</Text>
           <View className="gap-2">
             {PRESETS.map((p) => (
-              <Chip key={p} label={p.length > 42 ? `${p.slice(0, 42)}…` : p} onPress={() => setPrompt(p)} />
+              <Chip key={p} label={p.length > 42 ? `${p.slice(0, 42)}…` : p} active={prompt === p} onPress={() => setPrompt(p)} />
             ))}
           </View>
         </View>
@@ -217,7 +275,7 @@ export default function AiImage() {
               <Text variant="caption">{g.group}</Text>
               <View className="flex-row flex-wrap gap-2">
                 {g.items.map((it) => (
-                  <Chip key={it} label={it} onPress={() => addElement(it)} />
+                  <Chip key={it} label={it} active={hasElement(prompt, it)} onPress={() => toggleElement(it)} />
                 ))}
               </View>
             </View>

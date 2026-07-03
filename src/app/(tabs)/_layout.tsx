@@ -4,8 +4,17 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { can } from '@/lib/access';
-import { color } from '@/theme/tokens';
+import { accents, color } from '@/theme/tokens';
 import { useAuth } from '@/stores/auth';
+
+/** Per-tab active colors — each tab lights up in its own hue. */
+const TAB_COLOR = {
+  index: color.red, //          Home = brand red
+  properties: accents[5].main, // blue
+  card: color.goldDeep, //      business card = gold
+  network: accents[6].main, //  violet
+  wallet: accents[3].main, //   green
+} as const;
 
 /**
  * Role-aware bottom tabs (SuperPrompt §5: "role-aware bottom tabs").
@@ -38,6 +47,7 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: t('tabs.home'),
+          tabBarActiveTintColor: TAB_COLOR.index,
           tabBarIcon: ({ color: c, size }) => <Ionicons name="home" color={c} size={size} />,
         }}
       />
@@ -45,6 +55,7 @@ export default function TabsLayout() {
         name="properties"
         options={{
           title: t('tabs.properties'),
+          tabBarActiveTintColor: TAB_COLOR.properties,
           tabBarIcon: ({ color: c, size }) => <Ionicons name="business" color={c} size={size} />,
         }}
       />
@@ -52,6 +63,7 @@ export default function TabsLayout() {
         name="card"
         options={{
           title: t('tabs.card'),
+          tabBarActiveTintColor: TAB_COLOR.card,
           tabBarIcon: ({ color: c, size }) => <Ionicons name="qr-code" color={c} size={size} />,
         }}
       />
@@ -60,6 +72,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.network'),
           href: can(profile, 'team') ? undefined : null,
+          tabBarActiveTintColor: TAB_COLOR.network,
           tabBarIcon: ({ color: c, size }) => <Ionicons name="people" color={c} size={size} />,
         }}
       />
@@ -68,6 +81,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.wallet'),
           href: can(profile, 'sell') ? undefined : null,
+          tabBarActiveTintColor: TAB_COLOR.wallet,
           tabBarIcon: ({ color: c, size }) => <Ionicons name="wallet" color={c} size={size} />,
         }}
       />
