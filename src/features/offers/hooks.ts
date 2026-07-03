@@ -22,6 +22,14 @@ export function useWithdrawOffer() {
   });
 }
 
+export function useAcceptCounter() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.acceptCounterOffer,
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['my-offers'] }),
+  });
+}
+
 export function useRaiseDispute() {
   return useMutation({ mutationFn: api.raiseDispute });
 }

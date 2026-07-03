@@ -31,6 +31,12 @@ export async function getMyOffers(): Promise<MyOffer[]> {
   return (data ?? []) as unknown as MyOffer[];
 }
 
+/** Buyer accepts the seller's counter — the counter figure becomes the deal. */
+export async function acceptCounterOffer(id: string) {
+  const { error } = await supabase.rpc('accept_counter_offer', { p_offer: id });
+  if (error) throw error;
+}
+
 export async function withdrawOffer(id: string) {
   const { error } = await supabase.rpc('withdraw_offer', { p_offer: id });
   if (error) throw error;
