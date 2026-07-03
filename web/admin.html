@@ -4042,7 +4042,7 @@
           payments: ['payments', 'Payment activity'],
           withdrawals: ['approvals', 'New withdrawal request'],
           bookings: ['approvals', 'New booking'],
-          reviews: ['reviews', 'New review'],
+          property_reviews: ['reviews', 'New review'],
           user_media: ['usermedia', 'New user upload'],
           ai_generations: ['aiconvos', 'New AI conversation'],
           call_logs: ['calldesk', 'New call request'],
@@ -4100,7 +4100,10 @@
           Object.keys(ACT).forEach(function (t) {
             ch.on('postgres_changes', { event: 'INSERT', schema: 'public', table: t }, function () { ping(t); });
           });
-          ch.subscribe();
+          // One unknown table fails the whole channel — surface it loudly.
+          ch.subscribe(function (status, err) {
+            console.log('[activity-radar]', status, err ? String(err) : '');
+          });
         }
 
         // Opening a tab clears its blink (attach immediately — tabs exist pre-login).
