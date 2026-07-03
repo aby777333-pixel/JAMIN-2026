@@ -130,3 +130,12 @@ export function useReserveProperty() {
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['properties'] }),
   });
 }
+
+export function useMyJourney(propertyId: string | undefined) {
+  return useQuery({
+    queryKey: ['my-journey', propertyId],
+    queryFn: () => api.getMyJourney(propertyId!),
+    enabled: !!propertyId,
+    staleTime: 30_000,
+  });
+}

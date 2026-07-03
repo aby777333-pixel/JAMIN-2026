@@ -40,6 +40,7 @@ import { OfferSheet } from '@/features/offers/OfferSheet';
 import { ReportSheet } from '@/features/offers/ReportSheet';
 import {
   useLogPropertyView,
+  useMyJourney,
   useProperty,
   useReserveProperty,
   useToggleWishlist,
@@ -62,6 +63,7 @@ export default function PropertyDetail() {
   const role = useAuth((s) => s.profile?.role_slug);
   const myId = useAuth((s) => s.profile?.id);
   const isPartner = !!role && role !== 'buyer';
+  const { data: journey } = useMyJourney(id);
   // First listing photo, tolerant of both string and {url} media entries.
   const flyerImage = (() => {
     const m = property?.media;
@@ -291,6 +293,40 @@ export default function PropertyDetail() {
           <Detail key={k} label={k} value={String(v)} />
         ))}
       </Card>
+
+      {/* Your journey with this property — appears once the buyer takes any step. */}
+      {journey && (journey.visited || journey.offered || journey.booked) ? (
+        <Card accent={4} className="gap-3">
+          <Text variant="label">Your journey</Text>
+          <View className="flex-row items-center">
+            {[
+              { label: 'Visit', done: journey.visited, icon: 'calendar' as const },
+              { label: 'Offer', done: journey.offered, icon: 'pricetag' as const },
+              { label: 'Booking', done: journey.booked, icon: 'receipt' as const },
+              { label: 'Yours', done: property.status === 'sold' && journey.booked, icon: 'key' as const },
+            ].map((s, i, arr) => (
+              <View key={s.label} className="flex-1 flex-row items-center">
+                <View className="items-center gap-1" style={{ flex: 0 }}>
+                  <View
+                    className="h-9 w-9 items-center justify-center rounded-full"
+                    style={{ backgroundColor: s.done ? '#12A594' : 'rgba(32,32,32,.08)' }}>
+                    <Ionicons name={s.done ? 'checkmark' : s.icon} size={16} color={s.done ? '#fff' : color.muted} />
+                  </View>
+                  <Text className="text-[10px] font-semibold" style={{ color: s.done ? '#12A594' : color.muted }}>
+                    {s.label}
+                  </Text>
+                </View>
+                {i < arr.length - 1 ? (
+                  <View
+                    className="mx-1 h-[3px] flex-1 rounded-full"
+                    style={{ backgroundColor: s.done ? '#12A594' : 'rgba(32,32,32,.10)', marginBottom: 16 }}
+                  />
+                ) : null}
+              </View>
+            ))}
+          </View>
+        </Card>
+      ) : null}
 
       {/* Faith & practicality — sacred places, Qibla, land checks (renders only with coords). */}
       <SacredPlacesCard lat={lat} lng={lng} attrs={property.attrs} />

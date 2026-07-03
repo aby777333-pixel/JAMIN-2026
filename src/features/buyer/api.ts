@@ -347,3 +347,22 @@ export async function getRecentlySold(limit = 6): Promise<RecentlySoldItem[]> {
   if (error) throw error;
   return (data ?? []) as unknown as RecentlySoldItem[];
 }
+
+export interface MyJourney {
+  visited: boolean;
+  offered: boolean;
+  booked: boolean;
+}
+
+/** The signed-in buyer's progress with one property (RLS scopes to self). */
+export async function getMyJourney(propertyId: string): Promise<MyJourney> {
+  const { data: u } = await supabase.auth.getUser();
+  if (!u.user) return { visited: false, offered: false, booked: false };
+  const me = u.user.id;
+  const [v, o, b] = await Promise.all([
+    supabase.from('site_visits').select('id', { count: 'exact', head: true }).eq('property_id', propertyId).eq('buyer_id', me),
+    supabase.from('offers').select('id', { count: 'exact', head: true }).eq('property_id', propertyId).eq('buyer_id', me),
+    supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('property_id', propertyId).eq('buyer_id', me),
+  ]);
+  return { visited: (v.count ?? 0) > 0, offered: (o.count ?? 0) > 0, booked: (b.count ?? 0) > 0 };
+}
