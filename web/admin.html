@@ -49,9 +49,20 @@
       .side .brand { display:flex; align-items:center; gap:8px; padding:6px 8px 16px; }
       .side .brand img { height:30px; border-radius:6px; }
       .side .brand b { font-size:13px; letter-spacing:1px; }
-      .nav-i { display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:transparent; border:none; color:rgba(255,255,255,.8); padding:11px 12px; border-radius:10px; font-size:14.5px; font-weight:500; }
-      .nav-i:hover { background:rgba(255,255,255,.08); color:#fff; }
-      .nav-i.active { background:var(--red); color:#fff; }
+      .nav-i { display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:rgba(255,255,255,.06); border:none; border-left:3px solid transparent; color:rgba(255,255,255,.88); padding:11px 12px; border-radius:10px; font-size:14.5px; font-weight:500; margin-bottom:3px; }
+      /* Color-filled tabs: an 8-hue palette cycles down the sidebar so neighbours
+         always contrast; the active tab stays solid brand red. */
+      .side > .nav-i:nth-of-type(8n+1) { background:rgba(253,97,90,.20);  border-left-color:#fd615a; }
+      .side > .nav-i:nth-of-type(8n+2) { background:rgba(255,151,54,.18); border-left-color:#ff9736; }
+      .side > .nav-i:nth-of-type(8n+3) { background:rgba(240,190,40,.16); border-left-color:#f0be28; }
+      .side > .nav-i:nth-of-type(8n+4) { background:rgba(70,196,126,.18); border-left-color:#46c47e; }
+      .side > .nav-i:nth-of-type(8n+5) { background:rgba(56,192,196,.18); border-left-color:#38c0c4; }
+      .side > .nav-i:nth-of-type(8n+6) { background:rgba(92,156,255,.20); border-left-color:#5c9cff; }
+      .side > .nav-i:nth-of-type(8n+7) { background:rgba(166,130,255,.20); border-left-color:#a682ff; }
+      .side > .nav-i:nth-of-type(8n+8) { background:rgba(244,116,180,.18); border-left-color:#f474b4; }
+      .nav-i:hover { filter:brightness(1.45); color:#fff; }
+      .side > .nav-i.active { background:var(--red); border-left-color:#ffd23f; color:#fff; font-weight:700; }
+      .nav-i.active:hover { filter:none; }
       .nav-i .dot { margin-left:auto; background:var(--gold); color:var(--ink); font-size:11px; font-weight:700; border-radius:999px; padding:1px 7px; }
       .who { margin-top:22px; padding:10px 12px; font-size:12px; color:rgba(255,255,255,.6); border-top:1px solid rgba(255,255,255,.12); }
       .main { padding:24px 26px; min-width:0; }
