@@ -9,6 +9,16 @@ const ANON =
 const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+/**
+ * WhatsApp drops link-preview thumbnails over ~600 KB, and our flyer PNGs
+ * routinely exceed that. Serve crawlers a resized JPEG (~150 KB) via the
+ * images.weserv.nl proxy instead; the page itself still shows the full PNG.
+ */
+const previewImage = (imageUrl) =>
+  'https://images.weserv.nl/?url=' +
+  encodeURIComponent(String(imageUrl).replace(/^https?:\/\//, '')) +
+  '&w=900&output=jpg&q=80';
+
 export default async (request) => {
   const url = new URL(request.url);
   const slug = url.pathname.split('/').filter(Boolean).pop() || '';
@@ -30,7 +40,7 @@ export default async (request) => {
     const rows = await r.json();
     const ad = Array.isArray(rows) ? rows[0] : null;
     if (ad?.image_url) {
-      const img = esc(ad.image_url);
+      const img = esc(previewImage(ad.image_url));
       const title = esc('JAMIN Properties — Real property' + (ad.place ? ` · ${ad.place}` : ''));
       const desc = esc(
         (ad.agent_name ? `${ad.agent_name} · ` : '') + "View this property's live photo, location & contact.",
