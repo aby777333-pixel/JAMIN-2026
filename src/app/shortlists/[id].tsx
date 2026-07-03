@@ -29,7 +29,7 @@ export default function ShortlistDetail() {
   }
 
   return (
-    <Screen contentClassName="pb-10 gap-3">
+    <Screen contentClassName="pb-10 gap-3" keyboardAvoiding>
       <BackHeader
         title={shortlist?.name ?? 'Shortlist'}
         right={

@@ -45,7 +45,7 @@ export default function Shortlists() {
   }
 
   return (
-    <Screen contentClassName="pb-10 gap-4">
+    <Screen contentClassName="pb-10 gap-4" keyboardAvoiding>
       <BackHeader title="Shared shortlists" />
       <Text variant="caption">
         Build a shortlist with family — everyone adds properties, votes 👍/👎 and comments.

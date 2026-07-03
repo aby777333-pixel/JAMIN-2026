@@ -40,7 +40,7 @@ export default function VastuScreen() {
   const muhuratTips = t('vastu.muhuratTips', { returnObjects: true }) as string[];
 
   return (
-    <Screen contentClassName="pb-12 gap-4">
+    <Screen contentClassName="pb-12 gap-4" keyboardAvoiding>
       <BackHeader title={t('vastu.title')} />
 
       <Card className="gap-2 border-gold/50 bg-[#FDF3D8]">

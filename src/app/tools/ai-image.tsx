@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import * as MediaLibrary from 'expo-media-library';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Platform, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackHeader } from '@/components/ui/BackHeader';
@@ -135,6 +135,9 @@ export default function AiImage() {
 
   return (
     <View className="flex-1 bg-paper">
+      {/* 'padding' on BOTH platforms: with Android edgeToEdgeEnabled the window
+          no longer resizes, so the keyboard covers the prompt input without it. */}
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       <ScrollView
         contentContainerClassName="px-5 gap-4"
         contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}
@@ -245,6 +248,7 @@ export default function AiImage() {
           {t('tools.aiImage.disclaimer')}
         </Text>
       </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }

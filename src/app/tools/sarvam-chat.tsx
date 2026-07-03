@@ -88,8 +88,10 @@ export default function SarvamChat() {
         </ScrollView>
       </View>
 
+      {/* 'padding' on BOTH platforms: with Android edgeToEdgeEnabled the window
+          no longer resizes, so 'height' is a no-op and the keyboard covers the input. */}
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
         className="flex-1"
         keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 8 : 0}>
         <ScrollView

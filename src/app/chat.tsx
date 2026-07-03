@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   TextInput,
   View,
@@ -63,9 +62,9 @@ export default function Chat() {
       ) : (
         <KeyboardAvoidingView
           className="flex-1"
-          // Android needs an explicit behavior with edge-to-edge on, or the phone
-          // keyboard covers the input (iOS: padding, Android: height — same as Screen).
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          // 'padding' on BOTH platforms: with Android edgeToEdgeEnabled the window
+          // no longer resizes, so 'height' is a no-op and the keyboard covers the input.
+          behavior="padding">
           <FlatList
             ref={listRef}
             data={messages}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Modal, Pressable, ScrollView, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
@@ -100,9 +100,9 @@ export function Sheet({
 }) {
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1 justify-end bg-black/40">
+      {/* 'padding' on BOTH platforms: with Android edgeToEdgeEnabled the window
+          no longer resizes, so 'height' is a no-op and the keyboard covers inputs. */}
+      <KeyboardAvoidingView behavior="padding" className="flex-1 justify-end bg-black/40">
         <View className="max-h-[85%] rounded-t-3xl bg-paper p-5">
           <View className="mb-3 flex-row items-center justify-between">
             <Text variant="h2">{title}</Text>

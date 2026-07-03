@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BG } from '@/components/brand/backgrounds';
@@ -53,9 +53,9 @@ export function Screen({
       <View className={cn('flex-1 bg-paper', className)} style={pad}>
         {resolvedBackdrop}
         {keyboardAvoiding ? (
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          // 'padding' on BOTH platforms: with Android edgeToEdgeEnabled the window
+          // no longer resizes, so 'height' is a no-op and the keyboard covers inputs.
+          <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
             {scroller}
           </KeyboardAvoidingView>
         ) : (

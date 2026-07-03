@@ -30,10 +30,12 @@ export default function AdChatThread() {
         <BackHeader title="Ad Chat" />
       </View>
 
+      {/* 'padding' on BOTH platforms: with Android edgeToEdgeEnabled the window
+          no longer resizes, so the keyboard covers the input without it. */}
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={insets.top + 8}>
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 8 : 0}>
         <FlatList
           data={messages}
           keyExtractor={(_, i) => String(i)}

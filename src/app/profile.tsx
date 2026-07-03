@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
+import { Alert, Pressable, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Button } from '@/components/ui/Button';
@@ -43,9 +43,9 @@ export default function EditProfile() {
   }
 
   return (
-    <Screen contentClassName="pb-12">
+    <Screen contentClassName="pb-12" keyboardAvoiding>
       <BackHeader title="Edit profile" />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <View>
         <View className="mt-2 gap-4">
           <Input label="Full name" value={fullName} onChangeText={setFullName} autoCapitalize="words" placeholder="Your name" />
           <Input label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" inputMode="tel" placeholder="+91 …" />
@@ -169,7 +169,7 @@ export default function EditProfile() {
             </Pressable>
           ) : null}
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Screen>
   );
 }
