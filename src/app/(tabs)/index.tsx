@@ -15,7 +15,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
 import { FestivalBanner } from '@/features/astro/FestivalBanner';
 import { PropertyCard } from '@/features/buyer/components/PropertyCard';
-import { useFeaturedProperties, useToggleWishlist, useWishlistIds } from '@/features/buyer/hooks';
+import { useFeaturedProperties, useRecentlySold, useToggleWishlist, useWishlistIds } from '@/features/buyer/hooks';
 import { useAnnouncements, useContent } from '@/features/content/hooks';
 import { useLeads } from '@/features/leads/hooks';
 import { useUnreadCount } from '@/features/notifications/api';
@@ -23,8 +23,15 @@ import { shareReferral } from '@/features/share/referral';
 import { useDownline } from '@/features/team/hooks';
 import { useWalletSummary } from '@/features/wallet/hooks';
 import { can } from '@/lib/access';
+import { formatINR, money } from '@/lib/money';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
+
+/** Compact relative time for the sold rail ("today", "3d ago"). */
+function daysAgo(iso: string) {
+  const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  return d <= 0 ? 'today' : d === 1 ? '1d ago' : `${d}d ago`;
+}
 
 function roleLabel(slug?: string | null) {
   if (!slug) return 'Member';
@@ -45,6 +52,7 @@ export default function Home() {
   const activeLeads = openLeads.filter((l) => l.status !== 'won' && l.status !== 'lost').length;
   const { data: unread = 0 } = useUnreadCount();
   const { data: featured = [] } = useFeaturedProperties(8);
+  const { data: recentlySold = [] } = useRecentlySold(6);
   const { data: savedIds } = useWishlistIds();
   const toggleSave = useToggleWishlist();
   const { get } = useContent();
@@ -184,6 +192,35 @@ export default function Home() {
                     toggleSave.mutate({ propertyId: item.id, saved: savedIds?.has(item.id) ?? false })
                   }
                 />
+              </View>
+            )}
+          />
+        </View>
+      ) : null}
+
+      {/* Social proof — latest sold plots (admin toggle: App Content → home.show_sold). */}
+      {recentlySold.length > 0 && get('home.show_sold') !== 'off' ? (
+        <View className="gap-2">
+          <Text variant="label">Recently sold 🔥</Text>
+          <FlatList
+            horizontal
+            data={recentlySold}
+            keyExtractor={(p) => p.id}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 10, paddingRight: 4 }}
+            renderItem={({ item }) => (
+              <View
+                className="rounded-2xl border px-3.5 py-2.5"
+                style={{ backgroundColor: 'rgba(229,72,77,.08)', borderColor: 'rgba(229,72,77,.35)' }}>
+                <View className="flex-row items-center gap-1.5">
+                  <View className="rounded-md bg-red px-1.5 py-0.5">
+                    <Text className="font-bold text-[9px] uppercase tracking-[1px] text-white">Sold</Text>
+                  </View>
+                  <Text className="font-mono-bold text-[13px] text-ink">{item.plot_code}</Text>
+                </View>
+                <Text variant="caption" className="mt-0.5">
+                  {formatINR(money(item.price))} · {daysAgo(item.updated_at)}
+                </Text>
               </View>
             )}
           />

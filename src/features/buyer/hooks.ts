@@ -63,6 +63,14 @@ export function useFeaturedProperties(limit = 8) {
   });
 }
 
+export function useRecentlySold(limit = 6) {
+  return useQuery({
+    queryKey: ['recently-sold', limit],
+    queryFn: () => api.getRecentlySold(limit),
+    staleTime: 5 * 60_000,
+  });
+}
+
 export function useProjectsWithCounts() {
   return useQuery({
     queryKey: ['projects-with-counts'],

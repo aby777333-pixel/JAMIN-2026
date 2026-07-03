@@ -15,6 +15,7 @@ export const CONTENT_DEFAULTS: Record<string, string> = {
   'home.buyer_card_body': 'Browse dynamic inventory, calculate EMI & ROI, and enquire or book a visit.',
   'support.hours': 'Mon–Sat, 10am–7pm IST',
   'social.website': SITE_URL,
+  'home.show_sold': 'on',
   'calc.emi_down_pct': '20',
   'calc.emi_rate': '9',
   'calc.emi_years': '10',

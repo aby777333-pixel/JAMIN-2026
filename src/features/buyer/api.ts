@@ -329,3 +329,21 @@ export async function reserveProperty(input: { propertyId: string; amount: numbe
   });
   if (error) throw error;
 }
+
+/** Social proof for the Home "Recently sold" rail (newest sold plots). */
+export interface RecentlySoldItem {
+  id: string;
+  plot_code: string;
+  price: number;
+  updated_at: string;
+}
+export async function getRecentlySold(limit = 6): Promise<RecentlySoldItem[]> {
+  const { data, error } = await supabase
+    .from('properties')
+    .select('id, plot_code, price, updated_at')
+    .eq('status', 'sold')
+    .order('updated_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []) as unknown as RecentlySoldItem[];
+}
