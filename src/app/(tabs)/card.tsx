@@ -13,7 +13,7 @@ import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { logArtifactShare } from '@/features/marketing/share';
 import { shareVCard } from '@/features/marketing/vcard';
-import { SITE_HOST, SITE_URL } from '@/lib/site';
+import { APP_APK_URL, SITE_HOST, SITE_URL } from '@/lib/site';
 import { useAuth } from '@/stores/auth';
 import { BRAND, TAGLINE, color } from '@/theme/tokens';
 
@@ -132,6 +132,21 @@ export default function CardScreen() {
       <Text variant="caption" className="text-center">
         Scanning the code opens the app (or the web invite) and binds the new signup to you.
       </Text>
+
+      {/* Scan-to-install: hand the phone to a buyer at a site visit. */}
+      <View
+        className="flex-row items-center gap-4 rounded-2xl border p-4"
+        style={{ backgroundColor: 'rgba(48,164,108,.10)', borderColor: 'rgba(48,164,108,.45)' }}>
+        <View className="rounded-xl bg-white p-2">
+          <QRCode value={APP_APK_URL} size={84} color={color.charcoal} backgroundColor="#FFFFFF" />
+        </View>
+        <View className="flex-1">
+          <Text variant="title" className="text-[14px]">Scan to install the app</Text>
+          <Text variant="caption">
+            Buyers scan this with their camera to download the JAMIN Android app on the spot.
+          </Text>
+        </View>
+      </View>
     </Screen>
   );
 }
