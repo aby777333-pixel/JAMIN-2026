@@ -207,6 +207,9 @@
          the inherited light ink vanishes on them. Inline colours still win. */
       body.dark [style*="background:#f"] { color:#1a1a1a; }
       body.dark [style*="background:#f"] .muted { color:#74746E; }
+      /* Outline buttons inside those light containers must ALSO keep dark ink —
+         body.dark .btn-o otherwise paints light ink on the light inline bg. */
+      body.dark [style*="background:#f"] .btn-o { color:#1a1a1a; }
       #themeToggle { margin-top:12px; background:rgba(255,255,255,.10); border-left-color:transparent; }
 
       /* ── Activity radar: blinking tab + bulb + toast pop-ups ── */
@@ -2561,7 +2564,7 @@
         var explain =
           '<div class="panel" style="background:#f2f9f4;border-color:#bfe3cb"><h3>How AI calls & chats are answered</h3>' +
           '<div style="font-size:13px;line-height:1.7">' +
-          '• <b>AI Voice Call</b> and <b>Sarvam AI Chat</b> are answered <b>automatically by the AI assistant</b> (Sarvam, in the user\'s language) — no staff needed, 24×7.<br />' +
+          '• <b>AI Voice Call</b> and <b>Jamindar AI Chat</b> are answered <b>automatically by the AI assistant</b> (Jamindar AI, in the user\'s language) — no staff needed, 24×7.<br />' +
           '• Every turn is logged below (transcript only, never audio) so you can monitor quality and follow up on hot enquiries yourself — the user\'s name and phone appear on each row.<br />' +
           '• When a customer wants a <b>human</b>, they use <b>Live chat</b> (💬 tab) — that one is answered by you/your team. Property-ad enquiries land in <b>Ad chats</b> (📲 tab).</div></div>';
 
@@ -2599,7 +2602,7 @@
 
         el.innerHTML = '<div class="head"><h2>AI Conversations</h2>' +
           '<select id="ac_kind" class="inp" style="height:36px;width:190px">' +
-            [['all', 'All conversations'], ['sarvam_chat', '💬 Sarvam chat'], ['sarvam_voice', '🎙️ Voice calls'], ['assistant', '🤖 Sales assistant']].map(function (o) {
+            [['all', 'All conversations'], ['sarvam_chat', '💬 Jamindar chat'], ['sarvam_voice', '🎙️ Voice calls'], ['assistant', '🤖 Sales assistant']].map(function (o) {
               return '<option value="' + o[0] + '"' + (o[0] === kind ? ' selected' : '') + '>' + o[1] + '</option>';
             }).join('') +
           '</select></div>' + explain + rowsHtml;
