@@ -613,6 +613,40 @@
         rows.forEach(function (r) { byStatus[r.status] = (byStatus[r.status] || 0) + 1; });
         var pendingCount = rows.filter(function (r) { return r.approval_status === 'pending'; }).length;
 
+        // ── Business overview (real data, light head-count queries) ──
+        var weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
+        var ov = await Promise.all([
+          sb.from('profiles').select('id', { count: 'exact', head: true }),
+          sb.from('leads').select('id', { count: 'exact', head: true }),
+          sb.from('leads').select('id', { count: 'exact', head: true }).gte('created_at', weekAgo),
+          sb.from('site_visits').select('id', { count: 'exact', head: true }).gte('scheduled_at', new Date().toISOString()).in('status', ['requested', 'confirmed']),
+          sb.from('payments').select('amount,status').eq('status', 'paid'),
+          sb.from('bank_transfers').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+          sb.from('staff_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+          sb.from('community_posts').select('id', { count: 'exact', head: true }).eq('status', 'published'),
+          sb.from('property_media_submissions').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        ]);
+        var ovUsers = ov[0].count || 0, ovLeads = ov[1].count || 0, ovLeads7 = ov[2].count || 0, ovVisits = ov[3].count || 0;
+        var ovCollected = (ov[4].data || []).reduce(function (s, p) { return s + Number(p.amount || 0); }, 0);
+        var ovProofs = ov[5].count || 0, ovStaff = ov[6].count || 0, ovPosts = ov[7].count || 0, ovPhotos = ov[8].count || 0;
+        var ovPortfolio = rows.filter(function (r) { return r.status === 'available' && r.approval_status === 'approved'; })
+          .reduce(function (s, r) { return s + Number(r.price || 0); }, 0);
+        function ovTile(n, label, hot) {
+          return '<div class="stat"><div class="n"' + (hot ? ' style="color:#e6a10d"' : '') + '>' + n + '</div><div class="l">' + label + '</div></div>';
+        }
+        var overviewHtml = '<div class="panel" style="margin-bottom:14px"><h3>📊 Business overview</h3><div class="stat-row" style="margin-bottom:0">' +
+          ovTile(ovUsers, 'Members') +
+          ovTile(ovLeads, 'Leads · total') +
+          ovTile(ovLeads7, 'Leads · 7 days') +
+          ovTile(ovVisits, 'Upcoming visits') +
+          ovTile(inr(ovCollected), '₹ collected') +
+          ovTile(inr(ovPortfolio), 'Available portfolio') +
+          ovTile(ovPosts, 'Community posts') +
+          ovTile(ovProofs, 'Proofs to verify', ovProofs > 0) +
+          ovTile(ovStaff, 'Staff apps pending', ovStaff > 0) +
+          ovTile(ovPhotos, 'Photos to review', ovPhotos > 0) +
+          '</div></div>';
+
         var addForm =
           '<div class="panel"><h3>Add property</h3><div class="grid2">' +
           '<div><label>Project</label><select id="np_project" class="inp">' + opt(state.projects, null, function (x) { return esc(x.name); }) + '</select></div>' +
@@ -676,6 +710,7 @@
         el.innerHTML =
           '<div class="head"><h2>Properties</h2></div>' +
           '<div class="muted" style="margin:-6px 0 14px">Upload photos per plot in the table below — click <b>⬆ Upload</b> in the Images column, or <b>Details → + Add photos</b> for the full manager (thumbnails, download ⤓, remove ×).</div>' +
+          overviewHtml +
           '<div class="stat-row">' +
             '<div class="stat"><div class="n">' + rows.length + '</div><div class="l">Total</div></div>' +
             '<div class="stat"><div class="n">' + (byStatus.available || 0) + '</div><div class="l">Available</div></div>' +
@@ -1858,20 +1893,24 @@
         var q = await sb.from('brochure_templates').select('id,name,kind,active,is_default').order('created_at');
         if (q.error) { el.innerHTML = '<div class="head"><h2>Marketing assets</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
         var rows = q.data || [];
-        var ma = await sb.from('marketing_assets').select('id,title,kind,file_url,active,created_at').order('created_at', { ascending: false });
+        var ma = await sb.from('marketing_assets').select('id,title,kind,file_url,mime,active,created_at').order('created_at', { ascending: false });
         var assets = ma.data || [];
-        var FKINDS = ['brochure', 'flyer', 'poster'];
-        var filesHtml = '<div class="panel"><h3>Upload brochure / flyer / poster (file)</h3>' +
-          '<div class="muted" style="font-size:12px;margin-bottom:8px">PDF or image. Appears in the app’s Brochures library for everyone.</div>' +
+        var FKINDS = ['brochure', 'flyer', 'poster', 'video'];
+        var filesHtml = '<div class="panel"><h3>Upload brochure / flyer / poster / video clip</h3>' +
+          '<div class="muted" style="font-size:12px;margin-bottom:8px">PDF, image or video clip. Appears in the app’s Brochures library — and every asset gets one-tap <b>Send to</b> options: 📣 in-app broadcast, 🟢 WhatsApp (thumbnail = the picture, or the JAMIN logo), 📧 email campaign, 📋 copy link.</div>' +
           '<div class="row"><input id="maf_title" class="inp" style="max-width:240px" placeholder="Title" />' +
           '<select id="maf_kind" class="inp" style="max-width:140px">' + FKINDS.map(function (k) { return '<option value="' + k + '">' + k + '</option>'; }).join('') + '</select>' +
-          '<label class="btn-o btn-sm" style="display:inline-block">Choose file<input id="maf_file" type="file" accept="image/*,application/pdf" class="hidden" /></label>' +
+          '<label class="btn-o btn-sm" style="display:inline-block">Choose file<input id="maf_file" type="file" accept="image/*,video/*,application/pdf" class="hidden" /></label>' +
           '<button id="maf_up" class="btn btn-sm">Upload</button> <span id="maf_msg" class="muted"></span></div></div>' +
-          (assets.length ? '<table><thead><tr><th>Title</th><th>Kind</th><th>File</th><th>Active</th><th></th></tr></thead><tbody>' +
+          (assets.length ? '<table><thead><tr><th>Title</th><th>Kind</th><th>File</th><th>Active</th><th>Send to</th><th></th></tr></thead><tbody>' +
             assets.map(function (a) {
               return '<tr data-aid="' + a.id + '"><td>' + esc(a.title) + '</td><td>' + esc(a.kind) + '</td>' +
                 '<td><a href="' + esc(a.file_url) + '" target="_blank" rel="noopener" class="mono" style="font-size:12px">open</a></td>' +
                 '<td><span class="pill ' + (a.active ? 'available' : 'sold') + '">' + (a.active ? 'on' : 'off') + '</span></td>' +
+                '<td class="row" style="white-space:nowrap"><button class="btn-o btn-sm maf_app" title="Broadcast to everyone\'s in-app notifications">📣 App</button>' +
+                  '<button class="btn-o btn-sm maf_wa" title="WhatsApp broadcast — thumbnail is the picture, or the JAMIN logo">🟢 WA</button>' +
+                  '<button class="btn-o btn-sm maf_em" title="Open the emailer prefilled with this asset">📧 Email</button>' +
+                  '<button class="btn-o btn-sm maf_cp" title="Copy the file link">📋</button></td>' +
                 '<td class="row"><button class="btn-o btn-sm maf_tog">' + (a.active ? 'Disable' : 'Enable') + '</button><button class="btn-d btn-sm maf_del">Delete</button></td></tr>';
             }).join('') + '</tbody></table>' : '<div class="muted">No uploaded files yet.</div>');
         var KINDS = ['project', 'flyer', 'offer', 'image', 'video', 'campaign'];
@@ -1952,6 +1991,14 @@
         };
         el.querySelectorAll('tr[data-aid]').forEach(function (tr) {
           var id = tr.dataset.aid;
+          var asset = assets.find(function (x) { return x.id === id; }) || {};
+          var isImage = (asset.mime || '').indexOf('image/') === 0;
+          function askSegment() {
+            var s = prompt('Send to which audience? all / buyers / partners', 'all');
+            if (s === null) return null;
+            s = s.trim().toLowerCase();
+            return ['all', 'buyers', 'partners'].indexOf(s) !== -1 ? s : 'all';
+          }
           tr.querySelector('.maf_tog').onclick = async function () {
             var on = this.textContent === 'Enable';
             var r = await sb.from('marketing_assets').update({ active: on }).eq('id', id);
@@ -1961,6 +2008,49 @@
             if (!confirm('Delete this file?')) return;
             var r = await sb.from('marketing_assets').delete().eq('id', id);
             if (r.error) alert(r.error.message); else renderMarketing();
+          };
+          // ── Send-to options ──
+          var bApp = tr.querySelector('.maf_app');
+          if (bApp) bApp.onclick = async function () {
+            var seg = askSegment(); if (seg === null) return;
+            this.textContent = '…';
+            var data = isImage
+              ? { image_url: asset.file_url, link: asset.file_url }
+              : { file_url: asset.file_url, file_type: (asset.mime || '').indexOf('video/') === 0 ? 'video' : 'file', link: asset.file_url };
+            var r = await sb.rpc('broadcast_notification', { p_title: asset.title || 'From JAMIN Properties', p_body: 'Tap to open — fresh from JAMIN Properties 🏡', p_segment: seg, p_data: data });
+            this.textContent = '📣 App';
+            if (r.error) return alert(r.error.message);
+            alert('✅ Sent to ' + r.data + ' user(s) in-app.');
+          };
+          var bWa = tr.querySelector('.maf_wa');
+          if (bWa) bWa.onclick = async function () {
+            var seg = askSegment(); if (seg === null) return;
+            this.textContent = '…';
+            var r = await sb.functions.invoke('wa-send', { body: {
+              action: 'broadcast', audience: 'users', segment: seg,
+              title: asset.title || 'From JAMIN Properties', body: '',
+              image_url: isImage ? asset.file_url : '',
+              link: isImage ? '' : asset.file_url,
+            } });
+            this.textContent = '🟢 WA';
+            if (r.error) return alert(r.error.message);
+            if (r.data && r.data.configured === false) return alert(r.data.message);
+            alert('WhatsApp: ' + ((r.data && r.data.sent) || 0) + ' sent, ' + ((r.data && r.data.failed) || 0) + ' failed.');
+          };
+          var bEm = tr.querySelector('.maf_em');
+          if (bEm) bEm.onclick = function () {
+            // Prefill the Campaigns emailer with this asset and jump there.
+            window.__em_prefill = {
+              subject: asset.title || 'From JAMIN Properties',
+              body: '<p>Hi {{name}},</p><p>Sharing our latest from JAMIN Properties — <b>' + esc(asset.title || '') + '</b>.</p>' +
+                (isImage ? '<p><img src="' + esc(asset.file_url) + '" style="max-width:100%;border-radius:8px" /></p>' : '') +
+                '<p><a href="' + esc(asset.file_url) + '">Open it here</a></p><p>Warm regards,<br>JAMIN Properties · Signature for Fortune</p>',
+            };
+            switchTab('campaigns');
+          };
+          var bCp = tr.querySelector('.maf_cp');
+          if (bCp) bCp.onclick = function () {
+            navigator.clipboard.writeText(asset.file_url).then(function () { alert('Link copied.'); });
           };
         });
         $('mk_add').onclick = async function () {
@@ -3163,6 +3253,17 @@
               bankField('bk_ben', 'Beneficiary', bank.beneficiary) + bankField('bk_acc', 'Account number', bank.account) +
               bankField('bk_ifsc', 'IFSC', bank.ifsc) + bankField('bk_bank', 'Bank', bank.bank) + bankField('bk_br', 'Branch', bank.branch) + '</div>' +
             '<div class="row" style="margin-top:6px"><input id="bk_note" class="inp" style="width:100%;max-width:640px;height:36px" placeholder="Note shown under the details" value="' + esc(bank.note || '') + '" /> <button id="bk_save" class="btn btn-sm">Save</button></div></div>' +
+          '<div class="panel"><h3>➕ Record a transfer proof (manual)</h3>' +
+            '<div class="muted" style="font-size:12px;margin-bottom:8px">For proofs received outside the app (WhatsApp screenshot, walk-in). Pick the buyer, attach the proof picture, and it joins the verification queue below.</div>' +
+            '<div class="row" style="flex-wrap:wrap;gap:8px;align-items:center">' +
+              '<select id="rt2_user" class="inp" style="max-width:220px;height:36px"><option value="">— buyer —</option></select>' +
+              '<select id="rt2_booking" class="inp" style="max-width:240px;height:36px"><option value="">— booking (optional) —</option></select>' +
+              '<input id="rt2_amount" class="inp" type="number" style="max-width:140px;height:36px" placeholder="Amount ₹" />' +
+              '<input id="rt2_ref" class="inp" style="max-width:180px;height:36px" placeholder="UTR / reference" />' +
+              '<input id="rt2_date" class="inp" type="date" style="max-width:160px;height:36px" value="' + new Date().toISOString().slice(0, 10) + '" />' +
+              '<label class="btn-o btn-sm" style="display:inline-block">📎 Proof picture<input id="rt2_file" type="file" accept="image/*" class="hidden" /></label>' +
+              '<span id="rt2_att" class="muted" style="font-size:11px"></span>' +
+              '<button id="rt2_add" class="btn btn-sm">Record proof</button></div></div>' +
           '<div class="panel"><h3>🧾 Bank-transfer proofs' + (btPending.length ? ' <span class="pill" style="background:var(--gold)">' + btPending.length + ' pending</span>' : '') + '</h3>' +
             (bts.length ? '<table><thead><tr><th>When</th><th>From</th><th>Amount</th><th>UTR / date</th><th>Plot</th><th>Proof</th><th>Note</th><th>Status</th><th></th></tr></thead><tbody>' +
               bts.map(btRow).join('') + '</tbody></table>'
@@ -3187,6 +3288,60 @@
           if (r.error) return alert(r.error.message);
           this.textContent = 'Saved';
           try { sb.rpc('log_admin_action', { p_action: 'payments.bank_details_updated', p_entity: 'system_config', p_entity_id: null, p_payload: { account: value.account } }); } catch (e) {}
+        };
+
+        // ── Manual proof recorder: fill pickers, upload, insert ──
+        (async function () {
+          var us = await sb.from('profiles').select('id,full_name,phone').order('full_name').limit(500);
+          var uSel = $('rt2_user');
+          if (uSel && us.data) {
+            uSel.innerHTML = '<option value="">— buyer —</option>' + us.data.map(function (u) {
+              return '<option value="' + u.id + '">' + esc(u.full_name || '(unnamed)') + (u.phone ? ' · ' + esc(u.phone) : '') + '</option>';
+            }).join('');
+          }
+          var bks = await sb.from('bookings').select('id,amount, property:properties(plot_code), buyer:profiles!buyer_id(full_name)').order('created_at', { ascending: false }).limit(200);
+          var bSel = $('rt2_booking');
+          if (bSel && bks.data) {
+            bSel.innerHTML = '<option value="">— booking (optional) —</option>' + bks.data.map(function (b) {
+              return '<option value="' + b.id + '">' + esc(b.property ? b.property.plot_code : '?') + ' · ' + esc(b.buyer ? b.buyer.full_name : '') + ' · ' + inr(b.amount) + '</option>';
+            }).join('');
+          }
+        })();
+        var rt2Proof = null;
+        if ($('rt2_file')) $('rt2_file').onchange = async function () {
+          var f = this.files && this.files[0]; if (!f) return;
+          $('rt2_att').textContent = 'Uploading…';
+          try {
+            var u = await sb.auth.getUser();
+            var uid = u.data && u.data.user ? u.data.user.id : null;
+            var safe = (f.name || 'proof.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
+            var path = uid + '/payments/' + Date.now() + '_' + safe;
+            var up = await sb.storage.from('user-media').upload(path, f, { contentType: f.type, upsert: false });
+            if (up.error) throw up.error;
+            rt2Proof = { url: sb.storage.from('user-media').getPublicUrl(path).data.publicUrl, path: path };
+            $('rt2_att').textContent = '✓ attached';
+          } catch (e) { rt2Proof = null; $('rt2_att').textContent = 'Upload failed: ' + e.message; }
+        };
+        if ($('rt2_add')) $('rt2_add').onclick = async function () {
+          var uid2 = $('rt2_user').value;
+          var amt = Number($('rt2_amount').value);
+          if (!uid2) return alert('Pick the buyer this transfer came from.');
+          if (!amt || amt <= 0) return alert('Enter the amount (₹).');
+          if (!rt2Proof && !$('rt2_ref').value.trim()) return alert('Attach the proof picture or enter the UTR (ideally both).');
+          this.textContent = '…';
+          var r = await sb.from('bank_transfers').insert({
+            user_id: uid2,
+            booking_id: $('rt2_booking').value || null,
+            amount: amt,
+            txn_ref: $('rt2_ref').value.trim() || null,
+            transfer_date: $('rt2_date').value || null,
+            proof_url: rt2Proof ? rt2Proof.url : null,
+            proof_path: rt2Proof ? rt2Proof.path : null,
+            note: 'Recorded by admin',
+          });
+          this.textContent = 'Record proof';
+          if (r.error) return alert(r.error.message);
+          renderPayments();
         };
         el.querySelectorAll('tr[data-id] .bt_ok, tr[data-id] .bt_no').forEach(function (btn) {
           btn.onclick = async function () {
@@ -3782,6 +3937,12 @@
 
         // ── emailer ──
         var emRecipients = [];
+        // Prefill handed over from Marketing's "📧 Email" asset button.
+        if (window.__em_prefill) {
+          $('em_subj').value = window.__em_prefill.subject || '';
+          $('em_body').value = window.__em_prefill.body || '';
+          window.__em_prefill = null;
+        }
         sb.functions.invoke('email-send', { body: { action: 'status' } }).then(function (r) {
           var s = $('em_status'); if (!s) return;
           if (r.error || !r.data) { s.textContent = 'unreachable'; s.className = 'pill sold'; return; }
