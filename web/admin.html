@@ -262,6 +262,7 @@
         <button class="nav-i active" data-tab="properties">🏠 Properties</button>
         <button class="nav-i" data-tab="catalog">📁 Catalog</button>
         <button class="nav-i" data-tab="users">👤 Users &amp; roles</button>
+        <button class="nav-i" data-tab="staff">🪪 Staff applications</button>
         <button class="nav-i" data-tab="crm">📇 CRM / Leads</button>
         <button class="nav-i" data-tab="marketing">🎨 Marketing</button>
         <button class="nav-i" data-tab="territories">🗺️ Territories</button>
@@ -301,6 +302,7 @@
         <button class="nav-i" data-tab="drips">📨 Drips</button>
         <button class="nav-i" data-tab="reels">🎬 Reels</button>
         <button class="nav-i" data-tab="whatsapp">🟢 WhatsApp</button>
+        <button class="nav-i" data-tab="community">🌐 Community</button>
         <button class="nav-i" data-tab="moderation">🛡️ Moderation</button>
         <button class="nav-i" data-tab="insights">📈 Insights</button>
         <button class="nav-i" data-tab="audit">🧾 Audit log</button>
@@ -313,6 +315,7 @@
         <div id="tabProperties"></div>
         <div id="tabCatalog" class="hidden"></div>
         <div id="tabUsers" class="hidden"></div>
+        <div id="tabStaff" class="hidden"></div>
         <div id="tabCrm" class="hidden"></div>
         <div id="tabMarketing" class="hidden"></div>
         <div id="tabTerritories" class="hidden"></div>
@@ -352,6 +355,7 @@
         <div id="tabDrips" class="hidden"></div>
         <div id="tabReels" class="hidden"></div>
         <div id="tabWhatsapp" class="hidden"></div>
+        <div id="tabCommunity" class="hidden"></div>
         <div id="tabModeration" class="hidden"></div>
         <div id="tabInsights" class="hidden"></div>
         <div id="tabAudit" class="hidden"></div>
@@ -441,10 +445,11 @@
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
       function switchTab(tab) {
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['properties', 'catalog', 'users', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'aisuite', 'aiconvos', 'calldesk', 'faith', 'nridesk', 'rewards', 'referrals', 'commissions', 'usermedia', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'moderation', 'insights', 'audit', 'exports', 'festivals'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['properties', 'catalog', 'users', 'staff', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'aisuite', 'aiconvos', 'calldesk', 'faith', 'nridesk', 'rewards', 'referrals', 'commissions', 'usermedia', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'community', 'moderation', 'insights', 'audit', 'exports', 'festivals'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
+        if (tab === 'staff') renderStaff();
         if (tab === 'crm') renderCrm();
         if (tab === 'marketing') renderMarketing();
         if (tab === 'territories') renderTerritories();
@@ -484,6 +489,7 @@
         if (tab === 'drips') renderDrips();
         if (tab === 'reels') renderReelsAdmin();
         if (tab === 'whatsapp') renderWhatsapp();
+        if (tab === 'community') renderCommunity();
         if (tab === 'moderation') renderModeration();
         if (tab === 'insights') renderInsights();
         if (tab === 'audit') renderAudit();
@@ -3735,6 +3741,142 @@
         })();
       }
 
+      // ─── Staff applications (role requests from the app) ────────────────
+      var staffFilter = 'pending';
+      async function renderStaff() {
+        var el = $('tabStaff');
+        el.innerHTML = '<div class="head"><h2>Staff applications</h2></div><div class="muted">Loading…</div>';
+        var results = await Promise.all([
+          sb.from('staff_applications').select('id,user_id,full_name,phone,requested_role_slug,note,status,decided_at,created_at').order('created_at', { ascending: false }).limit(300),
+          sb.from('roles').select('slug,name,level,is_admin').order('level')
+        ]);
+        var q = results[0], rq = results[1];
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Staff applications</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var all = q.data || [];
+        var roles = (rq.data || []).filter(function (r) { return !r.is_admin; });
+        var roleName = {}; roles.forEach(function (r) { roleName[r.slug] = r.name; });
+        var rows = staffFilter === 'all' ? all : all.filter(function (a) { return a.status === staffFilter; });
+        var pendingN = all.filter(function (a) { return a.status === 'pending'; }).length;
+        el.innerHTML = '<div class="head"><h2>Staff applications' + (pendingN ? ' <span class="pill" style="background:var(--gold)">' + pendingN + ' pending</span>' : '') + '</h2>' +
+          '<select id="sf_filter" class="inp" style="height:36px;width:160px">' +
+            [['pending', 'Pending'], ['approved', 'Approved'], ['rejected', 'Rejected'], ['all', 'All']].map(function (o) {
+              return '<option value="' + o[0] + '"' + (o[0] === staffFilter ? ' selected' : '') + '>' + o[1] + '</option>';
+            }).join('') + '</select></div>' +
+          '<div class="panel" style="margin-bottom:12px"><div style="font-size:13px;line-height:1.7">' +
+          'Anyone can <b>apply for a role from the phone app</b> (Join the JAMIN team). Approving grants the role instantly, notifies the applicant in-app, and records the decision in the Audit log. Admin roles can never be granted from here.</div></div>' +
+          (rows.length ? '<table><thead><tr><th>When</th><th>Applicant</th><th>Phone</th><th>Requested role</th><th>Note</th><th>Status</th><th></th></tr></thead><tbody>' +
+            rows.map(function (a) {
+              var act = a.status === 'pending'
+                ? '<select class="inp sf_role" style="height:32px;width:170px">' +
+                    roles.map(function (r) { return '<option value="' + esc(r.slug) + '"' + (r.slug === a.requested_role_slug ? ' selected' : '') + '>' + esc(r.name) + '</option>'; }).join('') +
+                  '</select> <button class="btn btn-sm sf_ok">✓ Approve</button> <button class="btn-d btn-sm sf_no">✕ Reject</button>'
+                : '<span class="muted" style="font-size:11px">' + (a.decided_at ? esc(new Date(a.decided_at).toLocaleString()) : '') + '</span>';
+              return '<tr data-id="' + a.id + '"><td class="muted" style="white-space:nowrap">' + esc(new Date(a.created_at).toLocaleString()) + '</td>' +
+                '<td><b>' + esc(a.full_name) + '</b></td><td class="mono">' + esc(a.phone) + '</td>' +
+                '<td><span class="pill">' + esc(roleName[a.requested_role_slug] || a.requested_role_slug) + '</span></td>' +
+                '<td class="muted" style="font-size:12px;max-width:240px">' + esc(a.note || '') + '</td>' +
+                '<td>' + esc(a.status) + '</td><td class="row" style="white-space:nowrap">' + act + '</td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No ' + (staffFilter === 'all' ? '' : staffFilter + ' ') + 'applications.</div>');
+        if ($('sf_filter')) $('sf_filter').onchange = function () { staffFilter = this.value; renderStaff(); };
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var ok = tr.querySelector('.sf_ok'), no = tr.querySelector('.sf_no');
+          if (ok) ok.onclick = async function () {
+            var slug = tr.querySelector('.sf_role').value;
+            var r = await sb.rpc('review_staff_application', { p_app: tr.dataset.id, p_approve: true, p_role_slug: slug });
+            if (r.error) return alert(r.error.message);
+            renderStaff();
+          };
+          if (no) no.onclick = async function () {
+            if (!confirm('Reject this application?')) return;
+            var r = await sb.rpc('review_staff_application', { p_app: tr.dataset.id, p_approve: false });
+            if (r.error) return alert(r.error.message);
+            renderStaff();
+          };
+        });
+      }
+
+      // ─── Community forum (posts, comments, moderation) ──────────────────
+      var commFilter = 'all';
+      async function renderCommunity() {
+        var el = $('tabCommunity');
+        el.innerHTML = '<div class="head"><h2>Community</h2></div><div class="muted">Loading…</div>';
+        var q = await sb.from('community_posts').select('id,author_id,author_name,author_phone,body,lang,media,status,like_count,comment_count,created_at').order('created_at', { ascending: false }).limit(300);
+        if (q.error) { el.innerHTML = '<div class="head"><h2>Community</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
+        var all = q.data || [];
+        var rows = commFilter === 'all' ? all : all.filter(function (p) { return p.status === commFilter; });
+        el.innerHTML = '<div class="head"><h2>Community</h2>' +
+          '<select id="cm_filter" class="inp" style="height:36px;width:160px">' +
+            [['all', 'All posts'], ['published', 'Published'], ['hidden', 'Hidden'], ['removed', 'Removed']].map(function (o) {
+              return '<option value="' + o[0] + '"' + (o[0] === commFilter ? ' selected' : '') + '>' + o[1] + '</option>';
+            }).join('') + '</select></div>' +
+          '<div class="panel" style="margin-bottom:12px"><div style="font-size:13px;line-height:1.7">' +
+          'Everything posted in the app\'s <b>Community</b> feed (any language, text + photos + videos). ' +
+          'Users must join with a <b>name and phone number</b> — the number is shown only here, never publicly, and phone numbers typed inside posts are masked in the app so contact stays through JAMIN. ' +
+          'Every post, comment and moderation action is recorded automatically in the <b>Audit log</b>.</div></div>' +
+          (rows.length ? '<table><thead><tr><th>When</th><th>Author</th><th>Phone</th><th>Lang</th><th>Post</th><th>Media</th><th>♥ / 💬</th><th>Status</th><th></th></tr></thead><tbody>' +
+            rows.map(function (p) {
+              var media = (p.media || []).map(function (m, i) {
+                return m.type === 'image'
+                  ? '<a href="' + esc(m.url) + '" target="_blank" rel="noopener"><img src="' + esc(m.url) + '" style="height:36px;width:36px;object-fit:cover;border-radius:6px;margin-right:3px" /></a>'
+                  : '<a href="' + esc(m.url) + '" target="_blank" rel="noopener" class="pill">▶ video ' + (i + 1) + '</a> ';
+              }).join('');
+              var acts = '';
+              if (p.status === 'published') acts = '<button class="btn-o btn-sm cm_hide">Hide</button> <button class="btn-d btn-sm cm_rm">Remove</button>';
+              else if (p.status === 'hidden') acts = '<button class="btn btn-sm cm_pub">Publish</button> <button class="btn-d btn-sm cm_rm">Remove</button>';
+              else acts = '<button class="btn btn-sm cm_pub">Restore</button>';
+              return '<tr data-id="' + p.id + '"><td class="muted" style="white-space:nowrap">' + esc(new Date(p.created_at).toLocaleString()) + '</td>' +
+                '<td><b>' + esc(p.author_name) + '</b></td><td class="mono">' + esc(p.author_phone || '') + '</td>' +
+                '<td class="mono">' + esc(p.lang) + '</td>' +
+                '<td style="font-size:12px;max-width:280px">' + esc((p.body || '').slice(0, 180)) + '</td>' +
+                '<td>' + media + '</td>' +
+                '<td class="muted" style="white-space:nowrap">' + p.like_count + ' / ' + p.comment_count + '</td>' +
+                '<td>' + esc(p.status) + '</td>' +
+                '<td class="row" style="white-space:nowrap">' + acts + ' <button class="btn-o btn-sm cm_cmts" title="View comments">💬</button></td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No posts' + (commFilter === 'all' ? ' yet' : ' with this status') + '.</div>');
+        if ($('cm_filter')) $('cm_filter').onchange = function () { commFilter = this.value; renderCommunity(); };
+        async function setStatus(id, status) {
+          var r = await sb.from('community_posts').update({ status: status }).eq('id', id);
+          if (r.error) return alert(r.error.message);
+          renderCommunity();
+        }
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var id = tr.dataset.id;
+          var h = tr.querySelector('.cm_hide'), pub = tr.querySelector('.cm_pub'), rm = tr.querySelector('.cm_rm'), cm = tr.querySelector('.cm_cmts');
+          if (h) h.onclick = function () { setStatus(id, 'hidden'); };
+          if (pub) pub.onclick = function () { setStatus(id, 'published'); };
+          if (rm) rm.onclick = function () { if (confirm('Remove this post from the feed?')) setStatus(id, 'removed'); };
+          if (cm) cm.onclick = async function () {
+            var existing = tr.nextElementSibling;
+            if (existing && existing.classList.contains('cm_detail')) { existing.remove(); return; }
+            var cq = await sb.from('community_comments').select('id,author_name,body,lang,status,created_at').eq('post_id', id).order('created_at').limit(200);
+            var detail = document.createElement('tr');
+            detail.className = 'cm_detail';
+            var inner = cq.error ? esc(cq.error.message)
+              : ((cq.data || []).length ? (cq.data || []).map(function (c) {
+                  return '<div style="display:flex;gap:8px;align-items:center;padding:4px 0;border-bottom:1px dashed #8884" data-cid="' + c.id + '">' +
+                    '<span class="muted" style="min-width:130px;font-size:11px">' + esc(new Date(c.created_at).toLocaleString()) + '</span>' +
+                    '<b style="font-size:12px;min-width:120px">' + esc(c.author_name) + '</b>' +
+                    '<span style="flex:1;font-size:12px">' + esc(c.body) + '</span>' +
+                    '<span class="muted" style="font-size:11px">' + esc(c.status) + '</span>' +
+                    (c.status === 'published' ? '<button class="btn-d btn-sm cc_hide">Hide</button>' : '<button class="btn btn-sm cc_pub">Publish</button>') + '</div>';
+                }).join('') : '<div class="muted">No comments.</div>');
+            detail.innerHTML = '<td colspan="9" style="background:#fafaf8;padding:12px 16px"><b style="font-size:12px">Comments</b><div style="margin-top:4px">' + inner + '</div></td>';
+            tr.parentNode.insertBefore(detail, tr.nextSibling);
+            detail.querySelectorAll('[data-cid]').forEach(function (row) {
+              var cid = row.dataset.cid;
+              var hb = row.querySelector('.cc_hide'), pb = row.querySelector('.cc_pub');
+              async function setC(status) {
+                var r = await sb.from('community_comments').update({ status: status }).eq('id', cid);
+                if (r.error) return alert(r.error.message);
+                detail.remove(); cm.onclick();
+              }
+              if (hb) hb.onclick = function () { setC('hidden'); };
+              if (pb) pb.onclick = function () { setC('published'); };
+            });
+          };
+        });
+      }
+
       // ─── Audit log ──────────────────────────────────────────────────────
       async function renderAudit() {
         var el = $('tabAudit');
@@ -3746,7 +3888,7 @@
         var names = {};
         if (ids.length) { var pr = await sb.from('profiles').select('id,full_name,email').in('id', ids); (pr.data || []).forEach(function (p) { names[p.id] = p.full_name || p.email || p.id; }); }
         el.innerHTML = '<div class="head"><h2>Audit log</h2><button id="au_exp" class="btn-o btn-sm">⤓ Export CSV</button></div>' +
-          '<div class="muted" style="margin-bottom:10px">Most recent ' + rows.length + ' activity events (newest first). Listing reviews, verification, KYC, role changes, bookings, payouts and payments are recorded automatically.</div>' +
+          '<div class="muted" style="margin-bottom:10px">Most recent ' + rows.length + ' activity events (newest first). Listing reviews, verification, KYC, role changes, bookings, payouts, payments, community posts &amp; comments, moderation and staff applications are recorded automatically.</div>' +
           (rows.length ? '<table><thead><tr><th>When</th><th>Action</th><th>Entity</th><th>Actor</th><th>Details</th></tr></thead><tbody>' +
             rows.map(function (r) {
               var det = (r.payload && Object.keys(r.payload).length) ? JSON.stringify(r.payload) : '';

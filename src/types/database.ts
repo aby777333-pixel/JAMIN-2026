@@ -1220,6 +1220,137 @@ export type Database = {
         }
         Relationships: []
       }
+      community_comments: {
+        Row: {
+          author_id: string
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          lang: string
+          post_id: string
+          status: string
+        }
+        Insert: {
+          author_id: string
+          author_name: string
+          body: string
+          created_at?: string
+          id?: string
+          lang?: string
+          post_id: string
+          status?: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          body?: string
+          created_at?: string
+          id?: string
+          lang?: string
+          post_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_likes: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          author_id: string
+          author_name: string
+          author_phone: string
+          body: string | null
+          comment_count: number
+          created_at: string
+          id: string
+          lang: string
+          like_count: number
+          media: Json
+          status: string
+        }
+        Insert: {
+          author_id: string
+          author_name: string
+          author_phone: string
+          body?: string | null
+          comment_count?: number
+          created_at?: string
+          id?: string
+          lang?: string
+          like_count?: number
+          media?: Json
+          status?: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          author_phone?: string
+          body?: string | null
+          comment_count?: number
+          created_at?: string
+          id?: string
+          lang?: string
+          like_count?: number
+          media?: Json
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deal_documents: {
         Row: {
           booking_id: string | null
@@ -3386,6 +3517,67 @@ export type Database = {
           },
         ]
       }
+      staff_applications: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          full_name: string
+          id: string
+          note: string | null
+          phone: string
+          requested_role_slug: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          full_name: string
+          id?: string
+          note?: string | null
+          phone: string
+          requested_role_slug: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          full_name?: string
+          id?: string
+          note?: string | null
+          phone?: string
+          requested_role_slug?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_applications_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_applications_requested_role_slug_fkey"
+            columns: ["requested_role_slug"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "staff_applications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_config: {
         Row: {
           key: string
@@ -3648,6 +3840,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_counter_offer: { Args: { p_offer: string }; Returns: undefined }
       add_escrow_milestone: {
         Args: {
           p_amount: number
@@ -3832,6 +4025,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      notify_requirement_matches: {
+        Args: {
+          p_body: string
+          p_price: number
+          p_property: string
+          p_title: string
+          p_type: string
+        }
+        Returns: undefined
+      }
       pick_pool_agent: { Args: { p_territory?: string }; Returns: string }
       pipeline_summary: {
         Args: never
@@ -3886,6 +4089,10 @@ export type Database = {
           p_decision: string
           p_offer: string
         }
+        Returns: undefined
+      }
+      review_staff_application: {
+        Args: { p_app: string; p_approve: boolean; p_role_slug?: string }
         Returns: undefined
       }
       route_lead: {
@@ -3960,7 +4167,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      accept_counter_offer: { Args: { p_offer: string }; Returns: undefined }
       withdraw_offer: { Args: { p_offer: string }; Returns: undefined }
     }
     Enums: {

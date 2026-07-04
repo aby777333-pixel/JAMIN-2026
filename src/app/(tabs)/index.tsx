@@ -292,6 +292,7 @@ export default function Home() {
             <QuickLink icon="receipt" label={t('home.links.bookings')} tint="#EA580C" onPress={() => router.push('/payments')} />
             <QuickLink icon="qr-code" label={t('home.links.myCard')} tint="#0891B2" onPress={() => router.push('/(tabs)/card')} />
             <QuickLink icon="clipboard" label={t('home.links.forms')} tint="#475569" onPress={() => router.push('/forms')} />
+            <QuickLink icon="chatbubbles" label={t('home.links.community')} tint="#DB2777" onPress={() => router.push('/community')} />
             <QuickLink icon="help-circle" label={t('home.links.help')} tint="#64748B" onPress={() => router.push('/help')} />
             {profile?.role_is_admin ? (
               <QuickLink icon="shield-checkmark" label={t('home.links.admin')} tint="#DC2626" onPress={() => router.push('/admin')} />
@@ -318,6 +319,7 @@ export default function Home() {
             <QuickLink icon="git-compare" label={t('home.links.compare')} tint="#4F46E5" onPress={() => router.push('/compare')} />
             <QuickLink icon="calculator" label={t('home.links.valuation')} tint="#16A34A" onPress={() => router.push('/tools/valuation')} />
             <QuickLink icon="receipt" label={t('home.links.myBookings')} tint="#EA580C" onPress={() => router.push('/payments')} />
+            <QuickLink icon="chatbubbles" label={t('home.links.community')} tint="#DB2777" onPress={() => router.push('/community')} />
             <QuickLink icon="help-circle" label={t('home.links.help')} tint="#475569" onPress={() => router.push('/help')} />
             <QuickLink icon="rocket" label={t('home.links.becomePartner')} tint="#DC2626" onPress={() => router.push('/become-partner')} />
           </View>

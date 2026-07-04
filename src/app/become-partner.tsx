@@ -98,6 +98,11 @@ export default function BecomePartner() {
             variant="outline"
             onPress={() => router.push('/forms/promoter')}
           />
+          <Button
+            title="Apply for a JAMIN staff role"
+            variant="outline"
+            onPress={() => router.push('/staff-apply')}
+          />
         </>
       )}
 

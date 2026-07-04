@@ -445,6 +445,11 @@ export default function PropertyDetail() {
       {property.project_id ? <ReviewsPanel projectId={property.project_id} /> : null}
 
       <View className="gap-3">
+        {/* JAMIN-mediated contact: buyer↔seller calls & meetings only happen through JAMIN */}
+        <View className="flex-row items-center gap-2 rounded-2xl border border-gold/40 bg-gold/10 px-3 py-2.5">
+          <Ionicons name="shield-checkmark" size={16} color={color.gold} />
+          <Text variant="caption" className="flex-1 text-ink">{t('property.jaminConnect')}</Text>
+        </View>
         <View className="flex-row flex-wrap items-center justify-center gap-x-3 gap-y-1">
           {[t('property.trust.freeVisit'), t('property.trust.noObligation'), t('property.trust.escrow')].map((r) => (
             <View key={r} className="flex-row items-center gap-1">
