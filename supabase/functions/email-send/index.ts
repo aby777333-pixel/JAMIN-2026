@@ -56,6 +56,10 @@ Deno.serve(async (req) => {
       if (!subject || !html) return json({ error: 'subject and html required' }, 400);
       if (list.length === 0) return json({ error: 'recipients required' }, 400);
       if (list.length > 100) return json({ error: 'max 100 recipients per call — send in batches' }, 400);
+      // CC/BCC ride on EVERY outgoing message (max 5 each — Resend caps 50 total).
+      const emailOk = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+      const cc = (Array.isArray(input.cc) ? input.cc : []).map((e: unknown) => String(e).trim()).filter(emailOk).slice(0, 5);
+      const bcc = (Array.isArray(input.bcc) ? input.bcc : []).map((e: unknown) => String(e).trim()).filter(emailOk).slice(0, 5);
 
       let sent = 0;
       let failed = 0;
@@ -74,7 +78,14 @@ Deno.serve(async (req) => {
           const res = await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ from, to: [email], subject: pSubject, html: pHtml }),
+            body: JSON.stringify({
+              from,
+              to: [email],
+              subject: pSubject,
+              html: pHtml,
+              ...(cc.length ? { cc } : {}),
+              ...(bcc.length ? { bcc } : {}),
+            }),
           });
           const d = await res.json().catch(() => ({}));
           ok = res.ok;

@@ -3885,6 +3885,10 @@
             '<div class="row" style="align-items:center;gap:8px;margin-bottom:8px">' +
               '<label class="btn-o btn-sm" style="display:inline-block">📄 Upload CSV<input id="em_csv" type="file" accept=".csv,text/csv" class="hidden" /></label>' +
               '<span id="em_count" class="muted" style="font-size:12px">No recipients yet.</span></div>' +
+            '<div class="row" style="margin-bottom:8px"><input id="em_to" class="inp" style="width:100%;max-width:640px" placeholder="To — extra addresses, comma-separated (added to the CSV list; CSV optional)" /></div>' +
+            '<div class="row" style="gap:8px;margin-bottom:8px;flex-wrap:wrap">' +
+              '<input id="em_cc" class="inp" style="flex:1;min-width:220px;max-width:316px" placeholder="CC (comma-separated — copied on EVERY email)" />' +
+              '<input id="em_bcc" class="inp" style="flex:1;min-width:220px;max-width:316px" placeholder="BCC (comma-separated — hidden copy on EVERY email)" /></div>' +
             '<div class="row" style="margin-bottom:8px"><input id="em_subj" class="inp" style="max-width:480px" placeholder="Subject — e.g. {{name}}, festive plots offer inside 🎉" /></div>' +
             '<div class="row" style="margin-bottom:8px"><textarea id="em_body" class="inp" style="width:100%;max-width:640px;min-height:120px" placeholder="Email body (HTML allowed). Use {{name}} to personalise."></textarea></div>' +
             '<div class="row" style="align-items:center;gap:8px">' +
@@ -3987,14 +3991,27 @@
         $('em_send').onclick = async function () {
           var subj = $('em_subj').value.trim(), body = $('em_body').value.trim();
           if (!subj || !body) return alert('Subject and body are required.');
-          if (!emRecipients.length) return alert('Upload a CSV of recipients first.');
-          if (!confirm('Send this email to ' + emRecipients.length + ' recipient(s)?')) return;
+          var parseEmails = function (v) {
+            return v.split(/[,;\s]+/).map(function (x) { return x.trim(); })
+              .filter(function (x) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x); });
+          };
+          // Manual "To" addresses merge with the CSV list (deduped) — CSV is optional.
+          var all = emRecipients.slice();
+          var have = {};
+          all.forEach(function (r) { have[r.email] = true; });
+          parseEmails($('em_to').value).forEach(function (e) {
+            if (!have[e.toLowerCase()]) { have[e.toLowerCase()] = true; all.push({ email: e.toLowerCase(), name: '' }); }
+          });
+          if (!all.length) return alert('Add recipients — upload a CSV or type addresses in the To field.');
+          var cc = parseEmails($('em_cc').value), bcc = parseEmails($('em_bcc').value);
+          if (!confirm('Send this email to ' + all.length + ' recipient(s)' +
+              (cc.length ? ' + CC ' + cc.length : '') + (bcc.length ? ' + BCC ' + bcc.length : '') + '?')) return;
           var btn = this; btn.disabled = true;
           var sent = 0, failed = 0;
-          for (var i = 0; i < emRecipients.length; i += 80) {
-            var batch = emRecipients.slice(i, i + 80);
-            btn.textContent = 'Sending ' + Math.min(i + 80, emRecipients.length) + '/' + emRecipients.length + '…';
-            var r = await sb.functions.invoke('email-send', { body: { action: 'send', subject: subj, html: body, recipients: batch } });
+          for (var i = 0; i < all.length; i += 80) {
+            var batch = all.slice(i, i + 80);
+            btn.textContent = 'Sending ' + Math.min(i + 80, all.length) + '/' + all.length + '…';
+            var r = await sb.functions.invoke('email-send', { body: { action: 'send', subject: subj, html: body, recipients: batch, cc: cc, bcc: bcc } });
             if (r.error) { alert(r.error.message); break; }
             if (r.data && r.data.configured === false) { alert(r.data.message); break; }
             sent += (r.data && r.data.sent) || 0; failed += (r.data && r.data.failed) || 0;
