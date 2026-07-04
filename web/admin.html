@@ -3092,9 +3092,48 @@
         if (q.error) { el.innerHTML = '<div class="head"><h2>Payments</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
         var rows = q.data || [];
         var collected = rows.filter(function (p) { return p.status === 'paid'; }).reduce(function (s, p) { return s + Number(p.amount || 0); }, 0);
+        // Bank-transfer mode (no gateway yet): company bank details shown in the
+        // app + buyer-submitted transfer proofs waiting for verification.
+        var bankQ = await sb.from('system_config').select('value').eq('key', 'bank_details').maybeSingle();
+        var bank = (bankQ.data && bankQ.data.value) || {};
+        var btQ = await sb.from('bank_transfers')
+          .select('id,amount,txn_ref,transfer_date,proof_url,note,status,review_note,created_at, user:profiles!user_id(full_name,phone), booking:bookings(property:properties(plot_code)), property:properties(plot_code)')
+          .order('created_at', { ascending: false }).limit(300);
+        var bts = btQ.data || [];
+        var btPending = bts.filter(function (t) { return t.status === 'pending'; });
+        var bankField = function (id, label, val) {
+          return '<div style="min-width:190px"><label style="font-size:11px">' + label + '</label><input id="' + id + '" class="inp" style="height:36px" value="' + esc(val || '') + '" /></div>';
+        };
+        var btRow = function (t) {
+          var plot = (t.booking && t.booking.property && t.booking.property.plot_code) || (t.property && t.property.plot_code) || '—';
+          var who = t.user ? (t.user.full_name || '') + (t.user.phone ? ' · ' + t.user.phone : '') : '—';
+          var act = t.status === 'pending'
+            ? '<button class="btn-g btn-sm bt_ok">✓ Verify</button> <button class="btn-d btn-sm bt_no">✕ Reject</button>'
+            : '<span class="muted" style="font-size:11px">' + esc(t.review_note || '') + '</span>';
+          return '<tr data-id="' + t.id + '"><td class="muted" style="white-space:nowrap">' + esc(new Date(t.created_at).toLocaleString()) + '</td>' +
+            '<td>' + esc(who) + '</td><td class="mono">' + inr(t.amount) + '</td>' +
+            '<td class="mono" style="font-size:11px">' + esc(t.txn_ref || '—') + (t.transfer_date ? '<br>' + esc(t.transfer_date) : '') + '</td>' +
+            '<td class="mono">' + esc(plot) + '</td>' +
+            '<td>' + (t.proof_url ? '<a href="' + esc(t.proof_url) + '" target="_blank" rel="noopener"><img src="' + esc(t.proof_url) + '" style="height:42px;border-radius:6px" /></a>' : '<span class="muted">—</span>') + '</td>' +
+            '<td class="muted" style="font-size:11px;max-width:160px">' + esc(t.note || '') + '</td>' +
+            '<td><span class="pill ' + (t.status === 'verified' ? 'paid' : t.status === 'pending' ? 'requested' : 'sold') + '">' + esc(t.status) + '</span></td>' +
+            '<td style="white-space:nowrap">' + act + '</td></tr>';
+        };
         el.innerHTML = '<div class="head"><h2>Payments</h2></div>' +
           '<div class="stat-row"><div class="stat"><div class="n">' + rows.length + '</div><div class="l">Records</div></div>' +
-            '<div class="stat"><div class="n mono">' + inr(collected) + '</div><div class="l">Collected</div></div></div>' +
+            '<div class="stat"><div class="n mono">' + inr(collected) + '</div><div class="l">Collected</div></div>' +
+            '<div class="stat"><div class="n">' + btPending.length + '</div><div class="l">Proofs to verify</div></div></div>' +
+          '<div class="panel"><h3>🏦 Bank details (shown to buyers in the app)</h3>' +
+            '<div class="muted" style="font-size:12px;margin-bottom:8px">Payments are BANK TRANSFER ONLY for now (no Razorpay/UPI gateway). Buyers see these details, transfer, and upload a proof below. Edits go live in the app instantly.</div>' +
+            '<div class="row" style="flex-wrap:wrap;gap:8px">' +
+              bankField('bk_ben', 'Beneficiary', bank.beneficiary) + bankField('bk_acc', 'Account number', bank.account) +
+              bankField('bk_ifsc', 'IFSC', bank.ifsc) + bankField('bk_bank', 'Bank', bank.bank) + bankField('bk_br', 'Branch', bank.branch) + '</div>' +
+            '<div class="row" style="margin-top:6px"><input id="bk_note" class="inp" style="width:100%;max-width:640px;height:36px" placeholder="Note shown under the details" value="' + esc(bank.note || '') + '" /> <button id="bk_save" class="btn btn-sm">Save</button></div></div>' +
+          '<div class="panel"><h3>🧾 Bank-transfer proofs' + (btPending.length ? ' <span class="pill" style="background:var(--gold)">' + btPending.length + ' pending</span>' : '') + '</h3>' +
+            (bts.length ? '<table><thead><tr><th>When</th><th>From</th><th>Amount</th><th>UTR / date</th><th>Plot</th><th>Proof</th><th>Note</th><th>Status</th><th></th></tr></thead><tbody>' +
+              bts.map(btRow).join('') + '</tbody></table>'
+            : '<div class="muted">No transfer proofs yet — buyers submit them from Bookings & payments in the app.</div>') + '</div>' +
+          '<div class="panel"><h3>Gateway / booking payments</h3>' +
           (rows.length ? '<table><thead><tr><th>Plot</th><th>Buyer</th><th>Amount</th><th>Via</th><th>Status</th><th>Action</th></tr></thead><tbody>' +
           rows.map(function (p) {
             var b = p.booking || {};
@@ -3103,7 +3142,33 @@
               '<td>' + esc(p.gateway || p.method || '—') + '</td>' +
               '<td><span class="pill ' + (p.status === 'paid' ? 'paid' : p.status === 'created' ? 'requested' : 'neutral') + '">' + esc(p.status) + '</span></td>' +
               '<td>' + (p.status !== 'paid' ? '<button class="btn-g btn-sm pay_mark">Mark paid</button>' : '✓') + '</td></tr>';
-          }).join('') + '</tbody></table>' : '<div class="muted">No payments yet. Booking payments appear here once buyers reserve and pay.</div>');
+          }).join('') + '</tbody></table>' : '<div class="muted">No payments yet. Booking payments appear here once buyers reserve and pay.</div>') + '</div>';
+        $('bk_save').onclick = async function () {
+          var value = {
+            beneficiary: $('bk_ben').value.trim(), account: $('bk_acc').value.trim(),
+            ifsc: $('bk_ifsc').value.trim(), bank: $('bk_bank').value.trim(),
+            branch: $('bk_br').value.trim(), note: $('bk_note').value.trim(),
+          };
+          var r = await sb.from('system_config').upsert({ key: 'bank_details', value: value }, { onConflict: 'key' });
+          if (r.error) return alert(r.error.message);
+          this.textContent = 'Saved';
+          try { sb.rpc('log_admin_action', { p_action: 'payments.bank_details_updated', p_entity: 'system_config', p_entity_id: null, p_payload: { account: value.account } }); } catch (e) {}
+        };
+        el.querySelectorAll('tr[data-id] .bt_ok, tr[data-id] .bt_no').forEach(function (btn) {
+          btn.onclick = async function () {
+            var id = this.closest('tr').dataset.id;
+            var approve = this.classList.contains('bt_ok');
+            var note = null;
+            if (!approve) {
+              note = prompt('Reason (shown to the buyer):', 'Amount / reference did not match our statement.');
+              if (note === null) return;
+            }
+            this.textContent = '…';
+            var r = await sb.rpc('review_bank_transfer', { p_id: id, p_approve: approve, p_note: note });
+            if (r.error) { this.textContent = approve ? '✓ Verify' : '✕ Reject'; return alert(r.error.message); }
+            renderPayments();
+          };
+        });
         el.querySelectorAll('.pay_mark').forEach(function (btn) {
           btn.onclick = async function () {
             var id = btn.closest('tr').dataset.id; this.textContent = '…';
@@ -4397,6 +4462,7 @@
           community_comments: ['community', 'New community comment'],
           staff_applications: ['staff', 'New staff application'],
           profiles: ['users', 'New user joined'],
+          bank_transfers: ['payments', 'New bank-transfer proof'],
         };
         var lastToast = {};
 

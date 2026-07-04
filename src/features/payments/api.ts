@@ -14,7 +14,7 @@ export interface BookingWithPayments {
   amount: number;
   schedule: string | null;
   created_at: string;
-  property: { plot_code: string; project: { name: string } | null } | null;
+  property: { id: string; plot_code: string; project: { name: string } | null } | null;
   payments: BookingPayment[];
 }
 
@@ -23,7 +23,7 @@ export async function getMyBookings(): Promise<BookingWithPayments[]> {
   const { data, error } = await supabase
     .from('bookings')
     .select(
-      'id, status, amount, schedule, created_at, property:properties(plot_code, project:projects(name)), payments(id, amount, status, short_url, created_at)',
+      'id, status, amount, schedule, created_at, property:properties(id, plot_code, project:projects(name)), payments(id, amount, status, short_url, created_at)',
     )
     .order('created_at', { ascending: false });
   if (error) throw error;

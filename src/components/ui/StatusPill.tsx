@@ -18,6 +18,8 @@ const TONES: Record<string, string> = {
   // follow-ups
   pending: 'bg-warn/15 text-warn',
   done: 'bg-success/15 text-success',
+  // bank transfers
+  verified: 'bg-success/15 text-success',
 };
 
 export function StatusPill({ status }: { status: string }) {
