@@ -17,6 +17,12 @@
   to = "/.netlify/functions/ad"
   status = 200
 
+# Admin portal at the clean /admin URL (explicit — no reliance on pretty-URLs).
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
 # Referral share links (/r/<code>) → click-tracking landing.
 [[redirects]]
   from = "/r/*"
