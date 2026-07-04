@@ -76,6 +76,7 @@ export default function RootLayout() {
             <Stack.Screen name="leads/pipeline" />
             <Stack.Screen name="leads/[id]" />
             <Stack.Screen name="visits/index" />
+            <Stack.Screen name="visits/scan" />
             <Stack.Screen name="availability" />
             <Stack.Screen name="shortlists/index" />
             <Stack.Screen name="shortlists/[id]" />

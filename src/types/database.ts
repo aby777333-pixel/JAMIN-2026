@@ -3702,6 +3702,36 @@ export type Database = {
           },
         ]
       }
+      wa_outbox: {
+        Row: {
+          body: string
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          status: string
+          to_phone: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          status?: string
+          to_phone: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          status?: string
+          to_phone?: string
+        }
+        Relationships: []
+      }
       wallets: {
         Row: {
           balance: number
@@ -4115,6 +4145,7 @@ export type Database = {
         Args: { p_agent: string; p_property: string }
         Returns: number
       }
+      run_seller_report_cards: { Args: never; Returns: number }
       score_lead: { Args: { p_lead: string }; Returns: Json }
       season_leaderboard: {
         Args: { p_from: string; p_to: string }

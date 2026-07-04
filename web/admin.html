@@ -1518,7 +1518,8 @@
           '<div class="row" style="gap:8px;align-items:center">' +
             '<span class="pill ' + (staleCount ? 'sold' : 'available') + '">' + staleCount + ' waiting 24h+</span>' +
             '<button id="sla_run" class="btn-o btn-sm">Run SLA check now</button>' +
-            '<button id="digest_run" class="btn-o btn-sm">Send digest to admins now</button></div></div>';
+            '<button id="digest_run" class="btn-o btn-sm">Send digest to admins now</button>' +
+            '<button id="seller_reports_run" class="btn-o btn-sm" title="Every seller with live listings gets their weekly views/enquiries/visits summary — also runs automatically Mondays 9am IST">📊 Send seller report cards</button></div></div>';
         // Kanban board view — cards per stage with ◀ ▶ movement. Each stage has
         // its own hue; columns use a translucent tint and card text uses the
         // theme ink var so everything stays readable in light AND dark mode
@@ -1668,6 +1669,14 @@
           this.textContent = 'Send digest to admins now';
           if (r.error) return alert(r.error.message);
           alert('Digest sent to every admin\'s in-app notifications.');
+        };
+        var repRun = $('seller_reports_run');
+        if (repRun) repRun.onclick = async function () {
+          this.textContent = '…';
+          var r = await sb.rpc('run_seller_report_cards');
+          this.textContent = '📊 Send seller report cards';
+          if (r.error) return alert(r.error.message);
+          alert('✓ Report cards sent to ' + (r.data || 0) + ' seller(s) — each gets their weekly views · enquiries · visits summary in-app. Also runs automatically every Monday 9am IST.');
         };
 
         /** Timeline + follow-ups drawer under a lead row. */
@@ -3733,12 +3742,70 @@
             '3. Subscribe to the <span class="mono">messages</span> field. Inbound messages then create leads automatically.<br>' +
             '4. <b>Outbound sending</b> (visit confirmations, digests, offers) additionally needs your Cloud API <span class="mono">access token</span> + <span class="mono">phone number ID</span> — share them when ready and the send path switches on (stored server-side only, like the AI keys).</div></div>' +
           '<div class="panel"><h3>Default lead owner</h3><div class="row"><select id="wa_owner" class="inp" style="max-width:280px">' + opts + '</select><button id="wa_save" class="btn btn-sm">Save</button></div>' +
-            '<div class="muted" style="font-size:12px;margin-top:6px">New WhatsApp leads are assigned here (then you can re-route from CRM).</div></div>';
+            '<div class="muted" style="font-size:12px;margin-top:6px">New WhatsApp leads are assigned here (then you can re-route from CRM).</div></div>' +
+          '<div class="panel"><h3>📤 Outbound sending <span id="wa_status" class="pill">checking…</span></h3>' +
+            '<div class="muted" style="font-size:12px;margin-bottom:8px">Instant WhatsApp pings to your team when a NEW LEAD arrives (any source — ad chats, offers, visits, web). Needs the Cloud API <span class="mono">wa_token</span> + <span class="mono">wa_phone_id</span> stored server-side (same pattern as the AI keys) — until then everything here stays safely off.</div>' +
+            '<div class="row" style="align-items:center;gap:8px;margin-bottom:8px">' +
+              '<label style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" id="wa_alerts_on" /> <b style="font-size:13px">New-lead alerts</b></label>' +
+              '<input id="wa_numbers" class="inp" style="max-width:340px" placeholder="Alert numbers, comma-separated (e.g. 919876543210)" />' +
+              '<button id="wa_alerts_save" class="btn btn-sm">Save alerts</button></div>' +
+            '<div class="row" style="align-items:center;gap:8px">' +
+              '<input id="wa_test_to" class="inp" style="max-width:200px" placeholder="Test number" />' +
+              '<input id="wa_test_body" class="inp" style="max-width:320px" placeholder="Test message" />' +
+              '<button id="wa_test_send" class="btn-o btn-sm">Send test</button></div></div>' +
+          '<div class="panel"><h3>Send log</h3><div id="wa_log" class="muted">Loading…</div></div>';
         $('wa_save').onclick = async function () {
           var val = $('wa_owner').value || null;
           var r = await sb.from('system_config').upsert({ key: 'wa_default_owner', value: val }, { onConflict: 'key' });
           if (r.error) alert(r.error.message); else this.textContent = 'Saved';
         };
+
+        // ── Outbound: status probe, alert config, test send, log ──
+        sb.functions.invoke('wa-send', { body: { action: 'status' } }).then(function (r) {
+          var s = $('wa_status'); if (!s) return;
+          if (r.error || !r.data) { s.textContent = 'unreachable'; s.className = 'pill sold'; return; }
+          s.textContent = r.data.configured ? 'ready ✓' : 'not configured';
+          s.className = 'pill ' + (r.data.configured ? 'available' : 'sold');
+        });
+        sb.from('system_config').select('value').eq('key', 'wa_alerts').maybeSingle().then(function (r) {
+          var v = (r.data && r.data.value) || {};
+          if ($('wa_alerts_on')) $('wa_alerts_on').checked = !!v.enabled;
+          if ($('wa_numbers')) $('wa_numbers').value = (v.numbers || []).join(', ');
+        });
+        if ($('wa_alerts_save')) $('wa_alerts_save').onclick = async function () {
+          var numbers = $('wa_numbers').value.split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+          var enabled = $('wa_alerts_on').checked;
+          if (enabled && numbers.length === 0) return alert('Add at least one number (with country code) to enable alerts.');
+          var r = await sb.from('system_config').upsert({ key: 'wa_alerts', value: { enabled: enabled, numbers: numbers } }, { onConflict: 'key' });
+          if (r.error) return alert(r.error.message);
+          this.textContent = 'Saved';
+          try { sb.rpc('log_admin_action', { p_action: 'whatsapp.alerts_config', p_entity: 'system_config', p_entity_id: null, p_payload: { enabled: enabled, numbers: numbers.length } }); } catch (e) {}
+        };
+        if ($('wa_test_send')) $('wa_test_send').onclick = async function () {
+          var to = $('wa_test_to').value.trim();
+          if (!to) return alert('Enter a test number with country code, e.g. 9198765xxxxx');
+          this.textContent = '…';
+          var r = await sb.functions.invoke('wa-send', { body: { action: 'test', to: to, body: $('wa_test_body').value.trim() } });
+          this.textContent = 'Send test';
+          if (r.error) return alert(r.error.message);
+          if (r.data && r.data.configured === false) return alert(r.data.message);
+          alert(r.data && r.data.sent ? '✓ Sent — check WhatsApp on that number.' : 'Failed: ' + ((r.data && r.data.error) || 'unknown'));
+          renderWhatsapp();
+        };
+        sb.from('wa_outbox').select('to_phone,kind,status,error,created_at').order('created_at', { ascending: false }).limit(20).then(function (r) {
+          var box = $('wa_log'); if (!box) return;
+          if (r.error) { box.textContent = r.error.message; return; }
+          var rows2 = r.data || [];
+          box.innerHTML = rows2.length
+            ? '<table><thead><tr><th>When</th><th>To</th><th>Kind</th><th>Status</th><th>Error</th></tr></thead><tbody>' +
+              rows2.map(function (w) {
+                return '<tr><td class="muted" style="white-space:nowrap">' + esc(new Date(w.created_at).toLocaleString()) + '</td>' +
+                  '<td class="mono">' + esc(w.to_phone) + '</td><td>' + esc(w.kind) + '</td>' +
+                  '<td><span class="pill ' + (w.status === 'sent' ? 'available' : 'sold') + '">' + esc(w.status) + '</span></td>' +
+                  '<td class="muted" style="font-size:11px">' + esc(w.error || '') + '</td></tr>';
+              }).join('') + '</tbody></table>'
+            : 'No sends yet — they appear here once outbound is configured.';
+        });
       }
 
       // ─── Moderation & safety (contact visibility + disputes) ────────────

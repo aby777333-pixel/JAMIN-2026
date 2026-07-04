@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
@@ -11,6 +12,7 @@ import { Screen } from '@/components/ui/Screen';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
 import { type SiteVisit } from '@/features/visits/api';
+import { VisitPassSheet } from '@/features/visits/VisitPassSheet';
 import { useCheckinVisit, useMyVisits, useSetVisitStatus } from '@/features/visits/hooks';
 import { can } from '@/lib/access';
 import { useAuth } from '@/stores/auth';
@@ -24,6 +26,7 @@ export default function Visits() {
   const { data: visits = [], isLoading, refetch, isRefetching } = useMyVisits();
   const checkin = useCheckinVisit();
   const setStatus = useSetVisitStatus();
+  const [passVisit, setPassVisit] = useState<SiteVisit | null>(null);
 
   async function doCheckin(v: SiteVisit) {
     try {
@@ -61,6 +64,11 @@ export default function Visits() {
         title="Site visits"
         right={
           <View className="flex-row items-center gap-3">
+            {can(profile, 'sell') ? (
+              <Pressable onPress={() => router.push('/visits/scan')} hitSlop={10} accessibilityLabel="Scan visit pass">
+                <Ionicons name="qr-code-outline" size={19} color={color.red} />
+              </Pressable>
+            ) : null}
             {can(profile, 'sell') ? (
               <Pressable onPress={() => router.push('/availability')} hitSlop={10}>
                 <Ionicons name="time-outline" size={20} color={color.ink} />
@@ -115,6 +123,14 @@ export default function Visits() {
 
                 {open ? (
                   <View className="flex-row flex-wrap gap-2 pt-1">
+                    {isBuyer ? (
+                      <Button
+                        title="🎫 Pass"
+                        variant="secondary"
+                        onPress={() => setPassVisit(v)}
+                        className="h-10 flex-grow"
+                      />
+                    ) : null}
                     {v.status !== 'checked_in' ? (
                       <Button
                         title="Check in"
@@ -141,6 +157,7 @@ export default function Visits() {
           })}
         </View>
       )}
+      <VisitPassSheet visit={passVisit} visible={!!passVisit} onClose={() => setPassVisit(null)} />
     </Screen>
   );
 }
