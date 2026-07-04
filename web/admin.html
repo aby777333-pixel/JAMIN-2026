@@ -1768,18 +1768,69 @@
             else { renderCrm(); }
           };
           var la = tr.querySelector('.lead_assign');
-          if (la) la.onclick = async function () {
-            this.textContent = '…';
-            var r = await sb.rpc('auto_assign_lead', { p_lead: tr.dataset.id });
-            if (r.error) { this.textContent = 'Assign'; alert(r.error.message); return; }
-            // Tell the admin WHO got it (pool round-robin, else least-loaded partner).
-            var who = '';
-            if (r.data) {
-              var pr = await sb.from('profiles').select('full_name,email').eq('id', r.data).maybeSingle();
-              who = (pr.data && (pr.data.full_name || pr.data.email)) || '';
+          if (la) la.onclick = function () {
+            // Picker: choose exactly WHO gets this lead (auto stays one tap away).
+            var existing = tr.nextElementSibling;
+            if (existing && existing.classList.contains('assign_pick')) { existing.remove(); return; }
+            // Close any other open picker first.
+            el.querySelectorAll('tr.assign_pick').forEach(function (x) { x.remove(); });
+            // Open leads per member (from the already-loaded lead list).
+            var openBy = {};
+            rows.forEach(function (x) {
+              if (x.owner_id && ['new', 'contacted', 'qualified', 'visit'].indexOf(x.status) !== -1) {
+                openBy[x.owner_id] = (openBy[x.owner_id] || 0) + 1;
+              }
+            });
+            var people = allMembers.slice().sort(function (a, b) {
+              var pa = a.role && a.role.level != null && a.role.level <= 6 ? 0 : 1;
+              var pb = b.role && b.role.level != null && b.role.level <= 6 ? 0 : 1;
+              if (pa !== pb) return pa - pb;
+              var oa = openBy[a.id] || 0, ob = openBy[b.id] || 0;
+              if (oa !== ob) return oa - ob;
+              return String(a.full_name || '').localeCompare(String(b.full_name || ''));
+            });
+            var pick = document.createElement('tr');
+            pick.className = 'assign_pick';
+            pick.dataset.owner = tr.dataset.owner || '';
+            pick.innerHTML = '<td colspan="9" style="background:#fafaf8;padding:10px 16px">' +
+              '<b style="font-size:12px">Assign this lead to</b>' +
+              '<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:6px">' +
+                '<button class="btn btn-sm ap_auto" title="Routing pool round-robin, else the least-busy partner">⚡ Auto (recommended)</button>' +
+                people.map(function (p) {
+                  return '<button class="btn-o btn-sm ap_person" data-pid="' + p.id + '">' +
+                    esc(p.full_name || '(unnamed)') +
+                    ' <span class="muted" style="font-size:10px">' +
+                    esc((p.role && p.role.name) || '') + ' · ' + (openBy[p.id] || 0) + ' open</span></button>';
+                }).join('') +
+              '</div></td>';
+            tr.parentNode.insertBefore(pick, tr.nextSibling);
+            function done(err, who) {
+              pick.remove();
+              if (err) { alert(err); return; }
+              renderCrm();
+              if (who) alert('✓ Assigned to ' + who);
             }
-            renderCrm();
-            if (who) alert('✓ Assigned to ' + who);
+            pick.querySelector('.ap_auto').onclick = async function () {
+              this.textContent = '…';
+              var r = await sb.rpc('auto_assign_lead', { p_lead: tr.dataset.id });
+              if (r.error) return done(r.error.message);
+              var who = '';
+              if (r.data) {
+                var pr = await sb.from('profiles').select('full_name,email').eq('id', r.data).maybeSingle();
+                who = (pr.data && (pr.data.full_name || pr.data.email)) || '';
+              }
+              done(null, who);
+            };
+            pick.querySelectorAll('.ap_person').forEach(function (b) {
+              b.onclick = async function () {
+                this.textContent = '…';
+                var pid = this.dataset.pid;
+                var p = people.find(function (x) { return x.id === pid; });
+                var r = await sb.rpc('route_lead', { p_lead: tr.dataset.id, p_agent: pid });
+                if (r.error) return done(r.error.message);
+                done(null, (p && p.full_name) || 'member');
+              };
+            });
           };
           var ld = tr.querySelector('.lead_details');
           if (ld) ld.onclick = function () { openDetails(tr, this); };
