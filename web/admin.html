@@ -859,39 +859,7 @@
         rows.forEach(function (r) { byStatus[r.status] = (byStatus[r.status] || 0) + 1; });
         var pendingCount = rows.filter(function (r) { return r.approval_status === 'pending'; }).length;
 
-        // ── Business overview (real data, light head-count queries) ──
-        var weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
-        var ov = await Promise.all([
-          sb.from('profiles').select('id', { count: 'exact', head: true }),
-          sb.from('leads').select('id', { count: 'exact', head: true }),
-          sb.from('leads').select('id', { count: 'exact', head: true }).gte('created_at', weekAgo),
-          sb.from('site_visits').select('id', { count: 'exact', head: true }).gte('scheduled_at', new Date().toISOString()).in('status', ['requested', 'confirmed']),
-          sb.from('payments').select('amount,status').eq('status', 'paid'),
-          sb.from('bank_transfers').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-          sb.from('staff_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-          sb.from('community_posts').select('id', { count: 'exact', head: true }).eq('status', 'published'),
-          sb.from('property_media_submissions').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-        ]);
-        var ovUsers = ov[0].count || 0, ovLeads = ov[1].count || 0, ovLeads7 = ov[2].count || 0, ovVisits = ov[3].count || 0;
-        var ovCollected = (ov[4].data || []).reduce(function (s, p) { return s + Number(p.amount || 0); }, 0);
-        var ovProofs = ov[5].count || 0, ovStaff = ov[6].count || 0, ovPosts = ov[7].count || 0, ovPhotos = ov[8].count || 0;
-        var ovPortfolio = rows.filter(function (r) { return r.status === 'available' && r.approval_status === 'approved'; })
-          .reduce(function (s, r) { return s + Number(r.price || 0); }, 0);
-        function ovTile(n, label, hot) {
-          return '<div class="stat"><div class="n"' + (hot ? ' style="color:#e6a10d"' : '') + '>' + n + '</div><div class="l">' + label + '</div></div>';
-        }
-        var overviewHtml = '<div class="panel" style="margin-bottom:14px"><h3>📊 Business overview</h3><div class="stat-row" style="margin-bottom:0">' +
-          ovTile(ovUsers, 'Members') +
-          ovTile(ovLeads, 'Leads · total') +
-          ovTile(ovLeads7, 'Leads · 7 days') +
-          ovTile(ovVisits, 'Upcoming visits') +
-          ovTile(inr(ovCollected), '₹ collected') +
-          ovTile(inr(ovPortfolio), 'Available portfolio') +
-          ovTile(ovPosts, 'Community posts') +
-          ovTile(ovProofs, 'Proofs to verify', ovProofs > 0) +
-          ovTile(ovStaff, 'Staff apps pending', ovStaff > 0) +
-          ovTile(ovPhotos, 'Photos to review', ovPhotos > 0) +
-          '</div></div>';
+        // (Business overview moved to the 📊 Dashboard tab.)
 
         var addForm =
           '<div class="panel"><h3>Add property</h3><div class="grid2">' +
@@ -956,7 +924,6 @@
         el.innerHTML =
           '<div class="head"><h2>Properties</h2></div>' +
           '<div class="muted" style="margin:-6px 0 14px">Upload photos per plot in the table below — click <b>⬆ Upload</b> in the Images column, or <b>Details → + Add photos</b> for the full manager (thumbnails, download ⤓, remove ×).</div>' +
-          overviewHtml +
           '<div class="stat-row">' +
             '<div class="stat"><div class="n">' + rows.length + '</div><div class="l">Total</div></div>' +
             '<div class="stat"><div class="n">' + (byStatus.available || 0) + '</div><div class="l">Available</div></div>' +
