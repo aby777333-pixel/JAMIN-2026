@@ -512,8 +512,10 @@
         var el = $('tabDashboard');
         el.innerHTML = '<div class="head"><h2>Dashboard</h2></div><div class="muted">Crunching the numbers…</div>';
         var weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
+        var day0 = new Date(); day0.setHours(0, 0, 0, 0);
+        var day1 = new Date(day0.getTime() + 864e5);
         var res = await Promise.all([
-          sb.from('leads').select('created_at,source,status,value').order('created_at', { ascending: false }).limit(1000),
+          sb.from('leads').select('id,created_at,source,status,value,score_band,last_touch_at,contact, owner:profiles!owner_id(full_name)').order('created_at', { ascending: false }).limit(1000),
           sb.from('payments').select('amount,status,created_at').limit(1000),
           sb.from('properties').select('status,approval_status,price'),
           sb.from('profiles').select('id', { count: 'exact', head: true }),
@@ -523,13 +525,56 @@
           sb.from('staff_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
           sb.from('audit_logs').select('action,entity,created_at').order('created_at', { ascending: false }).limit(12),
           sb.from('leads').select('id', { count: 'exact', head: true }).gte('created_at', weekAgo),
+          sb.from('property_media_submissions').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+          sb.from('disputes').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+          sb.from('site_visits').select('scheduled_at,status, property:properties(plot_code), buyer:profiles!site_visits_buyer_id_fkey(full_name), agent:profiles!site_visits_agent_id_fkey(full_name)').gte('scheduled_at', day0.toISOString()).lt('scheduled_at', day1.toISOString()).neq('status', 'cancelled').order('scheduled_at').limit(10),
+          sb.from('follow_ups').select('due_at,note, lead:leads(contact)').eq('status', 'pending').lte('due_at', day1.toISOString()).order('due_at').limit(8),
+          sb.from('property_views').select('created_at, property:properties(plot_code)').gte('created_at', weekAgo).limit(3000),
+          sb.from('profiles').select('created_at').order('created_at', { ascending: false }).limit(2000),
         ]);
         var leads = res[0].data || [], pays = res[1].data || [], props = res[2].data || [];
         var nUsers = res[3].count || 0, nVisits = res[4].count || 0, nPosts = res[5].count || 0;
         var nProofs = res[6].count || 0, nStaff = res[7].count || 0, acts = res[8].data || [], leads7 = res[9].count || 0;
+        var nPhotoSubs = res[10].count || 0, nDisputes = res[11].count || 0;
+        var visitsToday = res[12].data || [], fuDue = res[13].data || [], views7 = res[14].data || [], members = res[15].data || [];
         var collected = pays.filter(function (p) { return p.status === 'paid'; }).reduce(function (s, p) { return s + Number(p.amount || 0); }, 0);
         var portfolio = props.filter(function (p) { return p.status === 'available' && p.approval_status === 'approved'; })
           .reduce(function (s, p) { return s + Number(p.price || 0); }, 0);
+
+        // ── derived business metrics ──
+        var SLA_D = 24 * 3600 * 1000;
+        var wonN = leads.filter(function (l) { return l.status === 'won'; }).length;
+        var conv = leads.length ? Math.round((wonN * 100) / leads.length) : 0;
+        var paidRows = pays.filter(function (p) { return p.status === 'paid'; });
+        var avgDeal = paidRows.length ? collected / paidRows.length : 0;
+        var isStaleL = function (l) { return l.status === 'new' && l.last_touch_at && (Date.now() - new Date(l.last_touch_at).getTime()) > SLA_D; };
+        var staleN = leads.filter(isStaleL).length;
+        // leads that need action NOW: hot band in an open stage, or stale
+        var actLeads = leads.filter(function (l) {
+          return (l.score_band === 'hot' && ['new', 'contacted', 'qualified'].indexOf(l.status) !== -1) || isStaleL(l);
+        }).slice(0, 8);
+        // top performers (won leads per owner)
+        var byOwner = {};
+        leads.forEach(function (l) {
+          if (l.status !== 'won') return;
+          var n = (l.owner && l.owner.full_name) || '—';
+          byOwner[n] = (byOwner[n] || 0) + 1;
+        });
+        var owners = Object.keys(byOwner).sort(function (a, b) { return byOwner[b] - byOwner[a]; }).slice(0, 5);
+        // most viewed properties (7 days)
+        var byPlot = {};
+        views7.forEach(function (v) { var pc = v.property && v.property.plot_code; if (pc) byPlot[pc] = (byPlot[pc] || 0) + 1; });
+        var topViewed = Object.keys(byPlot).sort(function (a, b) { return byPlot[b] - byPlot[a]; }).slice(0, 6);
+        var pendingApprovals = props.filter(function (p) { return p.approval_status === 'pending'; }).length;
+        // one consolidated to-do list — each row jumps to its tab
+        var needs = [
+          { n: pendingApprovals, label: 'Listing approvals waiting', tab: 'approvals' },
+          { n: nProofs, label: 'Payment proofs to verify', tab: 'payments' },
+          { n: nStaff, label: 'Staff applications to review', tab: 'staff' },
+          { n: nPhotoSubs, label: 'Photo submissions to review', tab: 'submissions' },
+          { n: nDisputes, label: 'Open disputes', tab: 'moderation' },
+          { n: staleN, label: 'Stale leads — untouched 24h+', tab: 'crm' },
+        ].filter(function (x) { return x.n > 0; });
 
         function tile(n, label, hot) {
           return '<div class="stat"><div class="n"' + (hot ? ' style="color:#e6a10d"' : '') + '>' + n + '</div><div class="l">' + label + '</div></div>';
@@ -537,11 +582,70 @@
         function chartPanel(id, title) {
           return '<div class="panel" style="margin:0"><h3 style="font-size:13px">' + title + '</h3><div style="height:220px;position:relative"><canvas id="' + id + '"></canvas></div></div>';
         }
+        function listPanel(title, inner) {
+          return '<div class="panel" style="margin:0"><h3 style="font-size:13px">' + title + '</h3><div style="max-height:220px;overflow:auto">' + inner + '</div></div>';
+        }
+        var rowStyle = 'display:flex;gap:8px;align-items:center;padding:4px 0;border-bottom:1px dashed rgba(128,128,128,.25)';
+
+        var needsHtml = needs.length
+          ? needs.map(function (x) {
+              return '<button type="button" class="btn-o btn-sm dash_go" data-tab="' + x.tab + '" style="display:flex;width:100%;justify-content:space-between;align-items:center;margin-bottom:5px;text-align:left">' +
+                '<span>' + esc(x.label) + '</span><span class="pill" style="background:var(--gold)">' + x.n + '</span></button>';
+            }).join('')
+          : '<div style="padding:18px 0;text-align:center"><span style="font-size:22px">✅</span><div class="muted" style="font-size:12px">All clear — nothing waiting on you.</div></div>';
+
+        var todayHtml =
+          (visitsToday.length ? '<b style="font-size:11px">Site visits today</b>' + visitsToday.map(function (v) {
+            return '<div style="' + rowStyle + '"><span class="mono" style="font-size:11px;min-width:52px">' +
+              new Date(v.scheduled_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + '</span>' +
+              '<span class="mono" style="font-size:11px">' + esc(v.property ? v.property.plot_code : '—') + '</span>' +
+              '<span style="font-size:12px;flex:1">' + esc((v.buyer && v.buyer.full_name) || '') + '</span>' +
+              '<span class="muted" style="font-size:10px">' + esc((v.agent && v.agent.full_name) || '') + '</span></div>';
+          }).join('') : '') +
+          (fuDue.length ? '<b style="font-size:11px;display:block;margin-top:6px">Follow-ups due</b>' + fuDue.map(function (f) {
+            var c = (f.lead && f.lead.contact) || {};
+            return '<div style="' + rowStyle + '"><span class="muted" style="font-size:10px;min-width:52px">' +
+              new Date(f.due_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + '</span>' +
+              '<span style="font-size:12px;flex:1">' + esc(c.name || '—') + '</span>' +
+              '<span class="muted" style="font-size:11px">' + esc(f.note || '') + '</span></div>';
+          }).join('') : '') +
+          (!visitsToday.length && !fuDue.length ? '<div class="muted" style="font-size:12px;padding:12px 0">Nothing scheduled today.</div>' : '');
+
+        var actHtml = actLeads.length
+          ? actLeads.map(function (l) {
+              var c = l.contact || {};
+              return '<button type="button" class="btn-o btn-sm dash_go" data-tab="crm" style="display:flex;width:100%;justify-content:space-between;align-items:center;margin-bottom:5px;text-align:left">' +
+                '<span style="font-size:12px">' + esc(c.name || '—') + ' <span class="muted" style="font-size:10px">' + esc(l.source || '') + '</span></span>' +
+                '<span class="pill ' + (l.score_band === 'hot' ? 'available' : 'sold') + '" style="font-size:10px">' + (l.score_band === 'hot' ? '🔥 hot' : '⏰ stale') + '</span></button>';
+            }).join('')
+          : '<div class="muted" style="font-size:12px;padding:12px 0">No hot or stale leads right now. 👌</div>';
+
+        var perfHtml = owners.length
+          ? owners.map(function (n, i) {
+              return '<div style="' + rowStyle + '"><span style="font-size:14px;min-width:24px">' + ['🥇', '🥈', '🥉', '4.', '5.'][i] + '</span>' +
+                '<span style="font-size:12px;flex:1">' + esc(n) + '</span>' +
+                '<span class="pill available" style="font-size:10px">' + byOwner[n] + ' won</span></div>';
+            }).join('')
+          : '<div class="muted" style="font-size:12px;padding:12px 0">No won deals yet — the podium is waiting.</div>';
+
+        var viewedHtml = topViewed.length
+          ? topViewed.map(function (pc) {
+              return '<div style="' + rowStyle + '"><span class="mono" style="font-size:12px;flex:1">' + esc(pc) + '</span>' +
+                '<span class="pill" style="font-size:10px">👀 ' + byPlot[pc] + ' views</span></div>';
+            }).join('')
+          : '<div class="muted" style="font-size:12px;padding:12px 0">No property views in the last 7 days yet.</div>';
+
         el.innerHTML = '<div class="head"><h2>Dashboard</h2><button id="dash_refresh" class="btn-o btn-sm">↻ Refresh</button></div>' +
           '<div class="stat-row">' +
             tile(nUsers, 'Members') + tile(leads.length, 'Leads · total') + tile(leads7, 'Leads · 7 days') +
-            tile(nVisits, 'Upcoming visits') + tile(inr(collected), '₹ collected') + tile(inr(portfolio), 'Available portfolio') +
+            tile(conv + '%', 'Lead → won') + tile(visitsToday.length, 'Visits today') + tile(nVisits, 'Upcoming visits') +
+            tile(inr(collected), '₹ collected') + tile(inr(Math.round(avgDeal)), 'Avg. payment') + tile(inr(portfolio), 'Available portfolio') +
             tile(nPosts, 'Community posts') + tile(nProofs, 'Proofs to verify', nProofs > 0) + tile(nStaff, 'Staff apps', nStaff > 0) +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:12px">' +
+            listPanel('⚡ Needs your attention', needsHtml) +
+            listPanel('📅 Today', todayHtml) +
+            listPanel('🔥 Leads to act on <span class="muted" style="font-size:10px">(hot or going cold — tap to open CRM)</span>', actHtml) +
           '</div>' +
           '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:12px">' +
             chartPanel('dc_leads', '📈 New leads — last 30 days') +
@@ -549,16 +653,22 @@
             chartPanel('dc_src', '🎯 Leads by source') +
             chartPanel('dc_funnel', '🪜 Lead funnel') +
             chartPanel('dc_rev', '💰 Collected by month') +
+            chartPanel('dc_members', '👥 New members — last 30 days') +
+            listPanel('🏆 Top performers <span class="muted" style="font-size:10px">(won leads)</span>', perfHtml) +
+            listPanel('👀 Most viewed properties <span class="muted" style="font-size:10px">(7 days)</span>', viewedHtml) +
             '<div class="panel" style="margin:0"><h3 style="font-size:13px">🔔 Live activity <span class="muted" style="font-size:10px">(blinks on the tab when anything happens)</span></h3>' +
               '<div style="max-height:220px;overflow:auto">' +
               (acts.length ? acts.map(function (a) {
-                return '<div style="display:flex;gap:8px;align-items:center;padding:4px 0;border-bottom:1px dashed rgba(128,128,128,.25)">' +
+                return '<div style="' + rowStyle + '">' +
                   '<span class="muted" style="font-size:10px;min-width:106px">' + esc(new Date(a.created_at).toLocaleString()) + '</span>' +
                   '<span class="pill" style="font-size:10px">' + esc(a.action) + '</span>' +
                   '<span class="muted" style="font-size:11px">' + esc(a.entity || '') + '</span></div>';
               }).join('') : '<div class="muted">No activity yet.</div>') + '</div></div>' +
           '</div>';
         $('dash_refresh').onclick = renderDashboard;
+        el.querySelectorAll('.dash_go').forEach(function (b) {
+          b.onclick = function () { switchTab(this.dataset.tab); };
+        });
 
         // ── charts (Chart.js; destroy old instances so re-renders stay clean) ──
         dashCharts.forEach(function (c) { try { c.destroy(); } catch (e) {} });
@@ -624,6 +734,18 @@
           labels: months,
           datasets: [{ data: months.map(function (k) { return mSum[k]; }), backgroundColor: '#30A46C' }] },
           options: Object.assign({}, noLegend, { scales: { x: { ticks: tick, grid: { display: false } }, y: { ticks: tick, grid: grid, beginAtZero: true } } }) }));
+
+        // 6) new members per day (30d)
+        var mDays = [], mCounts = {};
+        for (var j = 29; j >= 0; j--) {
+          var md = new Date(Date.now() - j * 864e5).toISOString().slice(0, 10);
+          mDays.push(md); mCounts[md] = 0;
+        }
+        members.forEach(function (p) { var d2 = String(p.created_at).slice(0, 10); if (d2 in mCounts) mCounts[d2]++; });
+        dashCharts.push(new Chart($('dc_members'), { type: 'line', data: {
+          labels: mDays.map(function (d2) { return d2.slice(5); }),
+          datasets: [{ data: mDays.map(function (d2) { return mCounts[d2]; }), borderColor: '#8E4EC6', backgroundColor: 'rgba(142,78,198,.18)', fill: true, tension: .3, pointRadius: 0 }] },
+          options: Object.assign({}, noLegend, { scales: { x: { ticks: tick, grid: grid }, y: { ticks: tick, grid: grid, beginAtZero: true } } }) }));
       }
 
       // ─── Properties ─────────────────────────────────────────────────────
