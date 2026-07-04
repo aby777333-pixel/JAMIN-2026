@@ -265,12 +265,12 @@ export default function PropertyStudio() {
           </View>
         </Card>
 
-        {/* Property type */}
+        {/* Property type — labels localized for display; keys/prompt stay English */}
         <View className="gap-1.5">
           <GroupLabel tone={TONE.type}>{t('tools.studio.propertyType')}</GroupLabel>
           <View className="flex-row flex-wrap gap-2">
             {TYPES.map((x) => (
-              <Chip key={x.key} label={x.label} tone={TONE.type} active={type === x.key} onPress={() => selectType(x.key)} />
+              <Chip key={x.key} label={t(`tools.studio.type.${x.key}`, { defaultValue: x.label })} tone={TONE.type} active={type === x.key} onPress={() => selectType(x.key)} />
             ))}
           </View>
         </View>
@@ -280,7 +280,7 @@ export default function PropertyStudio() {
           <GroupLabel tone={TONE.goal}>{t('tools.studio.goal')}</GroupLabel>
           <View className="flex-row flex-wrap gap-2">
             {GOALS.map((g) => (
-              <Chip key={g.key} label={g.label} tone={TONE.goal} active={goal === g.key} onPress={() => setGoal(g.key)} />
+              <Chip key={g.key} label={t(`tools.studio.goalName.${g.key}`, { defaultValue: g.label })} tone={TONE.goal} active={goal === g.key} onPress={() => setGoal(g.key)} />
             ))}
           </View>
         </View>
@@ -290,7 +290,7 @@ export default function PropertyStudio() {
           <GroupLabel tone={TONE.style}>{t('tools.studio.style')}</GroupLabel>
           <View className="flex-row flex-wrap gap-2">
             {STYLES.map((s) => (
-              <Chip key={s} label={s} tone={TONE.style} active={style === s} onPress={() => setStyle(s)} />
+              <Chip key={s} label={t(`tools.studio.styleName.${s}`, { defaultValue: s })} tone={TONE.style} active={style === s} onPress={() => setStyle(s)} />
             ))}
           </View>
         </View>
@@ -307,7 +307,7 @@ export default function PropertyStudio() {
           </View>
           {ELEMENTS.map((grp, gi) => (
             <View key={grp.group} className="gap-1">
-              <GroupLabel tone={elementTone(gi)} caption>{grp.group}</GroupLabel>
+              <GroupLabel tone={elementTone(gi)} caption>{t(`tools.studio.group.${grp.group}`, { defaultValue: grp.group })}</GroupLabel>
               <View className="flex-row flex-wrap gap-2">
                 {grp.items.map((it) => (
                   <Chip key={it} label={it} tone={elementTone(gi)} active={elements.includes(it)} onPress={() => toggleElement(it)} />

@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -55,6 +56,31 @@ if (!i18n.isInitialized) {
     interpolation: { escapeValue: false },
     returnNull: false,
   });
+}
+
+/** The user's chosen language, persisted so it survives app restarts. */
+const LANG_KEY = 'jamin.language';
+
+/** Switch the whole app's language and remember the choice. */
+export async function setAppLanguage(code: string): Promise<void> {
+  await i18n.changeLanguage(code);
+  try {
+    await AsyncStorage.setItem(LANG_KEY, code);
+  } catch {
+    /* persistence is best-effort */
+  }
+}
+
+/** Re-apply the persisted language on app start (called from the root layout). */
+export async function loadPersistedLanguage(): Promise<void> {
+  try {
+    const saved = await AsyncStorage.getItem(LANG_KEY);
+    if (saved && saved in resources && saved !== i18n.language) {
+      await i18n.changeLanguage(saved);
+    }
+  } catch {
+    /* fall back to device language */
+  }
 }
 
 export default i18n;

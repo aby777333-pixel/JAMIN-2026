@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import i18n, { SUPPORTED_LANGUAGES } from '@/lib/i18n';
+import { SUPPORTED_LANGUAGES, setAppLanguage } from '@/lib/i18n';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
 
@@ -57,7 +57,7 @@ export default function Security() {
             key={l.code}
             label={l.label}
             active={inst.language === l.code}
-            onPress={() => i18n.changeLanguage(l.code)}
+            onPress={() => void setAppLanguage(l.code)}
           />
         ))}
       </View>

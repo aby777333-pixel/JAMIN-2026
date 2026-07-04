@@ -167,7 +167,18 @@
       "reserve": "Reserve this plot"
     },
     "report": "Report a problem with this listing",
-    "jaminConnect": "All calls, visits & negotiations happen safely through JAMIN — never share direct contact details."
+    "jaminConnect": "All calls, visits & negotiations happen safely through JAMIN — never share direct contact details.",
+    "journey": {
+      "title": "Your journey",
+      "visit": "Visit",
+      "offer": "Offer",
+      "booking": "Booking",
+      "yours": "Yours"
+    },
+    "autoFlyer": {
+      "title": "Auto-create flyer",
+      "body": "One tap: photo, title & price drop into the flyer maker, branded with your card."
+    }
   },
   "community": {
     "title": "Community",
@@ -203,7 +214,11 @@
     "heroTitle": "Apply for a JAMIN role",
     "heroBody": "Pick the role you want, tell us about yourself, and the JAMIN team will review your application. You'll get a notification once it's decided.",
     "myApps": "My applications",
-    "status": { "pending": "Pending review", "approved": "Approved", "rejected": "Not approved" },
+    "status": {
+      "pending": "Pending review",
+      "approved": "Approved",
+      "rejected": "Not approved"
+    },
     "pendingTitle": "Application under review",
     "pendingBody": "Your application is with the JAMIN team. You can apply again once it's decided.",
     "chooseRole": "Choose a role",
@@ -287,7 +302,14 @@
       "format": "Format",
       "generating": "Generating…",
       "generate": "✨ Generate image",
-      "disclaimer": "AI-generated imagery — review before publishing."
+      "disclaimer": "AI-generated imagery — review before publishing.",
+      "group": {
+        "Nature": "Nature",
+        "Wildlife": "Wildlife",
+        "Property": "Property",
+        "Real estate": "Real estate",
+        "Lifestyle": "Lifestyle"
+      }
     },
     "translate": {
       "title": "Translate",
@@ -328,7 +350,46 @@
       "save": "Save",
       "share": "Share",
       "useInPoster": "Use in Poster maker",
-      "disclaimer": "AI-generated visualisation — for illustration only, not the actual property."
+      "disclaimer": "AI-generated visualisation — for illustration only, not the actual property.",
+      "type": {
+        "plot": "Empty plot",
+        "villa": "Villa",
+        "house": "House",
+        "apartment": "Apartment",
+        "farmhouse": "Farmhouse",
+        "farmland": "Farmland",
+        "estate": "Estate",
+        "gated": "Gated community",
+        "commercial": "Commercial land",
+        "room": "Interior room"
+      },
+      "goalName": {
+        "develop": "Develop & build",
+        "beautify": "Beautify",
+        "landscape": "Landscape",
+        "furnish": "Furnish",
+        "exterior": "Decorate exterior",
+        "enhance": "Clean & enhance"
+      },
+      "styleName": {
+        "Modern": "Modern",
+        "Minimalist": "Minimalist",
+        "Scandinavian": "Scandinavian",
+        "Luxury": "Luxury",
+        "Traditional Indian": "Traditional Indian",
+        "Tropical": "Tropical",
+        "Rural": "Rural",
+        "Urban": "Urban"
+      },
+      "group": {
+        "Greenery": "Greenery",
+        "Structures": "Structures",
+        "Water": "Water",
+        "Roads & access": "Roads & access",
+        "Ambience": "Ambience",
+        "Life": "Life",
+        "Interior": "Interior"
+      }
     },
     "valuation": {
       "title": "Land valuation",
@@ -721,6 +782,65 @@
       "thisLand": "this land",
       "rashiHarmony": "{{name}} natives are {{trait}} — {{graha}}'s energy here works beautifully in your favour.",
       "rashiYou": "You"
+    },
+    "muhurat": {
+      "festivalNote": "{{name}} — a specially auspicious day",
+      "dayNote": "{{nakshatra}} nakshatra · {{tithi}} · {{weekday}}",
+      "weekday": {
+        "0": "Surya's day",
+        "1": "Chandra's day",
+        "2": "Mangal's day",
+        "3": "Budh's day",
+        "4": "Guru’s day — most blessed for wealth",
+        "5": "Shukra's day",
+        "6": "Shani's day"
+      }
+    },
+    "fest": {
+      "guru_purnima": {
+        "name": "Guru Purnima",
+        "blurb": "A day of gratitude and new learning — a blessed time to begin ventures."
+      },
+      "ganesh_chaturthi": {
+        "name": "Ganesh Chaturthi",
+        "blurb": "Lord Ganesha removes obstacles — auspicious for new beginnings and homes."
+      },
+      "navratri": {
+        "name": "Navratri begins",
+        "blurb": "Nine nights of Shakti — a powerful, prosperous window for big decisions."
+      },
+      "dussehra": {
+        "name": "Dussehra (Vijayadashami)",
+        "blurb": "Victory of good — one of the most auspicious days to start something new."
+      },
+      "dhanteras": {
+        "name": "Dhanteras",
+        "blurb": "The day of Dhanvantari & Kubera — traditionally ideal for buying gold, land & property."
+      },
+      "diwali": {
+        "name": "Diwali · Lakshmi Puja",
+        "blurb": "Invite Goddess Lakshmi home — a most fortunate time for wealth & new property."
+      },
+      "makar_sankranti": {
+        "name": "Makar Sankranti",
+        "blurb": "The sun turns northward (Uttarayana) — an auspicious season for fresh starts."
+      },
+      "ugadi": {
+        "name": "Ugadi · Gudi Padwa",
+        "blurb": "The traditional New Year — a favoured day for Griha Pravesh and investments."
+      },
+      "akshaya_tritiya": {
+        "name": "Akshaya Tritiya",
+        "blurb": "The day of never-diminishing fortune — the most auspicious of all to buy land & gold."
+      }
+    }
+  },
+  "settings": {
+    "language": {
+      "title": "Language",
+      "heroTitle": "Choose your language",
+      "heroBody": "The whole app switches instantly — menus, tools, guidance and more. Your choice is remembered.",
+      "note": "Community posts translate with one tap — and Jamindar AI speaks your language too."
     }
   }
 }

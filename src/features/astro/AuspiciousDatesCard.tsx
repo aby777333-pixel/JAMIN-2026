@@ -21,10 +21,13 @@ export function AuspiciousDatesCard({
   subtitle?: string;
   count?: number;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const days = useMemo(() => nextAuspiciousDates(new Date(), count), [count]);
   const heading = title ?? t('astro.dates.defaultTitle');
   const sub = subtitle ?? t('astro.dates.defaultSubtitle');
+  // Date chips in the active language ('hi-IN' → Devanagari month/weekday names).
+  const locale = `${(i18n.language || 'en').slice(0, 2)}-IN`;
+  const chip = (d: Date) => d.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
 
   return (
     <Card className="gap-2 border-gold/40 bg-[#FDF3D8]">
@@ -45,7 +48,7 @@ export function AuspiciousDatesCard({
             {d.festival ? <Ionicons name="sparkles" size={11} color={color.red} /> : null}
             <Text
               className={`text-[12px] font-semibold ${d.festival ? 'text-red' : 'text-ink'}`}>
-              {d.label}
+              {chip(d.date)}
             </Text>
           </View>
         ))}

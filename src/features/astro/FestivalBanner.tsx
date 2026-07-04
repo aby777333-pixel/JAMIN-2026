@@ -8,6 +8,7 @@ import { Text } from '@/components/ui/Text';
 import { color } from '@/theme/tokens';
 import { FESTIVALS, upcomingFestival } from './festivals';
 import { useFestivals } from './hooks';
+import { localizeFestivalBlurb, localizeFestivalName } from './localize';
 
 /**
  * A festive banner shown on Home when an auspicious festival (Akshaya Tritiya,
@@ -33,14 +34,14 @@ export function FestivalBanner({ withinDays = 45 }: { withinDays?: number }) {
         <View className="flex-row items-center gap-2">
           <Text className="text-[16px]">🪔</Text>
           <Text variant="title" className="flex-1 text-[15px]">
-            {fest.name}
+            {localizeFestivalName(fest, t)}
           </Text>
           <View className="rounded-full bg-gold/25 px-2.5 py-1">
             <Text className="text-[11px] font-semibold text-gold-deep">{when}</Text>
           </View>
         </View>
         <Text variant="caption" className="text-ink">
-          {fest.blurb}
+          {localizeFestivalBlurb(fest, t)}
         </Text>
         <View className="flex-row items-center gap-1 pt-0.5">
           <Text className="text-[12px] font-semibold text-red">{t('astro.festival.explore')}</Text>

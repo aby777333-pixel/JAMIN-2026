@@ -21,7 +21,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { queryClient } from '@/lib/query';
-import '@/lib/i18n';
+import { loadPersistedLanguage } from '@/lib/i18n';
 import { LockGate } from '@/components/LockGate';
 import { RolePreviewBar } from '@/components/RolePreviewBar';
 import { NotificationsBridge } from '@/features/notifications/Bridge';
@@ -45,6 +45,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     void init();
+    void loadPersistedLanguage();
   }, [init]);
 
   useEffect(() => {
@@ -121,6 +122,7 @@ export default function RootLayout() {
             <Stack.Screen name="notifications" />
             <Stack.Screen name="rewards" />
             <Stack.Screen name="settings/index" />
+            <Stack.Screen name="settings/language" />
             <Stack.Screen name="settings/notifications" />
             <Stack.Screen name="settings/security" />
             <Stack.Screen name="profile" />

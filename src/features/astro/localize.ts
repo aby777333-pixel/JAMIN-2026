@@ -1,6 +1,8 @@
 import type { TFunction } from 'i18next';
 
 import { RASHIS, type Fortune } from './engine';
+import { FESTIVALS, type Festival } from './festivals';
+import { panchang } from './panchang';
 
 /**
  * Rebuilds a {@link Fortune} into the active language from its stable keys +
@@ -49,6 +51,39 @@ export function localizeFortune(f: Fortune, t: TFunction): LocalizedFortune {
   ];
 
   return { band, planetName, graha, yoga, elementName, gem, directionName, nakshatraName, color, blessing, highlights };
+}
+
+/** Stable i18n key for a festival: strip the year suffix ('diwali_2026' → 'diwali'). */
+const festBaseKey = (key: string) => key.replace(/_\d{4}$/, '');
+
+/** Festival name in the active language (DB-managed festivals fall back to their stored name). */
+export function localizeFestivalName(f: Pick<Festival, 'key' | 'name'>, t: TFunction): string {
+  return t(`astro.fest.${festBaseKey(f.key)}.name`, { defaultValue: f.name }) as unknown as string;
+}
+
+/** Festival blurb in the active language (falls back to the stored English blurb). */
+export function localizeFestivalBlurb(f: Pick<Festival, 'key' | 'blurb'>, t: TFunction): string {
+  return t(`astro.fest.${festBaseKey(f.key)}.blurb`, { defaultValue: f.blurb }) as unknown as string;
+}
+
+/**
+ * Localized twin of muhurat's `auspiciousNote` — same logic, active language.
+ * Nakshatra/tithi stay as Sanskrit proper nouns; the template + weekday
+ * blessing translate. The engine (and its tests) remain English-canonical.
+ */
+export function localizeAuspiciousNote(date: Date, t: TFunction): string {
+  const p2 = (n: number) => String(n).padStart(2, '0');
+  const ymd = `${date.getFullYear()}-${p2(date.getMonth() + 1)}-${p2(date.getDate())}`;
+  const fest = FESTIVALS.find((f) => f.date === ymd);
+  if (fest) {
+    return t('astro.muhurat.festivalNote', { name: localizeFestivalName(fest, t) }) as unknown as string;
+  }
+  const p = panchang(date);
+  return t('astro.muhurat.dayNote', {
+    nakshatra: p.nakshatraName,
+    tithi: p.tithiName,
+    weekday: t(`astro.muhurat.weekday.${p.vara}`) as unknown as string,
+  }) as unknown as string;
 }
 
 /** Localized, always-affirming compatibility note for a buyer's Rashi. */

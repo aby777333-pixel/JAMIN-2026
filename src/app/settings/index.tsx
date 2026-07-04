@@ -31,6 +31,7 @@ const ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string;
   { icon: 'folder', label: 'Document vault', sub: 'Agreements, IDs & KYC in one place', href: '/documents' },
   { icon: 'apps', label: "What's included", sub: 'Explore all platform features', href: '/features' },
   { icon: 'notifications', label: 'Notifications', sub: 'Choose your alerts', href: '/settings/notifications' },
+  { icon: 'language', label: 'Language / भाषा', sub: 'Translate the whole app — 10 languages', href: '/settings/language' },
   { icon: 'lock-closed', label: 'Security & language', sub: 'App lock, language', href: '/settings/security' },
   { icon: 'help-circle', label: 'Help & FAQ', sub: 'Answers to common questions', href: '/help' },
   { icon: 'help-buoy', label: 'Help & Support', sub: 'Contact, social links, about', href: '/support' },

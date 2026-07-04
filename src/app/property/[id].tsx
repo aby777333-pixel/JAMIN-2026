@@ -297,13 +297,13 @@ export default function PropertyDetail() {
       {/* Your journey with this property — appears once the buyer takes any step. */}
       {journey && (journey.visited || journey.offered || journey.booked) ? (
         <Card accent={4} className="gap-3">
-          <Text variant="label">Your journey</Text>
+          <Text variant="label">{t('property.journey.title', { defaultValue: 'Your journey' })}</Text>
           <View className="flex-row items-center">
             {[
-              { label: 'Visit', done: journey.visited, icon: 'calendar' as const },
-              { label: 'Offer', done: journey.offered, icon: 'pricetag' as const },
-              { label: 'Booking', done: journey.booked, icon: 'receipt' as const },
-              { label: 'Yours', done: property.status === 'sold' && journey.booked, icon: 'key' as const },
+              { label: t('property.journey.visit', { defaultValue: 'Visit' }), done: journey.visited, icon: 'calendar' as const },
+              { label: t('property.journey.offer', { defaultValue: 'Offer' }), done: journey.offered, icon: 'pricetag' as const },
+              { label: t('property.journey.booking', { defaultValue: 'Booking' }), done: journey.booked, icon: 'receipt' as const },
+              { label: t('property.journey.yours', { defaultValue: 'Yours' }), done: property.status === 'sold' && journey.booked, icon: 'key' as const },
             ].map((s, i, arr) => (
               <View key={s.label} className="flex-1 flex-row items-center">
                 <View className="items-center gap-1" style={{ flex: 0 }}>
@@ -359,8 +359,8 @@ export default function PropertyDetail() {
           <Card accent={0} className="flex-row items-center gap-3">
             <Ionicons name="sparkles" size={20} color="#E5484D" />
             <View className="flex-1">
-              <Text variant="title" className="text-[14px]">Auto-create flyer</Text>
-              <Text variant="caption">One tap: photo, title & price drop into the flyer maker, branded with your card.</Text>
+              <Text variant="title" className="text-[14px]">{t('property.autoFlyer.title', { defaultValue: 'Auto-create flyer' })}</Text>
+              <Text variant="caption">{t('property.autoFlyer.body', { defaultValue: 'One tap: photo, title & price drop into the flyer maker, branded with your card.' })}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={color.muted} />
           </Card>

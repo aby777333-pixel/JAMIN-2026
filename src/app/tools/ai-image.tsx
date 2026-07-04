@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import * as MediaLibrary from 'expo-media-library';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
 
@@ -51,14 +51,113 @@ const PRESETS = [
   'A serene open land plot at sunrise with mountains behind, calm and auspicious',
 ];
 
-// Modular creative elements — tap to add to the prompt and compose a scene.
-const COMPONENTS: { group: string; items: string[] }[] = [
-  { group: 'Nature', items: ['coconut trees', 'palm trees', 'mountains', 'a river', 'a lake', 'a waterfall', 'lush gardens', 'rice fields', 'sunset sky', 'golden hour light', 'soft clouds'] },
-  { group: 'Wildlife', items: ['birds', 'butterflies', 'a peacock', 'elephants', 'deer', 'horses'] },
-  { group: 'Property', items: ['a modern villa', 'an apartment tower', 'a farmhouse', 'a luxury bungalow', 'a resort', 'a temple', 'a commercial building'] },
-  { group: 'Real estate', items: ['residential plots', 'a gated community', 'wide layout roads', 'a compound wall', 'a grand entrance gate', 'a swimming pool', 'agricultural land', 'a plantation', 'solar panels'] },
-  { group: 'Lifestyle', items: ['a luxury car', 'a fountain', 'street lights', 'a walking path', "a children's play area", 'a gazebo'] },
+// Modular creative elements — a tap-to-add icon grid (AI-vision pillar #3:
+// "grouped icon grid, not just text chips"). `term` feeds the prompt (English,
+// the model's language); `emoji` + short `label` are what the tile shows.
+interface Element {
+  term: string;
+  emoji: string;
+  label: string;
+}
+const COMPONENTS: { group: string; items: Element[] }[] = [
+  {
+    group: 'Nature',
+    items: [
+      { term: 'coconut trees', emoji: '🥥', label: 'Coconut trees' },
+      { term: 'palm trees', emoji: '🌴', label: 'Palm trees' },
+      { term: 'mountains', emoji: '⛰️', label: 'Mountains' },
+      { term: 'a river', emoji: '🏞️', label: 'River' },
+      { term: 'a lake', emoji: '💧', label: 'Lake' },
+      { term: 'a waterfall', emoji: '🌊', label: 'Waterfall' },
+      { term: 'lush gardens', emoji: '🌷', label: 'Gardens' },
+      { term: 'rice fields', emoji: '🌾', label: 'Rice fields' },
+      { term: 'sunset sky', emoji: '🌅', label: 'Sunset' },
+      { term: 'golden hour light', emoji: '☀️', label: 'Golden hour' },
+      { term: 'soft clouds', emoji: '☁️', label: 'Clouds' },
+    ],
+  },
+  {
+    group: 'Wildlife',
+    items: [
+      { term: 'birds', emoji: '🐦', label: 'Birds' },
+      { term: 'butterflies', emoji: '🦋', label: 'Butterflies' },
+      { term: 'a peacock', emoji: '🦚', label: 'Peacock' },
+      { term: 'elephants', emoji: '🐘', label: 'Elephants' },
+      { term: 'deer', emoji: '🦌', label: 'Deer' },
+      { term: 'horses', emoji: '🐎', label: 'Horses' },
+    ],
+  },
+  {
+    group: 'Property',
+    items: [
+      { term: 'a modern villa', emoji: '🏡', label: 'Villa' },
+      { term: 'an apartment tower', emoji: '🏢', label: 'Apartment' },
+      { term: 'a farmhouse', emoji: '🏠', label: 'Farmhouse' },
+      { term: 'a luxury bungalow', emoji: '🏰', label: 'Bungalow' },
+      { term: 'a resort', emoji: '🏖️', label: 'Resort' },
+      { term: 'a temple', emoji: '🛕', label: 'Temple' },
+      { term: 'a commercial building', emoji: '🏬', label: 'Commercial' },
+    ],
+  },
+  {
+    group: 'Real estate',
+    items: [
+      { term: 'residential plots', emoji: '📐', label: 'Plots' },
+      { term: 'a gated community', emoji: '🏘️', label: 'Gated' },
+      { term: 'wide layout roads', emoji: '🛣️', label: 'Roads' },
+      { term: 'a compound wall', emoji: '🧱', label: 'Wall' },
+      { term: 'a grand entrance gate', emoji: '🚪', label: 'Gate' },
+      { term: 'a swimming pool', emoji: '🏊', label: 'Pool' },
+      { term: 'agricultural land', emoji: '🚜', label: 'Farm land' },
+      { term: 'a plantation', emoji: '🌱', label: 'Plantation' },
+      { term: 'solar panels', emoji: '⚡', label: 'Solar' },
+    ],
+  },
+  {
+    group: 'Lifestyle',
+    items: [
+      { term: 'a luxury car', emoji: '🚗', label: 'Luxury car' },
+      { term: 'a fountain', emoji: '⛲', label: 'Fountain' },
+      { term: 'street lights', emoji: '💡', label: 'Lights' },
+      { term: 'a walking path', emoji: '🚶', label: 'Path' },
+      { term: "a children's play area", emoji: '🛝', label: 'Play area' },
+      { term: 'a gazebo', emoji: '⛱️', label: 'Gazebo' },
+    ],
+  },
 ];
+
+/** One tile in the creative-components icon grid. */
+function ElementTile({
+  el,
+  tone,
+  active,
+  onPress,
+}: {
+  el: Element;
+  tone: number;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const tint = accentFor(tone).main;
+  return (
+    <Pressable
+      onPress={onPress}
+      className="w-[23%] flex-grow items-center gap-1 rounded-2xl border px-1 py-2.5"
+      style={{
+        maxWidth: '24%',
+        backgroundColor: active ? `${tint}26` : color.surface,
+        borderColor: active ? tint : color.line,
+      }}>
+      <Text className="text-[22px]">{el.emoji}</Text>
+      <Text
+        numberOfLines={1}
+        className="text-center text-[10px] font-semibold"
+        style={{ color: active ? tint : color.muted }}>
+        {el.label}
+      </Text>
+    </Pressable>
+  );
+}
 
 const RATIO: Record<string, number> = { '4:3': 3 / 4, '1:1': 1, '16:9': 9 / 16, '9:16': 16 / 9 };
 
@@ -285,11 +384,17 @@ export default function AiImage() {
         <View className="gap-2">
           <Text variant="label">{t('tools.aiImage.addElements')}</Text>
           {COMPONENTS.map((g, gi) => (
-            <View key={g.group} className="gap-1">
-              <GroupLabel tone={elementTone(gi)} caption>{g.group}</GroupLabel>
+            <View key={g.group} className="gap-1.5">
+              <GroupLabel tone={elementTone(gi)} caption>{t(`tools.aiImage.group.${g.group}`, { defaultValue: g.group })}</GroupLabel>
               <View className="flex-row flex-wrap gap-2">
                 {g.items.map((it) => (
-                  <Chip key={it} label={it} tone={elementTone(gi)} active={hasElement(prompt, it)} onPress={() => toggleElement(it)} />
+                  <ElementTile
+                    key={it.term}
+                    el={it}
+                    tone={elementTone(gi)}
+                    active={hasElement(prompt, it.term)}
+                    onPress={() => toggleElement(it.term)}
+                  />
                 ))}
               </View>
             </View>

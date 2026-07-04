@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { Text } from '@/components/ui/Text';
-import { auspiciousNote, isAuspiciousDay } from '@/features/astro/muhurat';
+import { localizeAuspiciousNote } from '@/features/astro/localize';
+import { isAuspiciousDay } from '@/features/astro/muhurat';
 import { useBookSiteVisit } from '../hooks';
 import { useBookVisit } from '@/features/visits/hooks';
 import { Sheet } from './EnquirySheet';
@@ -27,6 +29,7 @@ export function SiteVisitSheet({
   propertyId: string;
   propertyLabel: string;
 }) {
+  const { t } = useTranslation();
   const book = useBookSiteVisit();
   const trackedVisit = useBookVisit();
   const [dayIdx, setDayIdx] = useState(0);
@@ -46,7 +49,7 @@ export function SiteVisitSheet({
     return out;
   }, []);
 
-  const selectedAuspicious = days[dayIdx]?.auspicious ? auspiciousNote(days[dayIdx].date) : null;
+  const selectedAuspicious = days[dayIdx]?.auspicious ? localizeAuspiciousNote(days[dayIdx].date, t) : null;
 
   async function confirm() {
     const d = new Date(days[dayIdx].date);
