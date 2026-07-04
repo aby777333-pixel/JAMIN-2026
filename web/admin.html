@@ -259,8 +259,8 @@
     <div id="appView" class="shell hidden">
       <aside class="side">
         <div class="brand"><img src="logo.jpg" alt="" /><b>ADMIN</b></div>
-        <button class="nav-i" data-tab="dashboard">📊 Dashboard</button>
-        <button class="nav-i active" data-tab="properties">🏠 Properties</button>
+        <button class="nav-i active" data-tab="dashboard">📊 Dashboard</button>
+        <button class="nav-i" data-tab="properties">🏠 Properties</button>
         <button class="nav-i" data-tab="catalog">📁 Catalog</button>
         <button class="nav-i" data-tab="users">👤 Users &amp; roles</button>
         <button class="nav-i" data-tab="staff">🪪 Staff applications</button>
@@ -313,8 +313,8 @@
         <div class="who"><span id="whoEmail"></span><br /><button id="signOut" class="btn-o btn-sm" style="margin-top:8px">Sign out</button></div>
       </aside>
       <main class="main">
-        <div id="tabDashboard" class="hidden"></div>
-        <div id="tabProperties"></div>
+        <div id="tabDashboard"></div>
+        <div id="tabProperties" class="hidden"></div>
         <div id="tabCatalog" class="hidden"></div>
         <div id="tabUsers" class="hidden"></div>
         <div id="tabStaff" class="hidden"></div>
@@ -424,7 +424,7 @@
         $('whoEmail').textContent = prof.data.email || state.user.email;
         show('app');
         await loadLookups();
-        switchTab('properties');
+        switchTab('dashboard');
         refreshApprovalsBadge();
         refreshSubmissionsBadge();
         refreshFormSubsBadge();
