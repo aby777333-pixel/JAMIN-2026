@@ -115,6 +115,13 @@
       "sortNewest": "Newest",
       "priceUp": "Price ↑",
       "priceDown": "Price ↓"
+    },
+    "voice": {
+      "title": "Voice search",
+      "hint": "Tap the mic & say it in any language — \"villa under 50 lakhs\"",
+      "listening": "Listening… tap ■ when done",
+      "working": "Understanding…",
+      "nothingMatched": "Heard you, but couldn't find filters — try mentioning a budget, type or project."
     }
   },
   "property": {

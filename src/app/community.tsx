@@ -40,9 +40,10 @@ interface CommunityPost {
 
 interface CommunityComment {
   id: string;
-  author_id: string;
+  author_id: string | null;
   author_name: string;
   body: string;
+  is_ai?: boolean;
   created_at: string;
 }
 
@@ -387,7 +388,7 @@ function PostCard({
     setCommentsLoading(true);
     const res = await supabase
       .from('community_comments')
-      .select('id,author_id,author_name,body,created_at')
+      .select('id,author_id,author_name,body,is_ai,created_at')
       .eq('post_id', post.id)
       .eq('status', 'published')
       .order('created_at')
@@ -498,8 +499,11 @@ function PostCard({
             </Text>
           ) : (
             comments.map((c) => (
-              <View key={c.id} className="rounded-xl bg-ink/5 p-2.5">
+              <View
+                key={c.id}
+                className={`rounded-xl p-2.5 ${c.is_ai ? 'border border-gold/40 bg-gold/10' : 'bg-ink/5'}`}>
                 <Text variant="caption" className="font-semibold text-ink">
+                  {c.is_ai ? '🤖 ' : ''}
                   {c.author_name} · {timeAgo(c.created_at)}
                 </Text>
                 <Text variant="body" className="text-[14px]">

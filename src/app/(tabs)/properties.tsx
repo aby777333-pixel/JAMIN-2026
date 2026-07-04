@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { FilterBar } from '@/features/buyer/components/FilterBar';
 import { PropertyCard } from '@/features/buyer/components/PropertyCard';
+import { VoiceSearch } from '@/features/buyer/components/VoiceSearch';
 import {
   useProperties,
   useProjects,
@@ -94,6 +95,7 @@ export default function Properties() {
               value={filters.search ?? ''}
               onChangeText={(v) => patch({ search: v })}
             />
+            <VoiceSearch types={types} projects={projects} onApply={patch} />
             <FilterBar types={types} projects={projects} filters={filters} onChange={patch} />
             {showForYou ? (
               <View className="gap-2">

@@ -1222,31 +1222,34 @@ export type Database = {
       }
       community_comments: {
         Row: {
-          author_id: string
+          author_id: string | null
           author_name: string
           body: string
           created_at: string
           id: string
+          is_ai: boolean
           lang: string
           post_id: string
           status: string
         }
         Insert: {
-          author_id: string
+          author_id?: string | null
           author_name: string
           body: string
           created_at?: string
           id?: string
+          is_ai?: boolean
           lang?: string
           post_id: string
           status?: string
         }
         Update: {
-          author_id?: string
+          author_id?: string | null
           author_name?: string
           body?: string
           created_at?: string
           id?: string
+          is_ai?: boolean
           lang?: string
           post_id?: string
           status?: string

@@ -2898,6 +2898,27 @@
             '<button id="fe_add" class="btn btn-sm">Add</button></div>' +
             '<div class="row" style="margin-top:6px"><input id="fe_blurb" class="inp" style="max-width:620px" placeholder="Short blurb shown on the banner" /></div>' +
             '<div class="muted" style="margin-top:6px">These power the auspicious-festival banner on the app Home (shown when a festival is within ~45 days). Toggle off to hide one.</div></div>' +
+          '<div class="panel" style="margin-bottom:12px"><h3>🪔 Festival campaign auto-pilot</h3>' +
+            '<div class="muted">Pick an upcoming festival and Jamindar drafts a complete campaign kit — a WhatsApp/social post plus a channel plan. Review the copy, then save it as an app announcement (draft) with one click and switch it on in 📣 Announcements.</div>' +
+            '<div class="row" style="margin-top:8px">' +
+              '<select id="fap_fest" class="inp" style="max-width:300px">' +
+                (function () {
+                  var today = new Date(); today.setHours(0, 0, 0, 0);
+                  var up = rows.filter(function (f) { return f.active && new Date(f.festival_date + 'T00:00:00') >= today; });
+                  return up.length
+                    ? up.map(function (f) { return '<option value="' + f.id + '">' + esc(f.name) + ' · ' + esc(f.festival_date) + '</option>'; }).join('')
+                    : '<option value="">No upcoming festivals</option>';
+                })() +
+              '</select>' +
+              '<button id="fap_gen" class="btn btn-sm">✨ Generate campaign kit</button></div>' +
+            '<div id="fap_out" class="hidden" style="margin-top:10px">' +
+              '<label>WhatsApp / social post</label>' +
+              '<textarea id="fap_social" class="inp" style="width:100%;min-height:90px;height:auto;padding:10px"></textarea>' +
+              '<label style="margin-top:8px;display:block">Campaign plan (channels & messages)</label>' +
+              '<textarea id="fap_campaign" class="inp" style="width:100%;min-height:150px;height:auto;padding:10px"></textarea>' +
+              '<div class="row" style="margin-top:8px">' +
+                '<button id="fap_save" class="btn btn-sm">📣 Save as app announcement (draft)</button>' +
+                '<button id="fap_copy" class="btn-o btn-sm">Copy post</button></div></div></div>' +
           (rows.length ? '<table><thead><tr><th>On</th><th>Name</th><th>Date</th><th>Blurb</th><th>Order</th><th></th></tr></thead><tbody>' +
           rows.map(function (f) {
             return '<tr data-id="' + f.id + '">' +
@@ -2908,6 +2929,48 @@
               '<td><input class="inp fe_order2" type="number" style="width:70px;height:36px" value="' + (f.sort_order || 100) + '" /></td>' +
               '<td><button class="btn btn-sm fe_save">Save</button> <button class="btn btn-sm fe_del" style="background:#fee;color:#c00">Del</button></td></tr>';
           }).join('') + '</tbody></table>' : '<div class="muted">No festivals yet.</div>');
+        // ── Festival campaign auto-pilot: Jamindar drafts the kit ──
+        if ($('fap_gen')) $('fap_gen').onclick = async function () {
+          var fest = rows.find(function (f) { return f.id === $('fap_fest').value; });
+          if (!fest) return alert('Pick an upcoming festival first.');
+          var btn = this; btn.disabled = true; btn.textContent = '✨ Drafting…';
+          var context = 'Festival campaign: ' + fest.name + ' on ' + fest.festival_date + '. ' +
+            (fest.blurb ? fest.blurb + ' ' : '') +
+            'A traditionally auspicious occasion for buying land, gold and property in India. ' +
+            'Create warm JAMIN Properties festival greetings with a property-buying offer angle ' +
+            '(verified plots, free site visits, escrow-protected bookings).';
+          try {
+            var social = await sb.functions.invoke('ai-generate', { body: { feature: 'social', input: { context: context, platform: 'WhatsApp' } } });
+            if (social.error) throw social.error;
+            var camp = await sb.functions.invoke('ai-generate', { body: { feature: 'campaign', input: { context: context } } });
+            if (camp.error) throw camp.error;
+            $('fap_social').value = (social.data && social.data.output) || '';
+            $('fap_campaign').value = (camp.data && camp.data.output) || '';
+            $('fap_out').classList.remove('hidden');
+          } catch (e) { alert(e.message || String(e)); }
+          btn.disabled = false; btn.textContent = '✨ Generate campaign kit';
+        };
+        if ($('fap_save')) $('fap_save').onclick = async function () {
+          var fest = rows.find(function (f) { return f.id === $('fap_fest').value; });
+          var text = $('fap_social').value.trim();
+          if (!fest || !text) return alert('Generate the kit first.');
+          var btn = this; btn.disabled = true; btn.textContent = 'Saving…';
+          var r = await sb.from('announcements').insert({
+            title: '🪔 ' + fest.name + ' — a blessed time to invest',
+            body: text,
+            active: false,
+          });
+          btn.disabled = false; btn.textContent = '📣 Save as app announcement (draft)';
+          if (r.error) return alert(r.error.message);
+          try { sb.rpc('log_admin_action', { p_action: 'festival.campaign_drafted', p_entity: 'festivals', p_entity_id: fest.id, p_payload: { festival: fest.name } }); } catch (e) {}
+          alert('Saved as a DRAFT announcement. Review & switch it on in 📣 Announcements.');
+        };
+        if ($('fap_copy')) $('fap_copy').onclick = function () {
+          var text = $('fap_social').value.trim();
+          if (!text) return;
+          navigator.clipboard.writeText(text).then(function () { alert('Copied — paste it into WhatsApp or socials.'); });
+        };
+
         $('fe_add').onclick = async function () {
           var name = $('fe_name').value.trim(); var date = $('fe_date').value;
           if (!name || !date) return alert('Name and date are required.');
