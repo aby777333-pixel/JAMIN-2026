@@ -443,6 +443,21 @@
       function opt(arr, val, labelFn) { return arr.map(function (x) { return '<option value="' + x.id + '"' + (x.id === val ? ' selected' : '') + '>' + labelFn(x) + '</option>'; }).join(''); }
       function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]); }); }
       function inr(n) { return '₹' + Number(n || 0).toLocaleString('en-IN'); }
+      /** AI outputs sometimes contain HTML (email drafts) — show them as readable
+          text: <br>/<p> become line breaks, other tags drop, entities decode. */
+      function stripHtml(s) {
+        return String(s == null ? '' : s)
+          .replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<\/p>\s*/gi, '\n\n')
+          .replace(/<[^>]+>/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim();
+      }
 
       // ─── Tabs ───────────────────────────────────────────────────────────
       document.querySelectorAll('.nav-i').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
@@ -3015,7 +3030,7 @@
                     '<div class="muted">' + new Date(g.created_at).toLocaleString('en-IN') + '</div></div>' +
                   (input.message ? '<div style="background:#fff5f5;border:1px solid #f3d5d5;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:13px"><b>User:</b> ' + esc(input.message) + '</div>' : '') +
                   '<div style="background:#f7f7f5;border:1px solid #e6e7e2;border-radius:8px;padding:8px 10px;font-size:13px;white-space:pre-wrap">' +
-                    '<b>' + (isVoice ? 'User said (transcript):' : 'Jamindar replied:') + '</b> ' + esc(g.output || '—') + '</div>' +
+                    '<b>' + (isVoice ? 'User said (transcript):' : 'Jamindar replied:') + '</b> ' + esc(stripHtml(g.output || '—')) + '</div>' +
                   '</div>';
               }).join('')
             : '<div class="muted">No AI conversations yet. They\'ll appear here as users talk to the assistant.</div>';
