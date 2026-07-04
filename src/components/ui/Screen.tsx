@@ -4,10 +4,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BG } from '@/components/brand/backgrounds';
 import { ImageBackdrop } from '@/components/brand/ImageBackdrop';
+import { ScreenPetals } from '@/components/brand/LeafDecor';
 import { cn } from '@/lib/cn';
 
-/** Subtle serene backdrop applied to scrollable screens that don't set their own. */
-const DEFAULT_BACKDROP = <ImageBackdrop source={BG.nature} height={220} opacity={0.55} />;
+/** Subtle serene backdrop applied to scrollable screens that don't set their own —
+    nature hero + soft botanical corner sprigs (decorative, behind content). */
+const DEFAULT_BACKDROP = (
+  <>
+    <ImageBackdrop source={BG.nature} height={220} opacity={0.55} />
+    <ScreenPetals />
+  </>
+);
 
 /**
  * Page wrapper: paper background, safe-area aware, keeps content inside the

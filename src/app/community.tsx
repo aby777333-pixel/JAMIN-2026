@@ -122,6 +122,18 @@ export default function Community() {
     load();
   }, [load]);
 
+  // Live feed: new posts appear the moment anyone publishes (tables are in the
+  // realtime publication; RLS still filters what each user may receive).
+  useEffect(() => {
+    const ch = supabase
+      .channel('community-feed')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_posts' }, () => load())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [load]);
+
   async function join() {
     if (joinName.trim().length < 2 || joinPhone.trim().length < 7) {
       Alert.alert(t('community.joinTitle'), t('community.joinNeed'));

@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { TabGarden } from '@/components/brand/LeafDecor';
 import { can } from '@/lib/access';
 import { tap } from '@/lib/haptics';
 import { accents, color } from '@/theme/tokens';
@@ -34,6 +35,8 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: color.red,
         tabBarInactiveTintColor: color.muted,
+        // Plants & leaves growing over the tab bar (decorative background layer).
+        tabBarBackground: () => <TabGarden />,
         tabBarStyle: {
           backgroundColor: color.surface,
           // Floating elevated bar instead of a flat hairline.
