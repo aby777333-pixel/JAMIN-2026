@@ -3914,13 +3914,13 @@
             '<button id="ac_add" class="btn btn-sm">Add</button></div></div>' +
           (rows.length ? '<table><thead><tr><th>Course</th><th>Level</th><th>Lessons</th><th>Quiz</th><th>Published</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (c) {
-            return '<tr data-id="' + c.id + '"><td>' + esc(c.title) + '<br><span class="muted" style="font-size:11px">' + esc(c.category) + ' · pass ' + c.pass_mark + '%</span></td>' +
+            return '<tr data-id="' + c.id + '"><td class="ac_open_t" style="cursor:pointer" title="Click to read the lessons">' + esc(c.title) + '<br><span class="muted" style="font-size:11px">' + esc(c.category) + ' · pass ' + c.pass_mark + '%</span></td>' +
               '<td>' + esc(c.level) + '</td>' +
               '<td class="mono">' + ((c.academy_lessons && c.academy_lessons[0] && c.academy_lessons[0].count) || 0) + '</td>' +
               '<td class="mono">' + ((c.academy_quiz && c.academy_quiz[0] && c.academy_quiz[0].count) || 0) + '</td>' +
               '<td><span class="pill ' + (c.is_published ? 'available' : 'sold') + '">' + (c.is_published ? 'live' : 'draft') + '</span></td>' +
-              '<td class="row"><button class="btn-o btn-sm ac_pub">' + (c.is_published ? 'Unpublish' : 'Publish') + '</button>' +
-                '<button class="btn-o btn-sm ac_lesson">+ Lesson</button><button class="btn-o btn-sm ac_quiz">+ Quiz</button>' +
+              '<td class="row"><button class="btn btn-sm ac_open">☰ Open</button>' +
+                '<button class="btn-o btn-sm ac_pub">' + (c.is_published ? 'Unpublish' : 'Publish') + '</button>' +
                 '<button class="btn-d btn-sm ac_del">Delete</button></td></tr>';
           }).join('') + '</tbody></table>' : '<div class="muted">No courses yet.</div>');
         $('ac_add').onclick = async function () {
@@ -3928,8 +3928,150 @@
           var r = await sb.from('academy_courses').insert({ title: t, category: $('ac_cat').value.trim() || 'general', level: $('ac_level').value.trim() || 'beginner' });
           if (r.error) return alert(r.error.message); renderAcademy();
         };
+
+        /** Course drawer: read every lesson in full, edit/reorder/delete them,
+            manage quiz questions and the pass mark — no more prompt() chains. */
+        async function openCourse(tr, course) {
+          var existing = tr.nextElementSibling;
+          if (existing && existing.classList.contains('ac_detail')) { existing.remove(); return; }
+          el.querySelectorAll('tr.ac_detail').forEach(function (x) { x.remove(); });
+          var results = await Promise.all([
+            sb.from('academy_lessons').select('id,title,content,video_url,sort_order').eq('course_id', course.id).order('sort_order'),
+            sb.from('academy_quiz').select('id,question,options,correct_index').eq('course_id', course.id).order('sort_order'),
+          ]);
+          var lessons = results[0].data || [], quiz = results[1].data || [];
+          function reload() { var d = tr.nextElementSibling; if (d && d.classList.contains('ac_detail')) d.remove(); openCourse(tr, course); }
+
+          var lessonsHtml = lessons.length ? lessons.map(function (l, i) {
+            return '<div class="ac_les" data-lid="' + l.id + '" style="border:1px solid rgba(128,128,128,.25);border-radius:10px;padding:10px 12px;margin-bottom:8px">' +
+              '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' +
+                '<b style="font-size:13px;flex:1;min-width:160px">' + (i + 1) + '. ' + esc(l.title) + '</b>' +
+                (l.video_url ? '<a href="' + esc(l.video_url) + '" target="_blank" rel="noopener" class="pill">▶ video</a>' : '') +
+                '<button class="btn-o btn-sm le_up" title="Move up">↑</button><button class="btn-o btn-sm le_down" title="Move down">↓</button>' +
+                '<button class="btn-o btn-sm le_edit">✏️ Edit</button><button class="btn-d btn-sm le_del">✕</button></div>' +
+              '<div class="le_read" style="font-size:13px;line-height:1.65;white-space:pre-wrap;margin-top:6px">' + esc(l.content || '(no content yet — click Edit to write the lesson)') + '</div>' +
+              '<div class="le_editor hidden" style="margin-top:6px">' +
+                '<input class="inp le_t" style="width:100%;height:34px;margin-bottom:6px" value="' + esc(l.title) + '" />' +
+                '<textarea class="inp le_c" style="width:100%;min-height:120px;height:auto;padding:10px">' + esc(l.content || '') + '</textarea>' +
+                '<div class="row" style="margin-top:6px;gap:6px"><input class="inp le_v" style="flex:1;height:34px" placeholder="Video URL (optional)" value="' + esc(l.video_url || '') + '" />' +
+                '<button class="btn btn-sm le_save">Save</button><button class="btn-o btn-sm le_cancel">Cancel</button></div></div></div>';
+          }).join('') : '<div class="muted" style="font-size:12px;margin-bottom:8px">No lessons yet — add the first one below.</div>';
+
+          var quizHtml = quiz.length ? quiz.map(function (qq2, i) {
+            return '<div data-qid="' + qq2.id + '" style="border:1px solid rgba(128,128,128,.25);border-radius:10px;padding:8px 12px;margin-bottom:6px">' +
+              '<div style="display:flex;gap:8px;align-items:center"><b style="font-size:12.5px;flex:1">Q' + (i + 1) + '. ' + esc(qq2.question) + '</b><button class="btn-d btn-sm qz_del">✕</button></div>' +
+              '<div style="font-size:12px;margin-top:4px">' + (qq2.options || []).map(function (o, oi) {
+                return '<span class="pill" style="margin-right:5px;' + (oi === qq2.correct_index ? 'background:rgba(48,164,108,.25);color:#30a46c;font-weight:700' : '') + '">' + (oi === qq2.correct_index ? '✓ ' : '') + esc(o) + '</span>';
+              }).join('') + '</div></div>';
+          }).join('') : '<div class="muted" style="font-size:12px;margin-bottom:8px">No quiz questions yet.</div>';
+
+          var detail = document.createElement('tr');
+          detail.className = 'ac_detail';
+          detail.innerHTML = '<td colspan="6" style="background:#fafaf8;padding:14px 18px">' +
+            '<div class="row" style="align-items:center;gap:8px;margin-bottom:10px"><b style="font-size:14px">📖 ' + esc(course.title) + '</b>' +
+              '<span class="muted" style="font-size:11px">pass mark</span><input class="inp ac_pass" type="number" min="0" max="100" style="width:70px;height:32px" value="' + course.pass_mark + '" />' +
+              '<button class="btn-o btn-sm ac_pass_save">Save %</button></div>' +
+            '<b style="font-size:12px">Lessons</b><div style="margin:6px 0 10px">' + lessonsHtml + '</div>' +
+            '<div style="border:1px dashed rgba(128,128,128,.4);border-radius:10px;padding:10px 12px;margin-bottom:14px">' +
+              '<b style="font-size:12px">+ Add lesson</b>' +
+              '<input class="inp nl_t" style="width:100%;height:34px;margin:6px 0" placeholder="Lesson title" />' +
+              '<textarea class="inp nl_c" style="width:100%;min-height:100px;height:auto;padding:10px" placeholder="Lesson content — write freely, line breaks are kept"></textarea>' +
+              '<div class="row" style="margin-top:6px;gap:6px"><input class="inp nl_v" style="flex:1;height:34px" placeholder="Video URL (optional)" />' +
+              '<button class="btn btn-sm nl_add">Add lesson</button></div></div>' +
+            '<b style="font-size:12px">Quiz questions</b><div style="margin:6px 0 8px">' + quizHtml + '</div>' +
+            '<div style="border:1px dashed rgba(128,128,128,.4);border-radius:10px;padding:10px 12px">' +
+              '<b style="font-size:12px">+ Add question</b>' +
+              '<input class="inp nq_q" style="width:100%;height:34px;margin:6px 0" placeholder="Question" />' +
+              '<div class="row" style="gap:6px"><input class="inp nq_o" style="flex:1;height:34px" placeholder="Options, comma-separated (e.g. Yes, No, Maybe)" />' +
+              '<input class="inp nq_c" type="number" min="1" style="width:130px;height:34px" placeholder="Correct # (1…)" />' +
+              '<button class="btn btn-sm nq_add">Add question</button></div></div></td>';
+          tr.parentNode.insertBefore(detail, tr.nextSibling);
+
+          detail.querySelector('.ac_pass_save').onclick = async function () {
+            var v = parseInt(detail.querySelector('.ac_pass').value, 10);
+            if (isNaN(v) || v < 0 || v > 100) return alert('Pass mark must be 0–100.');
+            var r = await sb.from('academy_courses').update({ pass_mark: v }).eq('id', course.id);
+            if (r.error) return alert(r.error.message);
+            this.textContent = 'Saved'; course.pass_mark = v;
+          };
+          detail.querySelectorAll('.ac_les').forEach(function (box, idx) {
+            var lid = box.dataset.lid;
+            box.querySelector('.le_edit').onclick = function () {
+              box.querySelector('.le_read').classList.add('hidden');
+              box.querySelector('.le_editor').classList.remove('hidden');
+            };
+            box.querySelector('.le_cancel').onclick = function () {
+              box.querySelector('.le_editor').classList.add('hidden');
+              box.querySelector('.le_read').classList.remove('hidden');
+            };
+            box.querySelector('.le_save').onclick = async function () {
+              var r = await sb.from('academy_lessons').update({
+                title: box.querySelector('.le_t').value.trim(),
+                content: box.querySelector('.le_c').value.trim() || null,
+                video_url: box.querySelector('.le_v').value.trim() || null,
+              }).eq('id', lid);
+              if (r.error) return alert(r.error.message);
+              reload();
+            };
+            box.querySelector('.le_del').onclick = async function () {
+              if (!confirm('Delete this lesson?')) return;
+              var r = await sb.from('academy_lessons').delete().eq('id', lid);
+              if (r.error) return alert(r.error.message);
+              reload(); renderAcademy();
+            };
+            async function move(dir) {
+              var j = idx + dir;
+              if (j < 0 || j >= lessons.length) return;
+              var order = lessons.slice();
+              var tmp = order[idx]; order[idx] = order[j]; order[j] = tmp;
+              for (var k = 0; k < order.length; k++) {
+                var r2 = await sb.from('academy_lessons').update({ sort_order: (k + 1) * 10 }).eq('id', order[k].id);
+                if (r2.error) return alert(r2.error.message);
+              }
+              reload();
+            }
+            box.querySelector('.le_up').onclick = function () { move(-1); };
+            box.querySelector('.le_down').onclick = function () { move(1); };
+          });
+          detail.querySelector('.nl_add').onclick = async function () {
+            var t = detail.querySelector('.nl_t').value.trim();
+            if (!t) return alert('Lesson title required.');
+            var r = await sb.from('academy_lessons').insert({
+              course_id: course.id, title: t,
+              content: detail.querySelector('.nl_c').value.trim() || null,
+              video_url: detail.querySelector('.nl_v').value.trim() || null,
+              sort_order: (lessons.length + 1) * 10,
+            });
+            if (r.error) return alert(r.error.message);
+            reload(); renderAcademy();
+          };
+          detail.querySelectorAll('[data-qid] .qz_del').forEach(function (b) {
+            b.onclick = async function () {
+              if (!confirm('Delete this question?')) return;
+              var r = await sb.from('academy_quiz').delete().eq('id', this.closest('[data-qid]').dataset.qid);
+              if (r.error) return alert(r.error.message);
+              reload(); renderAcademy();
+            };
+          });
+          detail.querySelector('.nq_add').onclick = async function () {
+            var qtext = detail.querySelector('.nq_q').value.trim();
+            var arr = detail.querySelector('.nq_o').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+            var ci = parseInt(detail.querySelector('.nq_c').value, 10) - 1;
+            if (!qtext) return alert('Question required.');
+            if (arr.length < 2) return alert('Give at least two options, comma-separated.');
+            if (isNaN(ci) || ci < 0 || ci >= arr.length) return alert('Correct # must be between 1 and ' + arr.length + '.');
+            var r = await sb.from('academy_quiz').insert({ course_id: course.id, question: qtext, options: arr, correct_index: ci });
+            if (r.error) return alert(r.error.message);
+            reload(); renderAcademy();
+          };
+        }
+
         el.querySelectorAll('tr[data-id]').forEach(function (tr) {
           var id = tr.dataset.id;
+          var course = rows.find(function (c) { return c.id === id; });
+          var open = function () { openCourse(tr, course); };
+          tr.querySelector('.ac_open').onclick = open;
+          tr.querySelector('.ac_open_t').onclick = open;
           tr.querySelector('.ac_pub').onclick = async function () {
             var pub = this.textContent === 'Publish';
             var r = await sb.from('academy_courses').update({ is_published: pub }).eq('id', id);
@@ -3938,22 +4080,6 @@
           tr.querySelector('.ac_del').onclick = async function () {
             if (!confirm('Delete this course and its lessons/quiz?')) return;
             var r = await sb.from('academy_courses').delete().eq('id', id);
-            if (r.error) alert(r.error.message); else renderAcademy();
-          };
-          tr.querySelector('.ac_lesson').onclick = async function () {
-            var title = prompt('Lesson title:'); if (!title) return;
-            var content = prompt('Lesson content (optional):') || null;
-            var video = prompt('Video URL (optional):') || null;
-            var r = await sb.from('academy_lessons').insert({ course_id: id, title: title, content: content, video_url: video });
-            if (r.error) alert(r.error.message); else renderAcademy();
-          };
-          tr.querySelector('.ac_quiz').onclick = async function () {
-            var question = prompt('Question:'); if (!question) return;
-            var opts = prompt('Options (comma-separated):'); if (!opts) return;
-            var arr = opts.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
-            var ci = parseInt(prompt('Correct option number (1-' + arr.length + '):') || '1', 10) - 1;
-            if (isNaN(ci) || ci < 0 || ci >= arr.length) return alert('Invalid correct option');
-            var r = await sb.from('academy_quiz').insert({ course_id: id, question: question, options: arr, correct_index: ci });
             if (r.error) alert(r.error.message); else renderAcademy();
           };
         });
