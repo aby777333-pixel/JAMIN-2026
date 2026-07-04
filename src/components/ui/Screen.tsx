@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BG } from '@/components/brand/backgrounds';
 import { ImageBackdrop } from '@/components/brand/ImageBackdrop';
 import { ScreenPetals } from '@/components/brand/LeafDecor';
+import { AccentCycleProvider } from '@/components/ui/Card';
 import { cn } from '@/lib/cn';
 
 /** Subtle serene backdrop applied to scrollable screens that don't set their own —
@@ -53,7 +54,7 @@ export function Screen({
         contentContainerClassName={cn('px-5 pb-8 grow', contentClassName)}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
-        {children}
+        <AccentCycleProvider>{children}</AccentCycleProvider>
       </ScrollView>
     );
     return (
@@ -74,7 +75,9 @@ export function Screen({
   return (
     <View className={cn('flex-1 bg-paper px-5', className)} style={pad}>
       {backdrop}
-      <View className={cn('flex-1', contentClassName)}>{children}</View>
+      <View className={cn('flex-1', contentClassName)}>
+        <AccentCycleProvider>{children}</AccentCycleProvider>
+      </View>
     </View>
   );
 }
