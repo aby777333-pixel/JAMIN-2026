@@ -2150,7 +2150,9 @@
             '<div><label>CTA link (optional)</label><input id="an_curl" class="inp" placeholder="/(tabs)/properties or https://…" /></div>' +
             '<div><label>Audience</label><select id="an_aud" class="inp">' + audSel('all') + '</select></div>' +
             '<div><label>Sort order</label><input id="an_sort" class="inp" type="number" value="100" /></div>' +
-            '<div style="grid-column:1/-1"><label>Image URL (optional)</label><input id="an_img" class="inp" placeholder="https://… — banner image shown above the text in the app" /></div>' +
+            '<div style="grid-column:1/-1"><label>Image URL (optional)</label><div class="row" style="gap:8px"><input id="an_img" class="inp" style="flex:1" placeholder="https://… — banner image shown above the text in the app" />' +
+              '<label class="btn-o btn-sm" style="display:inline-block;white-space:nowrap">📎 Upload picture / video / PDF<input id="an_file" type="file" accept="image/*,video/*,application/pdf" class="hidden" /></label></div>' +
+              '<div id="an_att" class="muted" style="font-size:11px;margin-top:4px"></div></div>' +
           '</div><button id="an_add" class="btn" style="margin-top:12px">+ Add announcement</button></div>' +
           (rows.length ? '<table><thead><tr><th>Title</th><th>Audience</th><th>CTA</th><th>Image</th><th>Order</th><th>Active</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (a) {
@@ -2161,8 +2163,22 @@
               '<td>' + (a.image_url ? '<img src="' + esc(a.image_url) + '" style="height:30px;width:48px;object-fit:cover;border-radius:5px;display:block;margin-bottom:3px" />' : '') + '<input class="inp an_img2" style="width:150px;height:30px" value="' + esc(a.image_url || '') + '" placeholder="image URL" /></td>' +
               '<td><input class="inp an_o" type="number" style="width:64px;height:34px" value="' + (a.sort_order || 100) + '" /></td>' +
               '<td><span class="pill ' + (a.active ? 'available' : 'sold') + '">' + (a.active ? 'on' : 'off') + '</span></td>' +
-              '<td class="row"><button class="btn btn-sm an_save">Save</button><button class="btn-o btn-sm an_tog">' + (a.active ? 'Disable' : 'Enable') + '</button><button class="btn-d btn-sm an_del">Delete</button></td></tr>';
+              '<td class="row"><button class="btn btn-sm an_save">Save</button><button class="btn-o btn-sm an_tog">' + (a.active ? 'Disable' : 'Enable') + '</button><button class="btn-o btn-sm an_wa" title="Send to WhatsApp — thumbnail is the banner image, or the JAMIN logo">🟢 WA</button><button class="btn-d btn-sm an_del">Delete</button></td></tr>';
           }).join('') + '</tbody></table>' : '<div class="muted">No announcements yet — add one above.</div>');
+        // Upload an asset: images fill the banner Image URL; videos/PDFs become the CTA link.
+        $('an_file').onchange = async function () {
+          var f = this.files && this.files[0]; if (!f) return;
+          $('an_att').textContent = 'Uploading…';
+          try {
+            var a = await uploadCampaignAsset(f);
+            if (a.kind === 'image') { $('an_img').value = a.url; $('an_att').textContent = '✓ picture attached as the banner image'; }
+            else {
+              $('an_curl').value = a.url;
+              if (!$('an_clabel').value.trim()) $('an_clabel').value = a.kind === 'video' ? '▶ Watch video' : '📄 Open document';
+              $('an_att').textContent = '✓ ' + a.kind + ' attached as the CTA link';
+            }
+          } catch (e) { $('an_att').textContent = 'Upload failed: ' + e.message; }
+        };
         $('an_add').onclick = async function () {
           var title = $('an_title').value.trim(); if (!title) return alert('Title is required.');
           var body = { title: title, body: $('an_body').value.trim() || null, image_url: $('an_img').value.trim() || null, cta_label: $('an_clabel').value.trim() || null, cta_url: $('an_curl').value.trim() || null, audience: $('an_aud').value, active: true };
@@ -2187,6 +2203,24 @@
             if (!confirm('Delete this announcement?')) return;
             var r = await sb.from('announcements').delete().eq('id', id);
             if (r.error) return alert(r.error.message); renderAnnouncements();
+          };
+          // Broadcast this announcement to WhatsApp (thumbnail = its image, else the JAMIN logo).
+          var waBtn = tr.querySelector('.an_wa');
+          if (waBtn) waBtn.onclick = async function () {
+            var a = rows.find(function (x) { return x.id === id; });
+            if (!a) return;
+            var seg = a.audience === 'buyer' ? 'buyers' : a.audience === 'partner' ? 'partners' : 'all';
+            if (!confirm('Send "' + a.title + '" to WhatsApp (' + seg + ')?')) return;
+            this.textContent = '…';
+            var r = await sb.functions.invoke('wa-send', { body: {
+              action: 'broadcast', audience: 'users', segment: seg,
+              title: a.title, body: a.body || '', image_url: a.image_url || '',
+              link: /^https?:\/\//.test(a.cta_url || '') ? a.cta_url : '',
+            } });
+            this.textContent = '🟢 WA';
+            if (r.error) return alert(r.error.message);
+            if (r.data && r.data.configured === false) return alert(r.data.message);
+            alert('WhatsApp: ' + ((r.data && r.data.sent) || 0) + ' sent, ' + ((r.data && r.data.failed) || 0) + ' failed.');
           };
         });
       }
@@ -3663,26 +3697,164 @@
           (codeDupes.length || geoDupes.length ? (codeDupes.join('') + geoDupes.join('')) : '<div class="muted">No duplicates detected. ✅</div>');
       }
 
-      // ─── Push campaigns (broadcast notification) ────────────────────────
+      // ─── Push campaigns (broadcast + WhatsApp + bulk emailer) ───────────
+      /** Upload a campaign asset (image/video/pdf) to property-media/campaigns. */
+      async function uploadCampaignAsset(f) {
+        var safe = (f.name || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
+        var path = 'campaigns/' + Date.now() + '_' + safe;
+        var up = await sb.storage.from('property-media').upload(path, f, { contentType: f.type, upsert: false });
+        if (up.error) throw up.error;
+        var url = sb.storage.from('property-media').getPublicUrl(path).data.publicUrl;
+        var kind = f.type.indexOf('image/') === 0 ? 'image' : f.type.indexOf('video/') === 0 ? 'video' : 'file';
+        return { url: url, kind: kind };
+      }
       async function renderCampaigns() {
         var el = $('tabCampaigns');
+        var att = null; // { url, kind } — the attached campaign asset
         el.innerHTML = '<div class="head"><h2>Push campaigns</h2></div>' +
-          '<div class="muted" style="margin-bottom:10px">Send a notification to everyone’s in-app feed (and push, where enabled).</div>' +
+          '<div class="muted" style="margin-bottom:10px">Send a notification to everyone’s in-app feed (and push, where enabled) — with pictures, videos, PDFs and links. Tick WhatsApp to also deliver it there with a thumbnail (attached picture, or the JAMIN logo when none).</div>' +
           '<div class="panel"><h3>New broadcast</h3>' +
             '<div class="row"><input id="bc_title" class="inp" style="max-width:320px" placeholder="Title" /></div>' +
             '<div class="row" style="margin-top:8px"><textarea id="bc_body" class="inp" style="max-width:480px;min-height:70px" placeholder="Message (optional)"></textarea></div>' +
-            '<div class="row" style="margin-top:8px"><select id="bc_seg" class="inp" style="max-width:200px"><option value="all">Everyone</option><option value="buyers">Buyers</option><option value="partners">Partners (agents+)</option></select>' +
-            '<button id="bc_send" class="btn btn-sm">Send broadcast</button></div>' +
-            '<div id="bc_msg" class="muted" style="margin-top:8px"></div></div>';
+            '<div class="row" style="margin-top:8px;align-items:center;gap:8px">' +
+              '<input id="bc_link" class="inp" style="max-width:320px" placeholder="Link (optional — https://…)" />' +
+              '<label class="btn-o btn-sm" style="display:inline-block">📎 Attach picture / video / PDF<input id="bc_file" type="file" accept="image/*,video/*,application/pdf" class="hidden" /></label>' +
+              '<span id="bc_att" class="muted" style="font-size:12px"></span></div>' +
+            '<div class="row" style="margin-top:8px;align-items:center;gap:8px">' +
+              '<select id="bc_seg" class="inp" style="max-width:200px"><option value="all">Everyone</option><option value="buyers">Buyers</option><option value="partners">Partners (agents+)</option></select>' +
+              '<label style="display:inline-flex;align-items:center;gap:5px;font-size:13px"><input type="checkbox" id="bc_wa" /> 🟢 Also send to WhatsApp</label>' +
+              '<button id="bc_send" class="btn btn-sm">Send broadcast</button></div>' +
+            '<div id="bc_msg" class="muted" style="margin-top:8px"></div></div>' +
+          '<div class="panel"><h3>📧 Bulk CSV smart emailer <span id="em_status" class="pill">checking…</span></h3>' +
+            '<div class="muted" style="font-size:12px;margin-bottom:8px">Upload a CSV with <span class="mono">email</span> (and optionally <span class="mono">name</span>) columns — write once, every mail is personalised with <span class="mono">{{name}}</span>. Needs a Resend key server-side (<span class="mono">resend_api_key</span>, same pattern as the AI keys).</div>' +
+            '<div class="row" style="align-items:center;gap:8px;margin-bottom:8px">' +
+              '<label class="btn-o btn-sm" style="display:inline-block">📄 Upload CSV<input id="em_csv" type="file" accept=".csv,text/csv" class="hidden" /></label>' +
+              '<span id="em_count" class="muted" style="font-size:12px">No recipients yet.</span></div>' +
+            '<div class="row" style="margin-bottom:8px"><input id="em_subj" class="inp" style="max-width:480px" placeholder="Subject — e.g. {{name}}, festive plots offer inside 🎉" /></div>' +
+            '<div class="row" style="margin-bottom:8px"><textarea id="em_body" class="inp" style="width:100%;max-width:640px;min-height:120px" placeholder="Email body (HTML allowed). Use {{name}} to personalise."></textarea></div>' +
+            '<div class="row" style="align-items:center;gap:8px">' +
+              '<button id="em_ai" class="btn-o btn-sm">✨ AI draft</button>' +
+              '<button id="em_send" class="btn btn-sm">Send emails</button>' +
+              '<span id="em_msg" class="muted" style="font-size:12px"></span></div>' +
+            '<div id="em_log" class="muted" style="margin-top:10px;font-size:12px"></div></div>';
+
+        // ── attachment upload ──
+        $('bc_file').onchange = async function () {
+          var f = this.files && this.files[0]; if (!f) return;
+          $('bc_att').textContent = 'Uploading…';
+          try {
+            att = await uploadCampaignAsset(f);
+            $('bc_att').textContent = '✓ ' + att.kind + ' attached';
+          } catch (e) { att = null; $('bc_att').textContent = 'Upload failed: ' + e.message; }
+        };
+
+        // ── broadcast (in-app + optional WhatsApp) ──
         $('bc_send').onclick = async function () {
           var title = $('bc_title').value.trim(); if (!title) return alert('Title required');
           if (!confirm('Send this broadcast to "' + $('bc_seg').value + '"?')) return;
           this.textContent = 'Sending…';
-          var r = await sb.rpc('broadcast_notification', { p_title: title, p_body: $('bc_body').value.trim(), p_segment: $('bc_seg').value });
+          var link = $('bc_link').value.trim();
+          var data = {};
+          if (att && att.kind === 'image') data.image_url = att.url;
+          if (att && att.kind !== 'image') { data.file_url = att.url; data.file_type = att.kind; }
+          if (link) data.link = link;
+          var r = await sb.rpc('broadcast_notification', { p_title: title, p_body: $('bc_body').value.trim(), p_segment: $('bc_seg').value, p_data: data });
+          var msg;
+          if (r.error) { msg = 'Error: ' + r.error.message; }
+          else {
+            msg = '✅ In-app: sent to ' + r.data + ' user(s).';
+            if ($('bc_wa').checked) {
+              var wa = await sb.functions.invoke('wa-send', { body: {
+                action: 'broadcast', audience: 'users', segment: $('bc_seg').value,
+                title: title, body: $('bc_body').value.trim(),
+                image_url: att && att.kind === 'image' ? att.url : '',
+                link: link || (att && att.kind !== 'image' ? att.url : ''),
+              } });
+              if (wa.error) msg += ' WhatsApp: ' + wa.error.message;
+              else if (wa.data && wa.data.configured === false) msg += ' WhatsApp: not configured yet (add wa_token + wa_phone_id).';
+              else msg += ' WhatsApp: ' + ((wa.data && wa.data.sent) || 0) + ' sent, ' + ((wa.data && wa.data.failed) || 0) + ' failed.';
+            }
+            $('bc_title').value = ''; $('bc_body').value = ''; $('bc_link').value = ''; att = null; $('bc_att').textContent = '';
+          }
           this.textContent = 'Send broadcast';
-          if (r.error) { $('bc_msg').textContent = 'Error: ' + r.error.message; }
-          else { $('bc_msg').textContent = '✅ Sent to ' + r.data + ' user(s).'; $('bc_title').value = ''; $('bc_body').value = ''; }
+          $('bc_msg').textContent = msg;
         };
+
+        // ── emailer ──
+        var emRecipients = [];
+        sb.functions.invoke('email-send', { body: { action: 'status' } }).then(function (r) {
+          var s = $('em_status'); if (!s) return;
+          if (r.error || !r.data) { s.textContent = 'unreachable'; s.className = 'pill sold'; return; }
+          s.textContent = r.data.configured ? 'ready ✓ · from ' + (r.data.from || '') : 'not configured';
+          s.className = 'pill ' + (r.data.configured ? 'available' : 'sold');
+        });
+        $('em_csv').onchange = function () {
+          var f = this.files && this.files[0]; if (!f) return;
+          var reader = new FileReader();
+          reader.onload = function () {
+            var lines = String(reader.result || '').split(/\r?\n/).filter(function (l) { return l.trim(); });
+            if (!lines.length) { $('em_count').textContent = 'Empty file.'; return; }
+            var split = function (l) { return l.split(',').map(function (c) { return c.trim().replace(/^"|"$/g, ''); }); };
+            var head = split(lines[0]).map(function (h) { return h.toLowerCase(); });
+            var ei = head.findIndex(function (h) { return h.indexOf('email') !== -1 || h.indexOf('mail') !== -1; });
+            var ni = head.findIndex(function (h) { return h.indexOf('name') !== -1; });
+            var start = ei === -1 ? 0 : 1;                        // headerless file: assume col 0 = email
+            if (ei === -1) ei = 0;
+            emRecipients = [];
+            var seen = {};
+            for (var i = start; i < lines.length; i++) {
+              var cols = split(lines[i]);
+              var em = (cols[ei] || '').toLowerCase();
+              if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em) || seen[em]) continue;
+              seen[em] = true;
+              emRecipients.push({ email: em, name: ni !== -1 ? (cols[ni] || '') : '' });
+            }
+            $('em_count').textContent = emRecipients.length + ' unique recipient(s) parsed ✓';
+          };
+          reader.readAsText(f);
+        };
+        $('em_ai').onclick = async function () {
+          var subj = $('em_subj').value.trim();
+          if (!subj) return alert('Write the subject first — the AI drafts the body from it.');
+          this.textContent = '✨ Drafting…'; this.disabled = true;
+          var r = await sb.functions.invoke('ai-generate', { body: { feature: 'assistant', input: { question:
+            'Write a short, warm HTML marketing email (no <html>/<head>, just body markup with <p>/<b>) for JAMIN Properties on the subject: "' + subj + '". Address the reader as {{name}}. End with a friendly call to action to open the JAMIN app. Max 130 words.' } } });
+          this.textContent = '✨ AI draft'; this.disabled = false;
+          if (r.error) return alert(r.error.message);
+          if (r.data && r.data.output) $('em_body').value = r.data.output;
+        };
+        $('em_send').onclick = async function () {
+          var subj = $('em_subj').value.trim(), body = $('em_body').value.trim();
+          if (!subj || !body) return alert('Subject and body are required.');
+          if (!emRecipients.length) return alert('Upload a CSV of recipients first.');
+          if (!confirm('Send this email to ' + emRecipients.length + ' recipient(s)?')) return;
+          var btn = this; btn.disabled = true;
+          var sent = 0, failed = 0;
+          for (var i = 0; i < emRecipients.length; i += 80) {
+            var batch = emRecipients.slice(i, i + 80);
+            btn.textContent = 'Sending ' + Math.min(i + 80, emRecipients.length) + '/' + emRecipients.length + '…';
+            var r = await sb.functions.invoke('email-send', { body: { action: 'send', subject: subj, html: body, recipients: batch } });
+            if (r.error) { alert(r.error.message); break; }
+            if (r.data && r.data.configured === false) { alert(r.data.message); break; }
+            sent += (r.data && r.data.sent) || 0; failed += (r.data && r.data.failed) || 0;
+          }
+          btn.disabled = false; btn.textContent = 'Send emails';
+          $('em_msg').textContent = '✅ ' + sent + ' sent · ' + failed + ' failed.';
+          try { sb.rpc('log_admin_action', { p_action: 'email.campaign_sent', p_entity: 'email_outbox', p_entity_id: null, p_payload: { sent: sent, failed: failed, subject: subj } }); } catch (e) {}
+          loadEmailLog();
+        };
+        async function loadEmailLog() {
+          var box = $('em_log'); if (!box) return;
+          var r = await sb.from('email_outbox').select('to_email,subject,status,error,created_at').order('created_at', { ascending: false }).limit(15);
+          if (r.error || !(r.data || []).length) { box.textContent = ''; return; }
+          box.innerHTML = '<b style="font-size:12px">Recent sends</b><table><thead><tr><th>When</th><th>To</th><th>Subject</th><th>Status</th></tr></thead><tbody>' +
+            r.data.map(function (m) {
+              return '<tr><td class="muted" style="white-space:nowrap">' + esc(new Date(m.created_at).toLocaleString()) + '</td>' +
+                '<td class="mono" style="font-size:11px">' + esc(m.to_email) + '</td><td style="font-size:12px">' + esc(m.subject || '') + '</td>' +
+                '<td><span class="pill ' + (m.status === 'sent' ? 'available' : 'sold') + '">' + esc(m.status) + '</span>' + (m.error ? ' <span class="muted" style="font-size:10px">' + esc(m.error) + '</span>' : '') + '</td></tr>';
+            }).join('') + '</tbody></table>';
+        }
+        loadEmailLog();
       }
 
       // ─── Escrow milestones ──────────────────────────────────────────────
@@ -4077,6 +4249,13 @@
           'Everything posted in the app\'s <b>Community</b> feed (any language, text + photos + videos). ' +
           'Users must join with a <b>name and phone number</b> — the number is shown only here, never publicly, and phone numbers typed inside posts are masked in the app so contact stays through JAMIN. ' +
           'Every post, comment and moderation action is recorded automatically in the <b>Audit log</b>.</div></div>' +
+          '<div class="panel" style="margin-bottom:12px"><h3>📣 Post to the community as JAMIN</h3>' +
+            '<div class="muted" style="font-size:12px;margin-bottom:8px">Every community member sees it in their feed instantly (live). Attach pictures/videos and include links right in the text.</div>' +
+            '<div class="row"><textarea id="cmp_body" class="inp" style="width:100%;max-width:640px;min-height:80px;height:auto;padding:10px" placeholder="Write your update… links are fine, e.g. https://…"></textarea></div>' +
+            '<div class="row" style="margin-top:8px;align-items:center;gap:8px">' +
+              '<label class="btn-o btn-sm" style="display:inline-block">📎 Attach pictures / videos<input id="cmp_media" type="file" accept="image/*,video/*" class="hidden" multiple /></label>' +
+              '<span id="cmp_att" class="muted" style="font-size:12px"></span>' +
+              '<button id="cmp_post" class="btn btn-sm">Post to community</button></div></div>' +
           (rows.length ? '<table><thead><tr><th>When</th><th>Author</th><th>Phone</th><th>Lang</th><th>Post</th><th>Media</th><th>♥ / 💬</th><th>Status</th><th></th></tr></thead><tbody>' +
             rows.map(function (p) {
               var media = (p.media || []).map(function (m, i) {
@@ -4098,6 +4277,51 @@
                 '<td class="row" style="white-space:nowrap">' + acts + ' <button class="btn-o btn-sm cm_cmts" title="View comments">💬</button></td></tr>';
             }).join('') + '</tbody></table>' : '<div class="muted">No posts' + (commFilter === 'all' ? ' yet' : ' with this status') + '.</div>');
         if ($('cm_filter')) $('cm_filter').onchange = function () { commFilter = this.value; renderCommunity(); };
+        // ── Post as JAMIN (media uploads to the admin's own user-media folder) ──
+        if ($('cmp_media')) $('cmp_media').onchange = function () {
+          var n = (this.files || []).length;
+          $('cmp_att').textContent = n ? n + ' file(s) ready' : '';
+        };
+        if ($('cmp_post')) $('cmp_post').onclick = async function () {
+          var body = $('cmp_body').value.trim();
+          var files = Array.prototype.slice.call(($('cmp_media').files || []), 0, 4);
+          if (!body && !files.length) return alert('Write something or attach media first.');
+          var btn = this; btn.disabled = true; btn.textContent = 'Posting…';
+          try {
+            var u = await sb.auth.getUser();
+            var uid = u.data && u.data.user ? u.data.user.id : null;
+            if (!uid) throw new Error('Not signed in');
+            var prof = await sb.from('profiles').select('full_name,phone').eq('id', uid).maybeSingle();
+            var media = [];
+            for (var i = 0; i < files.length; i++) {
+              var f = files[i];
+              var safe = (f.name || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
+              var path = uid + '/community/' + Date.now() + '_' + i + '_' + safe;
+              var up = await sb.storage.from('user-media').upload(path, f, { contentType: f.type, upsert: false });
+              if (up.error) throw up.error;
+              media.push({
+                type: f.type.indexOf('video/') === 0 ? 'video' : 'image',
+                url: sb.storage.from('user-media').getPublicUrl(path).data.publicUrl,
+              });
+            }
+            var ins = await sb.from('community_posts').insert({
+              author_id: uid,
+              author_name: (prof.data && prof.data.full_name) || 'JAMIN Team',
+              author_phone: (prof.data && prof.data.phone) || '—',
+              body: body || null,
+              lang: 'en',
+              media: media,
+            });
+            if (ins.error) throw ins.error;
+            $('cmp_body').value = ''; $('cmp_media').value = ''; $('cmp_att').textContent = '';
+            btn.textContent = '✓ Posted';
+            setTimeout(renderCommunity, 800);
+          } catch (e) {
+            alert(e.message || String(e));
+            btn.textContent = 'Post to community';
+          }
+          btn.disabled = false;
+        };
         async function setStatus(id, status) {
           var r = await sb.from('community_posts').update({ status: status }).eq('id', id);
           if (r.error) return alert(r.error.message);

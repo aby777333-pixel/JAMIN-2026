@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { ActivityIndicator, FlatList, Pressable, View } from 'react-native';
+import { ActivityIndicator, FlatList, Linking, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackHeader } from '@/components/ui/BackHeader';
@@ -67,12 +68,18 @@ export default function NotificationsScreen() {
         refreshing={isRefetching}
         renderItem={({ item }) => {
           const unread = !item.read_at;
+          // Rich broadcasts can carry an image, a file (video/PDF) and a link.
+          const imageUrl = typeof item.data?.image_url === 'string' ? item.data.image_url : null;
+          const fileUrl = typeof item.data?.file_url === 'string' ? item.data.file_url : null;
+          const link = typeof item.data?.link === 'string' ? item.data.link : null;
+          const openUrl = link ?? fileUrl;
           return (
             <Pressable
               onPress={() => {
                 if (unread) markRead.mutate(item.id);
                 const r = routeFor(item);
                 if (r) router.push(r as never);
+                else if (openUrl) void Linking.openURL(openUrl).catch(() => {});
               }}>
               <Card className={`flex-row items-start gap-3 ${unread ? 'border-red/30 bg-red/5' : ''}`}>
                 <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
@@ -83,9 +90,28 @@ export default function NotificationsScreen() {
                     {item.title}
                   </Text>
                   {item.body ? (
-                    <Text variant="caption" numberOfLines={2}>
+                    <Text variant="caption" numberOfLines={3}>
                       {item.body}
                     </Text>
+                  ) : null}
+                  {imageUrl ? (
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={{ width: '100%', height: 140, borderRadius: 12, marginTop: 6 }}
+                      contentFit="cover"
+                    />
+                  ) : null}
+                  {openUrl ? (
+                    <View className="mt-1.5 flex-row items-center gap-1">
+                      <Ionicons
+                        name={fileUrl && !link ? 'document-attach' : 'open-outline'}
+                        size={13}
+                        color={color.red}
+                      />
+                      <Text className="text-[12px] font-semibold text-red" numberOfLines={1}>
+                        {fileUrl && !link ? 'Open attachment' : 'Open link'}
+                      </Text>
+                    </View>
                   ) : null}
                   <Text variant="caption" className="mt-0.5 text-[11px]">
                     {new Date(item.created_at).toLocaleString('en-IN')}

@@ -14,6 +14,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
+/** Campaign thumbnail fallback when no picture/video is attached. */
+const LOGO_URL = 'https://wonderful-cupcake-0d3074.netlify.app/logo.jpg';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -28,7 +30,7 @@ async function secret(svc: ReturnType<typeof createClient>, key: string): Promis
   return v && String(v).trim() ? String(v).trim() : undefined;
 }
 
-/** Send one WhatsApp text message; logs the outcome. Returns ok/error. */
+/** Send one WhatsApp message (text, or image + caption); logs the outcome. */
 async function send(
   svc: ReturnType<typeof createClient>,
   token: string,
@@ -36,20 +38,31 @@ async function send(
   to: string,
   body: string,
   kind: string,
+  imageUrl?: string,
 ): Promise<{ ok: boolean; error?: string }> {
-  const digits = to.replace(/[^\d]/g, '');
+  // Normalize: Indian 10-digit numbers get the country code.
+  let digits = to.replace(/[^\d]/g, '');
+  if (digits.length === 10) digits = '91' + digits;
   let ok = false;
   let err: string | undefined;
   try {
+    const payload = imageUrl
+      ? {
+          messaging_product: 'whatsapp',
+          to: digits,
+          type: 'image',
+          image: { link: imageUrl, caption: body.slice(0, 1024) },
+        }
+      : {
+          messaging_product: 'whatsapp',
+          to: digits,
+          type: 'text',
+          text: { body: body.slice(0, 3500) },
+        };
     const res = await fetch(`https://graph.facebook.com/v20.0/${phoneId}/messages`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to: digits,
-        type: 'text',
-        text: { body: body.slice(0, 3500) },
-      }),
+      body: JSON.stringify(payload),
     });
     const d = await res.json().catch(() => ({}));
     ok = res.ok;
@@ -146,6 +159,58 @@ Deno.serve(async (req) => {
         if (r.ok) sent++;
       }
       return json({ configured: true, sent });
+    }
+
+    if (action === 'broadcast') {
+      // Campaign / announcement to WhatsApp: image (attached picture, or the
+      // JAMIN logo when none) + caption with the campaign details and link.
+      const title = String(input.title ?? '').trim();
+      if (!title) return json({ error: 'title required' }, 400);
+      const bodyText = String(input.body ?? '').trim();
+      const link = String(input.link ?? '').trim();
+      const image = String(input.image_url ?? '').trim() || LOGO_URL;
+      const caption =
+        `🏡 ${title}` +
+        (bodyText ? `\n${bodyText.slice(0, 700)}` : '') +
+        (link ? `\n${link}` : '') +
+        '\n— JAMIN Properties · Signature for Fortune';
+
+      let recipients: string[] = [];
+      if (input.audience === 'numbers') {
+        const { data: cfgRow } = await svc.from('system_config').select('value').eq('key', 'wa_alerts').maybeSingle();
+        const cfg = (cfgRow?.value ?? {}) as { numbers?: string[] };
+        recipients = Array.isArray(cfg.numbers) ? cfg.numbers.filter(Boolean).map(String) : [];
+      } else {
+        // 'users' — profile phone numbers, optional segment (same semantics
+        // as broadcast_notification: all | buyers | partners).
+        const seg = String(input.segment ?? 'all');
+        const { data: profs } = await svc
+          .from('profiles')
+          .select('phone, role:roles(level)')
+          .not('phone', 'is', null)
+          .limit(2000);
+        recipients = (profs ?? [])
+          .filter((p: { phone: string | null; role: { level: number | null } | null }) => {
+            if (!p.phone || p.phone.trim().length < 7) return false;
+            const lvl = p.role?.level ?? null;
+            if (seg === 'partners') return lvl != null && lvl <= 6;
+            if (seg === 'buyers') return lvl == null || lvl >= 7;
+            return true;
+          })
+          .map((p: { phone: string | null }) => String(p.phone));
+      }
+      // Dedupe + safety cap.
+      recipients = [...new Set(recipients.map((r) => r.replace(/[^\d]/g, '')))].filter(Boolean).slice(0, 500);
+      if (recipients.length === 0) return json({ configured: true, sent: 0, failed: 0, recipients: 0 });
+
+      let sent = 0;
+      let failed = 0;
+      for (const to of recipients) {
+        const r = await send(svc, token!, phoneId!, to, caption, 'campaign', image);
+        if (r.ok) sent++;
+        else failed++;
+      }
+      return json({ configured: true, sent, failed, recipients: recipients.length });
     }
 
     return json({ error: `Unsupported action: ${action}` }, 400);
