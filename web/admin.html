@@ -3865,7 +3865,10 @@
       }
       async function renderCampaigns() {
         var el = $('tabCampaigns');
-        var att = null; // { url, kind } — the attached campaign asset
+        var att = null;        // { url, kind } — the attached campaign asset
+        var bcPerson = null;   // { id, full_name, phone } — 🎯 one-person target
+        var rolesQ = await sb.from('roles').select('slug,name,level').eq('is_admin', false).order('level');
+        var bcRoles = rolesQ.data || [];
         el.innerHTML = '<div class="head"><h2>Push campaigns</h2></div>' +
           '<div class="muted" style="margin-bottom:10px">Send a notification to everyone’s in-app feed (and push, where enabled) — with pictures, videos, PDFs and links. Tick WhatsApp to also deliver it there with a thumbnail (attached picture, or the JAMIN logo when none).</div>' +
           '<div class="panel"><h3>New broadcast</h3>' +
@@ -3875,10 +3878,23 @@
               '<input id="bc_link" class="inp" style="max-width:320px" placeholder="Link (optional — https://…)" />' +
               '<label class="btn-o btn-sm" style="display:inline-block">📎 Attach picture / video / PDF<input id="bc_file" type="file" accept="image/*,video/*,application/pdf" class="hidden" /></label>' +
               '<span id="bc_att" class="muted" style="font-size:12px"></span></div>' +
-            '<div class="row" style="margin-top:8px;align-items:center;gap:8px">' +
-              '<select id="bc_seg" class="inp" style="max-width:200px"><option value="all">Everyone</option><option value="buyers">Buyers</option><option value="partners">Partners (agents+)</option></select>' +
+            '<div class="row" style="margin-top:8px;align-items:center;gap:8px;flex-wrap:wrap">' +
+              '<select id="bc_seg" class="inp" style="max-width:230px">' +
+                '<option value="all">Everyone</option>' +
+                '<option value="buyers">Buyers</option>' +
+                '<option value="partners">Partners (agents+)</option>' +
+                '<optgroup label="By role">' +
+                  bcRoles.map(function (r) { return '<option value="role:' + esc(r.slug) + '">👥 ' + esc(r.name) + '</option>'; }).join('') +
+                '</optgroup>' +
+                '<option value="user">🎯 One person…</option>' +
+              '</select>' +
               '<label style="display:inline-flex;align-items:center;gap:5px;font-size:13px"><input type="checkbox" id="bc_wa" /> 🟢 Also send to WhatsApp <span id="bc_wa_note" class="muted" style="font-size:11px"></span></label>' +
               '<button id="bc_send" class="btn btn-sm">Send broadcast</button></div>' +
+            '<div id="bc_person" class="hidden" style="margin-top:8px;max-width:520px">' +
+              '<div class="row" style="gap:8px;align-items:center">' +
+                '<input id="bc_pq" class="inp" style="flex:1;height:36px" placeholder="🔍 Search by name, phone or email…" />' +
+                '<span id="bc_pchip" class="pill hidden" style="background:var(--gold)"></span></div>' +
+              '<div id="bc_plist" style="margin-top:6px"></div></div>' +
             '<div id="bc_msg" class="muted" style="margin-top:8px"></div></div>' +
           '<div class="panel"><h3>📧 Bulk CSV smart emailer <span id="em_status" class="pill">checking…</span></h3>' +
             '<div class="muted" style="font-size:12px;margin-bottom:8px">Upload a CSV with <span class="mono">email</span> (and optionally <span class="mono">name</span>) columns — write once, every mail is personalised with <span class="mono">{{name}}</span>. Needs a Resend key server-side (<span class="mono">resend_api_key</span>, same pattern as the AI keys).</div>' +
@@ -3927,33 +3943,95 @@
           } catch (e) { att = null; $('bc_att').textContent = 'Upload failed: ' + e.message; }
         };
 
-        // ── broadcast (in-app + optional WhatsApp) ──
+        // ── 🎯 one-person search (name / phone / email, live as you type) ──
+        $('bc_seg').onchange = function () {
+          $('bc_person').classList.toggle('hidden', this.value !== 'user');
+        };
+        var bcSearchTimer = null;
+        $('bc_pq').oninput = function () {
+          var q = this.value.trim();
+          clearTimeout(bcSearchTimer);
+          if (q.length < 2) { $('bc_plist').innerHTML = ''; return; }
+          bcSearchTimer = setTimeout(async function () {
+            var r = await sb.from('profiles')
+              .select('id,full_name,phone,email, role:roles(name)')
+              .or('full_name.ilike.%' + q + '%,phone.ilike.%' + q + '%,email.ilike.%' + q + '%')
+              .limit(8);
+            var list = $('bc_plist'); if (!list) return;
+            if (r.error) { list.innerHTML = '<span class="muted" style="font-size:12px">' + esc(r.error.message) + '</span>'; return; }
+            list.innerHTML = (r.data || []).length
+              ? (r.data || []).map(function (p) {
+                  return '<button type="button" class="btn-o btn-sm bc_pick" data-pid="' + p.id + '" data-pname="' + esc(p.full_name || '') + '" data-pphone="' + esc(p.phone || '') + '" style="display:block;width:100%;text-align:left;margin-bottom:4px">' +
+                    esc(p.full_name || '(unnamed)') +
+                    ' <span class="muted" style="font-size:11px">' + esc(p.phone || '') + (p.email ? ' · ' + esc(p.email) : '') + ((p.role && p.role.name) ? ' · ' + esc(p.role.name) : '') + '</span></button>';
+                }).join('')
+              : '<span class="muted" style="font-size:12px">No matches.</span>';
+            list.querySelectorAll('.bc_pick').forEach(function (b) {
+              b.onclick = function () {
+                bcPerson = { id: this.dataset.pid, full_name: this.dataset.pname, phone: this.dataset.pphone };
+                $('bc_pchip').textContent = '🎯 ' + (bcPerson.full_name || 'selected');
+                $('bc_pchip').classList.remove('hidden');
+                $('bc_plist').innerHTML = '';
+                $('bc_pq').value = '';
+              };
+            });
+          }, 350);
+        };
+
+        // ── broadcast (in-app + optional WhatsApp) — everyone / role / person ──
         $('bc_send').onclick = async function () {
           var title = $('bc_title').value.trim(); if (!title) return alert('Title required');
-          if (!confirm('Send this broadcast to "' + $('bc_seg').value + '"?')) return;
+          var target = $('bc_seg').value;
+          if (target === 'user' && !bcPerson) return alert('Search and pick the person first (name, phone or email).');
+          var who = target === 'user' ? bcPerson.full_name : target;
+          if (!confirm('Send this to "' + who + '"?')) return;
           this.textContent = 'Sending…';
           var link = $('bc_link').value.trim();
           var data = {};
           if (att && att.kind === 'image') data.image_url = att.url;
           if (att && att.kind !== 'image') { data.file_url = att.url; data.file_type = att.kind; }
           if (link) data.link = link;
-          var r = await sb.rpc('broadcast_notification', { p_title: title, p_body: $('bc_body').value.trim(), p_segment: $('bc_seg').value, p_data: data });
+          var r = await sb.rpc('send_notification_to', {
+            p_title: title, p_body: $('bc_body').value.trim(), p_data: data,
+            p_audience: target === 'user' ? 'user' : target,
+            p_user_id: target === 'user' ? bcPerson.id : null,
+          });
           var msg;
           if (r.error) { msg = 'Error: ' + r.error.message; }
           else {
             msg = '✅ In-app: sent to ' + r.data + ' user(s).';
             if ($('bc_wa').checked) {
-              var wa = await sb.functions.invoke('wa-send', { body: {
-                action: 'broadcast', audience: 'users', segment: $('bc_seg').value,
+              // WhatsApp recipients per target: person → their phone; role →
+              // that role's phones; segments → wa-send resolves them itself.
+              var waBody = {
+                action: 'broadcast',
                 title: title, body: $('bc_body').value.trim(),
                 image_url: att && att.kind === 'image' ? att.url : '',
                 link: link || (att && att.kind !== 'image' ? att.url : ''),
-              } });
-              if (wa.error) msg += ' WhatsApp: ' + wa.error.message;
-              else if (wa.data && wa.data.configured === false) msg += ' WhatsApp: not configured yet (add wa_token + wa_phone_id).';
-              else msg += ' WhatsApp: ' + ((wa.data && wa.data.sent) || 0) + ' sent, ' + ((wa.data && wa.data.failed) || 0) + ' failed.';
+              };
+              var waSkip = null;
+              if (target === 'user') {
+                if (bcPerson.phone) waBody.phones = [bcPerson.phone];
+                else waSkip = 'that person has no phone number on their profile';
+              } else if (target.indexOf('role:') === 0) {
+                var rp = await sb.from('profiles').select('phone, role:roles!inner(slug)').eq('role.slug', target.slice(5)).not('phone', 'is', null).limit(500);
+                var phones = (rp.data || []).map(function (p) { return p.phone; }).filter(Boolean);
+                if (phones.length) waBody.phones = phones;
+                else waSkip = 'no phone numbers found for that role';
+              } else {
+                waBody.audience = 'users';
+                waBody.segment = target;
+              }
+              if (waSkip) msg += ' WhatsApp: skipped — ' + waSkip + '.';
+              else {
+                var wa = await sb.functions.invoke('wa-send', { body: waBody });
+                if (wa.error) msg += ' WhatsApp: ' + wa.error.message;
+                else if (wa.data && wa.data.configured === false) msg += ' WhatsApp: not configured yet (add wa_token + wa_phone_id).';
+                else msg += ' WhatsApp: ' + ((wa.data && wa.data.sent) || 0) + ' sent, ' + ((wa.data && wa.data.failed) || 0) + ' failed.';
+              }
             }
             $('bc_title').value = ''; $('bc_body').value = ''; $('bc_link').value = ''; att = null; $('bc_att').textContent = '';
+            bcPerson = null; $('bc_pchip').classList.add('hidden');
           }
           this.textContent = 'Send broadcast';
           $('bc_msg').textContent = msg;

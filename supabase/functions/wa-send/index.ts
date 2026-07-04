@@ -176,7 +176,10 @@ Deno.serve(async (req) => {
         '\n— JAMIN Properties · Signature for Fortune';
 
       let recipients: string[] = [];
-      if (input.audience === 'numbers') {
+      if (Array.isArray(input.phones) && input.phones.length) {
+        // Explicit phone list (single person / role targets from the admin).
+        recipients = input.phones.map((p: unknown) => String(p));
+      } else if (input.audience === 'numbers') {
         const { data: cfgRow } = await svc.from('system_config').select('value').eq('key', 'wa_alerts').maybeSingle();
         const cfg = (cfgRow?.value ?? {}) as { numbers?: string[] };
         recipients = Array.isArray(cfg.numbers) ? cfg.numbers.filter(Boolean).map(String) : [];
