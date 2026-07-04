@@ -46,14 +46,22 @@ export default async (request) => {
         (ad.agent_name ? `${ad.agent_name} · ` : '') + "View this property's live photo, location & contact.",
       );
       html = html
-        .replace(/<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${img}" />`)
+        .replace(/<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${img}" /><meta property="og:image:type" content="image/jpeg" />`)
         .replace(/<meta property="og:title"[^>]*>/, `<meta property="og:title" content="${title}" />`)
         .replace(/<meta property="og:description"[^>]*>/, `<meta property="og:description" content="${desc}" />`)
         .replace('</head>', `<meta name="twitter:image" content="${img}" /></head>`);
     }
   } catch {
-    /* serve unchanged */
+    /* serve unchanged — the template's JAMIN-logo og:image still previews */
   }
+
+  // Always present, ad or not: canonical URL + site name (WhatsApp/FB renderers
+  // are far more reliable with og:url; the template's logo og:image is the
+  // fallback so every /ad link previews with JAMIN branding at minimum).
+  html = html.replace(
+    '</head>',
+    `<meta property="og:url" content="${esc(`${url.origin}/ad/${slug}`)}" /><meta property="og:site_name" content="JAMIN Properties" /></head>`,
+  );
 
   return new Response(html, {
     headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=300' },

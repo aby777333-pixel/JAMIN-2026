@@ -74,5 +74,16 @@ export async function publishAd(input: PublishAdInput): Promise<{ slug: string; 
     captured_at: input.capturedAt ?? null,
   });
   if (error) throw error;
+  // Pre-warm the WhatsApp/social preview. Crawlers time out on the FIRST hit
+  // while images.weserv.nl resizes the ~1 MB flyer, and WhatsApp then caches a
+  // preview-less card for the link. Warming the resized JPEG (same params as
+  // the /ad function's previewImage) + the OG page makes the first share show
+  // the branded flyer instantly. Fire-and-forget: never blocks publishing.
+  const preview =
+    'https://images.weserv.nl/?url=' +
+    encodeURIComponent(imageUrl.replace(/^https?:\/\//, '')) +
+    '&w=900&output=jpg&q=80';
+  void fetch(preview).catch(() => {});
+  void fetch(`${AD_SITE}/ad/${slug}`).catch(() => {});
   return { slug, url: `${AD_SITE}/ad/${slug}` };
 }

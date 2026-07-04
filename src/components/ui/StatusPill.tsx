@@ -25,7 +25,8 @@ export function StatusPill({ status }: { status: string }) {
   const [bg, text] = tone.split(' ');
   return (
     <View className={cn('self-start rounded-full px-2.5 py-1', bg)}>
-      <Text className={cn('text-[11px] font-semibold uppercase tracking-[0.5px]', text)}>
+      {/* Pills must never wrap mid-word (e.g. "AVAILABL E" in tight compare columns). */}
+      <Text numberOfLines={1} className={cn('text-[11px] font-semibold uppercase tracking-[0.5px]', text)}>
         {status}
       </Text>
     </View>

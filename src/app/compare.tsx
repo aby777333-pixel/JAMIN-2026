@@ -87,7 +87,7 @@ export default function Compare() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View className="flex-row">
               {selected.map((p) => (
-                <View key={p.id} className="w-36 px-3">
+                <View key={p.id} className="w-40 px-3">
                   <View className={`${ROW_H} justify-center`}>
                     <Text variant="title" className="font-mono-bold text-red" numberOfLines={1}>
                       {p.plot_code}
@@ -95,7 +95,8 @@ export default function Compare() {
                   </View>
                   {rows.map((r) => (
                     <View key={r.label} className={`${ROW_H} justify-center border-t border-line`}>
-                      <Text variant="body" numberOfLines={2}>
+                      {/* One line, auto-shrunk — prices like ₹40,00,000.00 must never wrap. */}
+                      <Text variant="body" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
                         {r.value(p)}
                       </Text>
                     </View>
