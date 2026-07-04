@@ -3885,12 +3885,15 @@
             '<div class="row" style="align-items:center;gap:8px;margin-bottom:8px">' +
               '<label class="btn-o btn-sm" style="display:inline-block">📄 Upload CSV<input id="em_csv" type="file" accept=".csv,text/csv" class="hidden" /></label>' +
               '<span id="em_count" class="muted" style="font-size:12px">No recipients yet.</span></div>' +
-            '<div class="row" style="margin-bottom:8px"><input id="em_to" class="inp" style="width:100%;max-width:640px" placeholder="To — extra addresses, comma-separated (added to the CSV list; CSV optional)" /></div>' +
-            '<div class="row" style="gap:8px;margin-bottom:8px;flex-wrap:wrap">' +
-              '<input id="em_cc" class="inp" style="flex:1;min-width:220px;max-width:316px" placeholder="CC (comma-separated — copied on EVERY email)" />' +
-              '<input id="em_bcc" class="inp" style="flex:1;min-width:220px;max-width:316px" placeholder="BCC (comma-separated — hidden copy on EVERY email)" /></div>' +
-            '<div class="row" style="margin-bottom:8px"><input id="em_subj" class="inp" style="max-width:480px" placeholder="Subject — e.g. {{name}}, festive plots offer inside 🎉" /></div>' +
-            '<div class="row" style="margin-bottom:8px"><textarea id="em_body" class="inp" style="width:100%;max-width:640px;min-height:120px" placeholder="Email body (HTML allowed). Use {{name}} to personalise."></textarea></div>' +
+            '<div style="max-width:640px;margin-bottom:8px"><label style="font-size:11px">To — one address, or many comma-separated (CSV recipients are added automatically)</label>' +
+              '<input id="em_to" class="inp" style="width:100%" placeholder="someone@gmail.com, another@yahoo.com" /></div>' +
+            '<div class="row" style="gap:8px;margin-bottom:8px;flex-wrap:wrap;max-width:640px">' +
+              '<div style="flex:1;min-width:220px"><label style="font-size:11px">CC — copied on every email</label><input id="em_cc" class="inp" style="width:100%" placeholder="optional" /></div>' +
+              '<div style="flex:1;min-width:220px"><label style="font-size:11px">BCC — hidden copy on every email</label><input id="em_bcc" class="inp" style="width:100%" placeholder="optional" /></div></div>' +
+            '<div style="max-width:640px;margin-bottom:8px"><label style="font-size:11px">Subject</label>' +
+              '<input id="em_subj" class="inp" style="width:100%" placeholder="e.g. {{name}}, festive plots offer inside 🎉" /></div>' +
+            '<div style="max-width:640px;margin-bottom:8px"><label style="font-size:11px">Message — write normally, it\'s formatted into a proper email (use {{name}} to personalise)</label>' +
+              '<textarea id="em_body" class="inp" style="width:100%;min-height:120px;height:auto;padding:10px" placeholder="Dear {{name}},&#10;&#10;Your message…"></textarea></div>' +
             '<div class="row" style="align-items:center;gap:8px">' +
               '<button id="em_ai" class="btn-o btn-sm">✨ AI draft</button>' +
               '<button id="em_send" class="btn btn-sm">Send emails</button>' +
@@ -3966,9 +3969,16 @@
         }
         sb.functions.invoke('email-send', { body: { action: 'status' } }).then(function (r) {
           var s = $('em_status'); if (!s) return;
-          if (r.error || !r.data) { s.textContent = 'unreachable'; s.className = 'pill sold'; return; }
-          s.textContent = r.data.configured ? 'ready ✓ · from ' + (r.data.from || '') : 'not configured';
-          s.className = 'pill ' + (r.data.configured ? 'available' : 'sold');
+          var ok = !r.error && r.data && r.data.configured;
+          if (r.error || !r.data) { s.textContent = 'unreachable'; s.className = 'pill sold'; }
+          else { s.textContent = ok ? 'ready ✓ · from ' + (r.data.from || '') : 'not configured'; s.className = 'pill ' + (ok ? 'available' : 'sold'); }
+          // Until the Resend key exists, sending is impossible — grey the button out.
+          var sendBtn = $('em_send');
+          if (sendBtn && !ok) {
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Send emails (needs Resend key)';
+            sendBtn.title = 'Add resend_api_key to app_secrets — free key from resend.com — and this switches on.';
+          }
         });
         $('em_csv').onchange = function () {
           var f = this.files && this.files[0]; if (!f) return;
@@ -4000,10 +4010,12 @@
           if (!subj) return alert('Write the subject first — the AI drafts the body from it.');
           this.textContent = '✨ Drafting…'; this.disabled = true;
           var r = await sb.functions.invoke('ai-generate', { body: { feature: 'assistant', input: { question:
-            'Write a short, warm HTML marketing email (no <html>/<head>, just body markup with <p>/<b>) for JAMIN Properties on the subject: "' + subj + '". Address the reader as {{name}}. End with a friendly call to action to open the JAMIN app. Max 130 words.' } } });
+            'Write a short, warm marketing email for JAMIN Properties on the subject: "' + subj + '". ' +
+            'PLAIN TEXT ONLY — absolutely no HTML tags, no markdown, no asterisks. Short paragraphs separated by blank lines. ' +
+            'Start with "Dear {{name}}," and end with a friendly one-line call to action to open the JAMIN app, then "Warm regards," and "JAMIN Properties · Signature for Fortune". Max 120 words.' } } });
           this.textContent = '✨ AI draft'; this.disabled = false;
           if (r.error) return alert(r.error.message);
-          if (r.data && r.data.output) $('em_body').value = r.data.output;
+          if (r.data && r.data.output) $('em_body').value = String(r.data.output).replace(/<[^>]+>/g, '');
         };
         $('em_send').onclick = async function () {
           var subj = $('em_subj').value.trim(), body = $('em_body').value.trim();
@@ -4019,8 +4031,11 @@
           parseEmails($('em_to').value).forEach(function (e) {
             if (!have[e.toLowerCase()]) { have[e.toLowerCase()] = true; all.push({ email: e.toLowerCase(), name: '' }); }
           });
-          if (!all.length) return alert('Add recipients — upload a CSV or type addresses in the To field.');
           var cc = parseEmails($('em_cc').value), bcc = parseEmails($('em_bcc').value);
+          if (!all.length) {
+            if (cc.length || bcc.length) return alert('CC/BCC are only copies — put at least one address in the To field (or upload a CSV).');
+            return alert('Add recipients — type an address in the To field or upload a CSV.');
+          }
           if (!confirm('Send this email to ' + all.length + ' recipient(s)' +
               (cc.length ? ' + CC ' + cc.length : '') + (bcc.length ? ' + BCC ' + bcc.length : '') + '?')) return;
           var btn = this; btn.disabled = true;

@@ -18,6 +18,28 @@ const cors = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
+/**
+ * Admins write plain text; turn it into a clean HTML email (escaped, blank
+ * lines become paragraphs). Bodies that already contain tags pass through
+ * unchanged so power users can still paste real HTML.
+ */
+function toHtml(body: string): string {
+  if (/<[a-z][\s\S]*>/i.test(body)) return body;
+  const escaped = body
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  const paragraphs = escaped
+    .split(/\n{2,}/)
+    .map((p) => `<p style="margin:0 0 14px">${p.trim().replace(/\n/g, '<br/>')}</p>`)
+    .join('');
+  return (
+    '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#1a1a1a;max-width:600px">' +
+    paragraphs +
+    '</div>'
+  );
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   try {
@@ -71,7 +93,7 @@ Deno.serve(async (req) => {
         }
         const name = String(r?.name ?? '').trim() || 'there';
         const pSubject = subject.replaceAll('{{name}}', name);
-        const pHtml = html.replaceAll('{{name}}', name);
+        const pHtml = toHtml(html.replaceAll('{{name}}', name));
         let ok = false;
         let err: string | undefined;
         try {
