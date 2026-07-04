@@ -1514,16 +1514,22 @@
             '<span class="pill ' + (staleCount ? 'sold' : 'available') + '">' + staleCount + ' waiting 24h+</span>' +
             '<button id="sla_run" class="btn-o btn-sm">Run SLA check now</button>' +
             '<button id="digest_run" class="btn-o btn-sm">Send digest to admins now</button></div></div>';
-        // Kanban board view — cards per stage with ◀ ▶ movement.
+        // Kanban board view — cards per stage with ◀ ▶ movement. Each stage has
+        // its own hue; columns use a translucent tint and card text uses the
+        // theme ink var so everything stays readable in light AND dark mode
+        // (the old hardcoded #f4f4f1 column + theme panel left card names
+        // invisible in dark mode).
+        var STAGE_HUE = { new: '#3E63DD', contacted: '#F76B15', qualified: '#D9A514', visit: '#12A594', won: '#30A46C', lost: '#E5484D' };
         var boardHtml = '<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">' +
           LEAD_STATUSES.map(function (st) {
             var col = shown.filter(function (l) { return l.status === st; });
-            return '<div style="min-width:210px;flex:1;background:#f4f4f1;border-radius:12px;padding:8px">' +
-              '<div style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">' + st + ' <span class="muted">(' + col.length + ')</span></div>' +
+            var hue = STAGE_HUE[st] || '#3E63DD';
+            return '<div style="min-width:210px;flex:1;background:' + hue + '1A;border-top:3px solid ' + hue + ';border-radius:12px;padding:8px">' +
+              '<div style="font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;color:' + hue + '">' + st + ' <span class="muted">(' + col.length + ')</span></div>' +
               (col.length ? col.map(function (l) {
                 var c = l.contact || {};
-                return '<div class="panel" style="margin:0 0 8px;padding:8px 10px" data-bid="' + l.id + '">' +
-                  '<div style="font-weight:600;font-size:13px">' + esc(c.name || '—') + (isStale(l) ? ' ⏰' : '') + '</div>' +
+                return '<div class="panel" style="margin:0 0 8px;padding:8px 10px;border-left:4px solid ' + hue + '" data-bid="' + l.id + '">' +
+                  '<div style="font-weight:600;font-size:13px;color:var(--ink)">' + esc(c.name || '—') + (isStale(l) ? ' ⏰' : '') + '</div>' +
                   (c.phone ? '<div class="mono muted" style="font-size:11px">' + esc(c.phone) + '</div>' : '') +
                   '<div class="muted" style="font-size:11px">' + esc(l.source || '') + (l.property ? ' · ' + esc(l.property.plot_code) : '') + (l.value ? ' · ' + inr(l.value) : '') + '</div>' +
                   '<div class="row" style="gap:4px;margin-top:6px">' +
@@ -1765,8 +1771,15 @@
           if (la) la.onclick = async function () {
             this.textContent = '…';
             var r = await sb.rpc('auto_assign_lead', { p_lead: tr.dataset.id });
-            if (r.error) { this.textContent = 'Assign'; alert(r.error.message); }
-            else { renderCrm(); }
+            if (r.error) { this.textContent = 'Assign'; alert(r.error.message); return; }
+            // Tell the admin WHO got it (pool round-robin, else least-loaded partner).
+            var who = '';
+            if (r.data) {
+              var pr = await sb.from('profiles').select('full_name,email').eq('id', r.data).maybeSingle();
+              who = (pr.data && (pr.data.full_name || pr.data.email)) || '';
+            }
+            renderCrm();
+            if (who) alert('✓ Assigned to ' + who);
           };
           var ld = tr.querySelector('.lead_details');
           if (ld) ld.onclick = function () { openDetails(tr, this); };
