@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { router } from 'expo-router';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, FlatList, Image, Linking, Pressable, View } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
+import { Alert, Animated, FlatList, Image, Linking, Pressable, View } from 'react-native';
 
 import { BG } from '@/components/brand/backgrounds';
 import { ImageBackdrop } from '@/components/brand/ImageBackdrop';
@@ -24,9 +26,54 @@ import { shareReferral } from '@/features/share/referral';
 import { useDownline } from '@/features/team/hooks';
 import { useWalletSummary } from '@/features/wallet/hooks';
 import { can } from '@/lib/access';
+import { buzz } from '@/lib/haptics';
 import { formatINR, money } from '@/lib/money';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
+
+/**
+ * Header bell — blinks while anything is unread and BUZZES (vibration +
+ * haptic) the moment a new notification lands, same feel as live chat.
+ */
+function NotificationBell({ unread }: { unread: number }) {
+  const pulse = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    let loop: Animated.CompositeAnimation | null = null;
+    if (unread > 0) {
+      loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, { toValue: 0.25, duration: 500, useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 1, duration: 500, useNativeDriver: true }),
+        ]),
+      );
+      loop.start();
+    } else {
+      pulse.setValue(1);
+    }
+    return () => {
+      loop?.stop();
+      pulse.setValue(1);
+    };
+  }, [unread, pulse]);
+
+  return (
+    <Pressable onPress={() => router.push('/notifications')} hitSlop={8}>
+      <Animated.View style={{ opacity: pulse }}>
+        <Ionicons
+          name={unread > 0 ? 'notifications' : 'notifications-outline'}
+          size={24}
+          color={unread > 0 ? color.red : color.ink}
+        />
+      </Animated.View>
+      {unread > 0 ? (
+        <View className="absolute -right-1.5 -top-1.5 h-4 min-w-[16px] items-center justify-center rounded-full bg-red px-1">
+          <Text className="font-mono-bold text-[10px] text-white">{unread > 9 ? '9+' : unread}</Text>
+        </View>
+      ) : null}
+    </Pressable>
+  );
+}
 
 /** Compact relative time for the sold rail ("today", "3d ago"). */
 function daysAgo(iso: string) {
@@ -63,6 +110,27 @@ export default function Home() {
     (a) => a.audience === 'all' || a.audience === (isPartner ? 'partner' : 'buyer'),
   );
 
+  // Live bell: a new notification for me refreshes the badge instantly and
+  // buzzes the phone (vibration + haptic) — same feel as live chat.
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!profile?.id) return;
+    const ch = supabase
+      .channel('home-bell')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` },
+        () => {
+          buzz();
+          void qc.invalidateQueries({ queryKey: ['notifications'] });
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(ch);
+    };
+  }, [profile?.id, qc]);
+
   function openCta(url: string | null) {
     if (!url) return;
     if (/^(https?:|mailto:|tel:|whatsapp:)/.test(url)) Linking.openURL(url);
@@ -91,14 +159,7 @@ export default function Home() {
           <Pressable onPress={() => router.push('/chat')} hitSlop={8}>
             <Ionicons name="chatbubbles-outline" size={23} color={color.ink} />
           </Pressable>
-          <Pressable onPress={() => router.push('/notifications')} hitSlop={8}>
-            <Ionicons name="notifications-outline" size={24} color={color.ink} />
-            {unread > 0 ? (
-              <View className="absolute -right-1.5 -top-1.5 h-4 min-w-[16px] items-center justify-center rounded-full bg-red px-1">
-                <Text className="font-mono-bold text-[10px] text-white">{unread > 9 ? '9+' : unread}</Text>
-              </View>
-            ) : null}
-          </Pressable>
+          <NotificationBell unread={unread} />
           <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
             <Ionicons name="settings-outline" size={22} color={color.muted} />
           </Pressable>

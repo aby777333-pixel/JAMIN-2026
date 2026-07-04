@@ -3877,7 +3877,7 @@
               '<span id="bc_att" class="muted" style="font-size:12px"></span></div>' +
             '<div class="row" style="margin-top:8px;align-items:center;gap:8px">' +
               '<select id="bc_seg" class="inp" style="max-width:200px"><option value="all">Everyone</option><option value="buyers">Buyers</option><option value="partners">Partners (agents+)</option></select>' +
-              '<label style="display:inline-flex;align-items:center;gap:5px;font-size:13px"><input type="checkbox" id="bc_wa" /> 🟢 Also send to WhatsApp</label>' +
+              '<label style="display:inline-flex;align-items:center;gap:5px;font-size:13px"><input type="checkbox" id="bc_wa" /> 🟢 Also send to WhatsApp <span id="bc_wa_note" class="muted" style="font-size:11px"></span></label>' +
               '<button id="bc_send" class="btn btn-sm">Send broadcast</button></div>' +
             '<div id="bc_msg" class="muted" style="margin-top:8px"></div></div>' +
           '<div class="panel"><h3>📧 Bulk CSV smart emailer <span id="em_status" class="pill">checking…</span></h3>' +
@@ -3896,6 +3896,23 @@
               '<button id="em_send" class="btn btn-sm">Send emails</button>' +
               '<span id="em_msg" class="muted" style="font-size:12px"></span></div>' +
             '<div id="em_log" class="muted" style="margin-top:10px;font-size:12px"></div></div>';
+
+        // WhatsApp readiness: until the Meta Cloud API keys exist, sending is
+        // impossible — say so loudly instead of quietly skipping.
+        sb.functions.invoke('wa-send', { body: { action: 'status' } }).then(function (r) {
+          var note = $('bc_wa_note'), box = $('bc_wa');
+          if (!note || !box) return;
+          var ok = !r.error && r.data && r.data.configured;
+          if (!ok) {
+            box.checked = false;
+            box.disabled = true;
+            note.textContent = '— NOT CONNECTED yet: needs the Meta Cloud API token + phone ID (see the 🟢 WhatsApp tab). In-app sending works now.';
+            note.style.color = '#e5484d';
+          } else {
+            note.textContent = '— connected ✓';
+            note.style.color = '#30a46c';
+          }
+        });
 
         // ── attachment upload ──
         $('bc_file').onchange = async function () {

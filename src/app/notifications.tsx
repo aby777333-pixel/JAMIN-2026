@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, FlatList, Linking, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -46,6 +47,8 @@ export default function NotificationsScreen() {
   const { data: items = [], isLoading, refetch, isRefetching } = useNotifications();
   const markRead = useMarkRead();
   const markAll = useMarkAllRead();
+  // Tapping a message expands/collapses its full text.
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   return (
     <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
@@ -68,6 +71,7 @@ export default function NotificationsScreen() {
         refreshing={isRefetching}
         renderItem={({ item }) => {
           const unread = !item.read_at;
+          const isOpen = expanded.has(item.id);
           // Rich broadcasts can carry an image, a file (video/PDF) and a link.
           const imageUrl = typeof item.data?.image_url === 'string' ? item.data.image_url : null;
           const fileUrl = typeof item.data?.file_url === 'string' ? item.data.file_url : null;
@@ -78,8 +82,17 @@ export default function NotificationsScreen() {
               onPress={() => {
                 if (unread) markRead.mutate(item.id);
                 const r = routeFor(item);
-                if (r) router.push(r as never);
-                else if (openUrl) void Linking.openURL(openUrl).catch(() => {});
+                if (r) {
+                  router.push(r as never);
+                  return;
+                }
+                // Everything else: tap expands / collapses the full message.
+                setExpanded((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(item.id)) next.delete(item.id);
+                  else next.add(item.id);
+                  return next;
+                });
               }}>
               <Card className={`flex-row items-start gap-3 ${unread ? 'border-red/30 bg-red/5' : ''}`}>
                 <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
@@ -90,19 +103,22 @@ export default function NotificationsScreen() {
                     {item.title}
                   </Text>
                   {item.body ? (
-                    <Text variant="caption" numberOfLines={3}>
+                    <Text variant="caption" numberOfLines={isOpen ? undefined : 3}>
                       {item.body}
                     </Text>
                   ) : null}
                   {imageUrl ? (
                     <Image
                       source={{ uri: imageUrl }}
-                      style={{ width: '100%', height: 140, borderRadius: 12, marginTop: 6 }}
+                      style={{ width: '100%', height: isOpen ? 220 : 140, borderRadius: 12, marginTop: 6 }}
                       contentFit="cover"
                     />
                   ) : null}
                   {openUrl ? (
-                    <View className="mt-1.5 flex-row items-center gap-1">
+                    <Pressable
+                      onPress={() => void Linking.openURL(openUrl).catch(() => {})}
+                      hitSlop={6}
+                      className="mt-1.5 flex-row items-center gap-1">
                       <Ionicons
                         name={fileUrl && !link ? 'document-attach' : 'open-outline'}
                         size={13}
@@ -111,10 +127,11 @@ export default function NotificationsScreen() {
                       <Text className="text-[12px] font-semibold text-red" numberOfLines={1}>
                         {fileUrl && !link ? 'Open attachment' : 'Open link'}
                       </Text>
-                    </View>
+                    </Pressable>
                   ) : null}
                   <Text variant="caption" className="mt-0.5 text-[11px]">
                     {new Date(item.created_at).toLocaleString('en-IN')}
+                    {item.body && item.body.length > 120 ? (isOpen ? '  ·  tap to collapse' : '  ·  tap to read more') : ''}
                   </Text>
                 </View>
                 {unread ? <View className="mt-1 h-2.5 w-2.5 rounded-full bg-red" /> : null}
