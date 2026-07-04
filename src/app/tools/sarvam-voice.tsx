@@ -33,8 +33,9 @@ import { errMessage } from '@/lib/errors';
 
 /** Languages Sarvam's bulbul:v2 voice supports (subset of the full translate list). */
 const VOICE_LANGS = [
-  { code: 'hi-IN', label: 'हिन्दी' },
+  // English first — it's the default ([0]) across the app.
   { code: 'en-IN', label: 'English' },
+  { code: 'hi-IN', label: 'हिन्दी' },
   { code: 'ta-IN', label: 'தமிழ்' },
   { code: 'te-IN', label: 'తెలుగు' },
   { code: 'kn-IN', label: 'ಕನ್ನಡ' },

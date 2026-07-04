@@ -22,7 +22,7 @@ import { errMessage } from '@/lib/errors';
 export default function TranslateTool() {
   const { t: tr } = useTranslation();
   const [text, setText] = useState('');
-  const [target, setTarget] = useState('hi-IN');
+  const [target, setTarget] = useState('en-IN');
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);

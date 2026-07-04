@@ -36,7 +36,7 @@ export default function SarvamChat() {
   const insets = useSafeAreaInsets();
   const scroller = useRef<ScrollView>(null);
   const [lang, setLang] = useState<(typeof QUICK_LANGS)[number]>(
-    QUICK_LANGS.find((l) => l.code === 'hi-IN') ?? QUICK_LANGS[0],
+    QUICK_LANGS.find((l) => l.code === 'en-IN') ?? QUICK_LANGS[0],
   );
   const [messages, setMessages] = useState<SarvamChatMessage[]>([
     { role: 'assistant', content: t('tools.sarvamChat.greeting') },
