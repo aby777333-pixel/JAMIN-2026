@@ -45,9 +45,15 @@ export default function RolePreview() {
     );
   }
 
-  async function pick(slug: string) {
-    await setPreviewRole(slug);
+  function pick(slug: string) {
+    // Land on Home FIRST, then flip the role once navigation has settled.
+    // Flipping while this pushed screen is focused changes the tab set
+    // (Network/Wallet hide for buyers) underneath the navigator mid-transition,
+    // which closed release builds outright.
     router.replace('/(tabs)');
+    setTimeout(() => {
+      void setPreviewRole(slug);
+    }, 400);
   }
 
   return (

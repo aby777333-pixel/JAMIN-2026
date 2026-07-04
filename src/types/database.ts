@@ -1129,6 +1129,50 @@ export type Database = {
           },
         ]
       }
+      client_errors: {
+        Row: {
+          app_version: string | null
+          context: string | null
+          created_at: string
+          fatal: boolean
+          id: string
+          message: string
+          platform: string | null
+          stack: string | null
+          user_id: string | null
+        }
+        Insert: {
+          app_version?: string | null
+          context?: string | null
+          created_at?: string
+          fatal?: boolean
+          id?: string
+          message: string
+          platform?: string | null
+          stack?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          app_version?: string | null
+          context?: string | null
+          created_at?: string
+          fatal?: boolean
+          id?: string
+          message?: string
+          platform?: string | null
+          stack?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_errors_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cobroke_interests: {
         Row: {
           agent_id: string
@@ -1631,6 +1675,36 @@ export type Database = {
           id?: string
           name?: string
           steps?: Json
+        }
+        Relationships: []
+      }
+      email_outbox: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          status: string
+          subject: string | null
+          to_email: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          status?: string
+          subject?: string | null
+          to_email: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          status?: string
+          subject?: string | null
+          to_email?: string
         }
         Relationships: []
       }
@@ -4000,10 +4074,20 @@ export type Database = {
         }
         Returns: string
       }
-      broadcast_notification: {
-        Args: { p_body: string; p_segment: string; p_title: string }
-        Returns: number
-      }
+      broadcast_notification:
+        | {
+            Args: { p_body: string; p_segment: string; p_title: string }
+            Returns: number
+          }
+        | {
+            Args: {
+              p_body: string
+              p_data: Json
+              p_segment: string
+              p_title: string
+            }
+            Returns: number
+          }
       can_see_thread: { Args: { t: string }; Returns: boolean }
       capture_lead: {
         Args: {
@@ -4258,6 +4342,16 @@ export type Database = {
           status: string
           views: number
         }[]
+      }
+      send_notification_to: {
+        Args: {
+          p_audience: string
+          p_body: string
+          p_data: Json
+          p_title: string
+          p_user_id?: string
+        }
+        Returns: number
       }
       set_escrow_status: {
         Args: { p_milestone: string; p_status: string }

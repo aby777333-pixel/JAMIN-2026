@@ -5329,6 +5329,7 @@
           staff_applications: ['staff', 'New staff application'],
           profiles: ['users', 'New user joined'],
           bank_transfers: ['payments', 'New bank-transfer proof'],
+          client_errors: ['dashboard', 'App error reported'],
         };
         var lastToast = {};
 
@@ -5378,8 +5379,9 @@
         }
         window.__actPing = ping; // manual test hook
 
+        var radarChannel = null;
         function start() {
-          var ch = sb.channel('admin-activity');
+          var ch = sb.channel('admin-activity-' + Date.now());
           Object.keys(ACT).forEach(function (t) {
             ch.on('postgres_changes', { event: 'INSERT', schema: 'public', table: t }, function () { ping(t); });
           });
@@ -5387,7 +5389,22 @@
           ch.subscribe(function (status, err) {
             console.log('[activity-radar]', status, err ? String(err) : '');
           });
+          radarChannel = ch;
         }
+        function restart() {
+          try { if (radarChannel) sb.removeChannel(radarChannel); } catch (e) { /* ignore */ }
+          radarChannel = null;
+          start();
+        }
+        // Watchdog: long-open tabs lose the realtime channel silently (token
+        // expiry / network blips) and the radar goes dark — resubscribe when
+        // the channel is no longer joined, and whenever the tab regains focus.
+        setInterval(function () {
+          if (radarChannel && radarChannel.state !== 'joined' && radarChannel.state !== 'joining') restart();
+        }, 60000);
+        document.addEventListener('visibilitychange', function () {
+          if (!document.hidden && radarChannel && radarChannel.state !== 'joined' && radarChannel.state !== 'joining') restart();
+        });
 
         // Opening a tab clears its blink (attach immediately — tabs exist pre-login).
         document.querySelectorAll('.side > .nav-i').forEach(function (btn) {

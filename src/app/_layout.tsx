@@ -13,14 +13,16 @@ import {
 } from '@expo-google-fonts/jetbrains-mono';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { Pressable, Text as RNText, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { queryClient } from '@/lib/query';
+import { installCrashGuard, reportClientError } from '@/lib/crash';
 import { loadPersistedLanguage } from '@/lib/i18n';
 import { LockGate } from '@/components/LockGate';
 import { RolePreviewBar } from '@/components/RolePreviewBar';
@@ -28,6 +30,35 @@ import { NotificationsBridge } from '@/features/notifications/Bridge';
 import { useAuth } from '@/stores/auth';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+installCrashGuard();
+
+/**
+ * Root error boundary: a render error anywhere below shows this recoverable
+ * screen (and reports the stack to client_errors) instead of closing the app.
+ * Plain RN primitives only — custom fonts may not be loaded yet when it shows.
+ */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  useEffect(() => {
+    reportClientError(error, 'ErrorBoundary', true);
+  }, [error]);
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 28, backgroundColor: '#F7F7F5' }}>
+      <RNText style={{ fontSize: 42 }}>🛠️</RNText>
+      <RNText style={{ fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginTop: 10 }}>
+        Something went wrong
+      </RNText>
+      <RNText style={{ fontSize: 13, color: '#6B6B6B', textAlign: 'center', marginTop: 8, lineHeight: 19 }}>
+        {error.message}
+        {'\n'}The error was reported to the JAMIN team.
+      </RNText>
+      <Pressable
+        onPress={() => void retry()}
+        style={{ marginTop: 18, backgroundColor: '#FD0001', paddingHorizontal: 28, paddingVertical: 13, borderRadius: 14 }}>
+        <RNText style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 15 }}>Try again</RNText>
+      </Pressable>
+    </View>
+  );
+}
 
 export default function RootLayout() {
   const init = useAuth((s) => s.init);

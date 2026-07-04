@@ -88,15 +88,31 @@ Deno.serve(async (req) => {
 
       // sarvam-m was deprecated (2026) → sarvam-30b. It's a reasoning model, so give
       // it token headroom: the visible reply lands in `content` after the reasoning.
-      const res = await fetch('https://api.sarvam.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'api-subscription-key': key, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'sarvam-30b', messages: [system, ...clean], temperature: 0.5, max_tokens: 2048 }),
-      });
-      const d = await res.json().catch(() => ({}));
-      if (!res.ok) return json({ error: d?.error?.message ?? d?.message ?? 'Chat failed', detail: d }, 502);
-      const reply = d?.choices?.[0]?.message?.content;
-      if (typeof reply !== 'string' || !reply.trim()) return json({ error: 'No reply from the model.' }, 502);
+      // Sarvam occasionally 5xxes or spends all tokens reasoning (empty content) —
+      // retry once with more headroom, and NEVER surface an error bubble to the
+      // user: a warm fallback reply beats "No reply from the model".
+      async function complete(maxTokens: number): Promise<string> {
+        try {
+          const res = await fetch('https://api.sarvam.ai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'api-subscription-key': key!, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: 'sarvam-30b', messages: [system, ...clean], temperature: 0.5, max_tokens: maxTokens }),
+          });
+          const d = await res.json().catch(() => ({}));
+          if (!res.ok) return '';
+          const content = d?.choices?.[0]?.message?.content;
+          return typeof content === 'string' ? content.trim() : '';
+        } catch {
+          return '';
+        }
+      }
+      let reply = await complete(2048);
+      if (!reply) reply = await complete(3072);
+      if (!reply) {
+        reply =
+          'Namaste! 🙏 I had a small hiccup with that one — could you say it once more? ' +
+          'I am right here to help with properties, localities, home loans, Vastu or anything JAMIN. 🏡';
+      }
 
       // Log the turn so admins can monitor conversations (AI Conversations console).
       // Best-effort: a logging failure never breaks the chat.

@@ -11,13 +11,19 @@ const esc = (s) =>
 
 /**
  * WhatsApp drops link-preview thumbnails over ~600 KB, and our flyer PNGs
- * routinely exceed that. Serve crawlers a resized JPEG (~150 KB) via the
- * images.weserv.nl proxy instead; the page itself still shows the full PNG.
+ * routinely exceed that. Serve crawlers a resized copy instead; the page
+ * itself still shows the full PNG. Supabase's own image CDN (Pro image
+ * transformations) resizes first-party with no cold third-party hop — the
+ * weserv proxy stalled past WhatsApp's crawl timeout on first fetch, which
+ * cached a preview-less card. weserv stays as fallback for non-Supabase URLs.
  */
-const previewImage = (imageUrl) =>
-  'https://images.weserv.nl/?url=' +
-  encodeURIComponent(String(imageUrl).replace(/^https?:\/\//, '')) +
-  '&w=900&output=jpg&q=80';
+const previewImage = (imageUrl) => {
+  const u = String(imageUrl);
+  if (u.includes('/storage/v1/object/public/')) {
+    return u.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + '?width=900&quality=80';
+  }
+  return 'https://images.weserv.nl/?url=' + encodeURIComponent(u.replace(/^https?:\/\//, '')) + '&w=900&output=jpg&q=80';
+};
 
 export default async (request) => {
   const url = new URL(request.url);
@@ -46,7 +52,7 @@ export default async (request) => {
         (ad.agent_name ? `${ad.agent_name} · ` : '') + "View this property's live photo, location & contact.",
       );
       html = html
-        .replace(/<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${img}" /><meta property="og:image:type" content="image/jpeg" />`)
+        .replace(/<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${img}" />`)
         .replace(/<meta property="og:title"[^>]*>/, `<meta property="og:title" content="${title}" />`)
         .replace(/<meta property="og:description"[^>]*>/, `<meta property="og:description" content="${desc}" />`)
         .replace('</head>', `<meta name="twitter:image" content="${img}" /></head>`);
