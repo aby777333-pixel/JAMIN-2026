@@ -44,7 +44,7 @@ export default function LeadsList() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        className="max-h-12 flex-grow-0"
+        className="flex-grow-0"
         contentContainerClassName="gap-2 px-5 py-1">
         <Chip label="All" active={!status} onPress={() => setStatus(undefined)} />
         {LEAD_STATUSES.map((s) => (

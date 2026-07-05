@@ -15,7 +15,7 @@ import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { SARVAM_LANGUAGES, translateText } from '@/features/sarvam/api';
 import { errMessage } from '@/lib/errors';
-import { supabase } from '@/lib/supabase';
+import { liveChannel, supabase } from '@/lib/supabase';
 import { uploadFileToBucket } from '@/lib/upload';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
@@ -127,7 +127,7 @@ export default function Community() {
   // realtime publication; RLS still filters what each user may receive).
   useEffect(() => {
     const ch = supabase
-      .channel('community-feed')
+      .channel(liveChannel('community-feed'))
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_posts' }, () => load())
       .subscribe();
     return () => {

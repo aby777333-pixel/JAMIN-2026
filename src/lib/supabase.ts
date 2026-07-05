@@ -22,6 +22,20 @@ export const supabase = createClient<Database>(env.supabaseUrl, env.supabaseAnon
 });
 
 /**
+ * Unique Realtime channel name. `removeChannel()` tears down asynchronously, so a
+ * remounted effect that reuses a fixed name can be handed the OLD, still-subscribed
+ * channel — and calling `.on('postgres_changes', …)` on it throws ("cannot add
+ * `postgres_changes` callbacks after `subscribe()`"), crashing the screen. A
+ * per-subscription suffix makes every mount its own channel; the postgres_changes
+ * filter — not the channel name — scopes which events arrive.
+ */
+let channelSeq = 0;
+export function liveChannel(base: string) {
+  channelSeq += 1;
+  return `${base}:${channelSeq}`;
+}
+
+/**
  * React Native token auto-refresh.
  *
  * `autoRefreshToken: true` relies on a JS timer, but RN suspends timers while the

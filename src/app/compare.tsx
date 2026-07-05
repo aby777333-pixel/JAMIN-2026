@@ -41,7 +41,7 @@ export default function Compare() {
         Tap up to {MAX} plots to compare. EMI assumes 80% loan, 9% p.a., 20 yrs.
       </Text>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="max-h-12 grow-0">
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="grow-0">
         <View className="flex-row gap-2 px-1">
           {properties.map((p) => {
             const on = picked.includes(p.id);

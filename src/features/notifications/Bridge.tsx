@@ -5,7 +5,7 @@ import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
-import { supabase } from '@/lib/supabase';
+import { liveChannel, supabase } from '@/lib/supabase';
 import { useAuth } from '@/stores/auth';
 import { registerPushToken } from './api';
 
@@ -56,7 +56,7 @@ export function NotificationsBridge() {
       }
 
       channel = supabase
-        .channel(`notif-${userId}`)
+        .channel(liveChannel(`notif-${userId}`))
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },

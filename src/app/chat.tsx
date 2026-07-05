@@ -13,7 +13,7 @@ import { BackHeader } from '@/components/ui/BackHeader';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { useMessages, useSendMessage, useSupportThread } from '@/features/chat/hooks';
-import { supabase } from '@/lib/supabase';
+import { liveChannel, supabase } from '@/lib/supabase';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
 
@@ -29,7 +29,7 @@ export default function Chat() {
   useEffect(() => {
     if (!threadId) return;
     const ch = supabase
-      .channel(`messages:${threadId}`)
+      .channel(liveChannel(`messages:${threadId}`))
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `thread_id=eq.${threadId}` },

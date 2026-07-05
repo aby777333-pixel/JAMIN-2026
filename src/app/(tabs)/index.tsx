@@ -28,7 +28,7 @@ import { useWalletSummary } from '@/features/wallet/hooks';
 import { can } from '@/lib/access';
 import { buzz } from '@/lib/haptics';
 import { formatINR, money } from '@/lib/money';
-import { supabase } from '@/lib/supabase';
+import { liveChannel, supabase } from '@/lib/supabase';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
 
@@ -115,19 +115,25 @@ export default function Home() {
   const qc = useQueryClient();
   useEffect(() => {
     if (!profile?.id) return;
-    const ch = supabase
-      .channel('home-bell')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` },
-        () => {
-          buzz();
-          void qc.invalidateQueries({ queryKey: ['notifications'] });
-        },
-      )
-      .subscribe();
+    // Realtime is a nice-to-have here; it must never take the home screen down.
+    let ch: ReturnType<typeof supabase.channel> | null = null;
+    try {
+      ch = supabase
+        .channel(liveChannel('home-bell'))
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` },
+          () => {
+            buzz();
+            void qc.invalidateQueries({ queryKey: ['notifications'] });
+          },
+        )
+        .subscribe();
+    } catch {
+      // badge still refreshes via normal query refetches
+    }
     return () => {
-      void supabase.removeChannel(ch);
+      if (ch) void supabase.removeChannel(ch);
     };
   }, [profile?.id, qc]);
 
