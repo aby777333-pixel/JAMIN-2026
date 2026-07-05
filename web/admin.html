@@ -1871,33 +1871,38 @@
           if (nxt) nxt.onclick = function () { move(1); };
         });
         // Routing pool: select/deselect all + live selection count.
-        // Ticked agents ALSO filter the leads table below (live); with nothing
-        // ticked the FULL list always shows again.
+        // Ticking agents ALSO filters the leads table below — but only after the
+        // admin actually touches the checkboxes. The saved pool arrives pre-ticked
+        // on every render, and auto-applying it as a filter silently hid every
+        // lead owned outside the pool (new enquiries looked like they never
+        // reached the CRM). Initial view = every lead, always.
+        var rtTouched = false;
         function rtRefreshCount() {
           var checked = Array.prototype.slice.call(document.querySelectorAll('.rt_agent:checked')).map(function (c) { return c.value; });
+          var filtering = rtTouched && checked.length > 0;
           var c = $('rt_count');
           if (c) {
             c.textContent = checked.length + ' selected · ' + ((routing.pool || []).length) + ' in saved pool' +
-              (checked.length ? ' · showing only their leads below — deselect all to see everyone' : '');
+              (filtering ? ' · showing only their leads below — deselect all to see everyone' : '');
           }
           // Live-filter the leads table by the ticked agents (owner match).
           var set = {};
           checked.forEach(function (id) { set[id] = true; });
           el.querySelectorAll('tr[data-owner]').forEach(function (tr) {
-            tr.style.display = checked.length === 0 || set[tr.dataset.owner] ? '' : 'none';
+            tr.style.display = !filtering || set[tr.dataset.owner] ? '' : 'none';
           });
         }
         rtRefreshCount();
-        document.querySelectorAll('.rt_agent').forEach(function (cb) { cb.addEventListener('change', rtRefreshCount); });
+        document.querySelectorAll('.rt_agent').forEach(function (cb) { cb.addEventListener('change', function () { rtTouched = true; rtRefreshCount(); }); });
         var rtAll = $('rt_all');
         if (rtAll) rtAll.onclick = function () {
           document.querySelectorAll('.rt_agent').forEach(function (cb) { cb.checked = true; });
-          rtRefreshCount();
+          rtTouched = true; rtRefreshCount();
         };
         var rtNone = $('rt_none');
         if (rtNone) rtNone.onclick = function () {
           document.querySelectorAll('.rt_agent').forEach(function (cb) { cb.checked = false; });
-          rtRefreshCount();
+          rtTouched = true; rtRefreshCount();
         };
         var rtShow = $('rt_show');
         if (rtShow) rtShow.onclick = function () {
@@ -1970,10 +1975,22 @@
                   '<span style="flex:1;font-size:12px;' + (f.status === 'done' ? 'text-decoration:line-through;color:#999' : '') + '">' + esc(f.note || 'Follow up') + '</span>' +
                   (f.status !== 'done' ? '<button class="btn-o btn-sm fu_done">Done</button>' : '<span class="pill available">done</span>') + '</div>';
               }).join('');
+          // Everything the app's enquiry form captured (comments, budget,
+          // location, …) lives in the lead's contact JSON — show it all here.
+          var ci = lead.contact || {};
+          var ciKeys = Object.keys(ci).filter(function (k) { return k !== 'name' && k !== 'phone' && ci[k] != null && String(ci[k]).trim() !== ''; });
+          var ciHtml = ciKeys.length
+            ? '<div style="margin-bottom:8px"><b style="font-size:12px">Enquiry details</b><div style="margin-top:2px">' +
+              ciKeys.map(function (k) {
+                var v = typeof ci[k] === 'object' ? JSON.stringify(ci[k]) : String(ci[k]);
+                return '<div style="font-size:12px;padding:1px 0"><span class="muted mono" style="font-size:11px">' + esc(k.replace(/_/g, ' ')) + ':</span> ' + esc(v) + '</div>';
+              }).join('') + '</div></div>'
+            : '';
           var detail = document.createElement('tr');
           detail.className = 'lead_detail';
           detail.dataset.owner = tr.dataset.owner || '';
           detail.innerHTML = '<td colspan="9" style="background:#fafaf8;padding:12px 16px">' +
+            ciHtml +
             (lead.lost_reason ? '<div style="margin-bottom:8px"><b style="font-size:12px;color:#c00">Lost reason:</b> <span style="font-size:12px">' + esc(lead.lost_reason) + '</span></div>' : '') +
             '<b style="font-size:12px">Timeline</b><div style="max-height:220px;overflow:auto;margin:4px 0 10px">' + evHtml + '</div>' +
             '<b style="font-size:12px">Follow-ups</b><div style="margin:4px 0 6px">' + (fuHtml || '<span class="muted" style="font-size:12px">None yet.</span>') + '</div>' +
