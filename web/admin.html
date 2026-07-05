@@ -203,6 +203,12 @@
       body.dark .login { background:var(--surface); }
       body.dark .panel { background:rgba(29,29,33,.88); }
       body.dark .inp { background:#232328; color:var(--ink); }
+      /* Date/datetime internals (dd-mm-yyyy segments, calendar icon, popup) are
+         drawn by the browser with UA colours keyed to the page's color-scheme —
+         light by default, so on the dark input background the value/placeholder
+         text was invisible. Declare the control dark and pin the text ink. */
+      body.dark input.inp[type="date"], body.dark input.inp[type="datetime-local"] { color-scheme: dark; }
+      body.dark input.inp[type="date"]::-webkit-datetime-edit, body.dark input.inp[type="datetime-local"]::-webkit-datetime-edit { color: var(--ink); }
       body.dark .btn-o { background:rgba(251,188,21,.16); color:var(--ink); }
       body.dark tbody tr:nth-child(even) td { background:rgba(255,255,255,.025); }
       body.dark tbody tr:hover td { background:rgba(251,188,21,.10); }
