@@ -85,7 +85,7 @@ export default function Payments() {
               {'\n'}Transfer from any bank app, then upload your proof — the JAMIN team verifies within 24 hours.
             </Text>
             <Button
-              title="🧾 Upload payment proof"
+              title="Upload payment proof"
               variant="secondary"
               onPress={() => setTransfer({ booking: null })}
             />
@@ -116,7 +116,7 @@ export default function Payments() {
               </View>
               {payable ? (
                 <Button
-                  title="🏦 Pay by bank transfer"
+                  title="Pay by bank transfer"
                   onPress={() => setTransfer({ booking: item })}
                 />
               ) : paid ? (

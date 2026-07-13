@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { isVisibleRole } from '@/lib/access';
 import { errMessage } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/stores/auth';
@@ -67,7 +68,8 @@ export default function StaffApply() {
               .order('created_at', { ascending: false })
           : Promise.resolve({ data: [], error: null }),
       ]);
-      if (!r.error) setRoles((r.data ?? []) as RoleRow[]);
+      // Only the public user types are offered (brief: hide all others).
+      if (!r.error) setRoles(((r.data ?? []) as RoleRow[]).filter((row) => isVisibleRole(row.slug)));
       if (!a.error) setApps((a.data ?? []) as unknown as MyApplication[]);
       setLoading(false);
     })();

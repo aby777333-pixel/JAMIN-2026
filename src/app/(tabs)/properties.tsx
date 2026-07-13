@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { PropertyCardSkeleton } from '@/components/ui/Skeleton';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
+import { WelcomeTour } from '@/components/WelcomeTour';
 import { FilterBar } from '@/features/buyer/components/FilterBar';
 import { PropertyCard } from '@/features/buyer/components/PropertyCard';
 import { VoiceSearch } from '@/features/buyer/components/VoiceSearch';
@@ -62,6 +63,8 @@ export default function Properties() {
         }
         ListHeaderComponent={
           <View className="gap-3 pb-1 pt-2">
+            {/* First-launch tour — lived on the old Home; Properties is the landing now. */}
+            <WelcomeTour />
             <Text variant="h1">{t('tabs.properties')}</Text>
             <ScrollView
               horizontal

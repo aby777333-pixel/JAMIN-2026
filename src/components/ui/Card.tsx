@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, useRef, type ReactNode } from 'react';
 import { View, type ViewProps } from 'react-native';
 
 import { cn } from '@/lib/cn';
@@ -20,11 +20,11 @@ export function AccentCycleProvider({ children }: { children: ReactNode }) {
 
 /**
  * Rounded square, hairline border, soft elevation — the §1 card signature.
- * Pass `accent` (a palette index) for the strong colourful variant: tinted
- * border, solid accent bar on the left, and a soft glow in the same hue.
- * Plain Cards inside a Screen get an automatic SOFT accent (tinted fill +
- * hairline + slim bar) cycling through the palette; cards that set their own
- * `bg-*` class or explicit `accent` are left exactly as designed.
+ * Pass `accent` (a palette index) for the tinted variant: tinted border and a
+ * solid accent bar on the left. Plain Cards render a calm white surface —
+ * the earlier automatic palette-cycling accent is retired per the
+ * simplification brief ("calm layouts, no decorative badges"); the cycle
+ * provider stays mounted so explicit accents keep their stable behaviour.
  */
 export function Card({
   className,
@@ -37,14 +37,10 @@ export function Card({
   // (this was rendering `bg-charcoal` cards white). Drop the default bg when the
   // caller supplies their own background.
   const hasBg = /(^|\s)bg-/.test(className ?? '');
-  const cycle = useContext(AccentCycle);
-  // Stable per-mount auto index — only for plain cards (no accent, no custom bg).
-  const [autoIdx] = useState<number | null>(() =>
-    accent === undefined && !hasBg && cycle ? cycle.next() : null,
-  );
+  // Kept (unused for styling) so provider identity and mount behaviour are unchanged.
+  useContext(AccentCycle);
   const explicit = accent === undefined ? null : accentFor(accent);
-  const auto = explicit === null && autoIdx !== null ? accentFor(autoIdx) : null;
-  const a = explicit ?? auto;
+  const a = explicit;
   return (
     <View
       className={cn('rounded-2xl border border-line p-4', !hasBg && 'bg-surface', className)}
@@ -59,14 +55,6 @@ export function Card({
         },
         explicit
           ? { borderColor: explicit.main + '55', borderLeftWidth: 4, borderLeftColor: explicit.main }
-          : null,
-        auto
-          ? {
-              backgroundColor: auto.soft,
-              borderColor: auto.main + '40',
-              borderLeftWidth: 3,
-              borderLeftColor: auto.main + 'B3',
-            }
           : null,
         style,
       ]}

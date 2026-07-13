@@ -25,7 +25,10 @@
     "properties": "ఆస్తులు",
     "card": "కార్డు",
     "network": "నెట్‌వర్క్",
-    "wallet": "వాలెట్"
+    "wallet": "వాలెట్",
+    "investments": "పెట్టుబడులు",
+    "activity": "కార్యకలాపం",
+    "account": "ఖాతా"
   },
   "vastu": {
     "title": "వాస్తు & ముహూర్తం",

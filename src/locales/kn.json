@@ -25,7 +25,10 @@
     "properties": "ಆಸ್ತಿಗಳು",
     "card": "ಕಾರ್ಡ್",
     "network": "ಜಾಲ",
-    "wallet": "ವಾಲೆಟ್"
+    "wallet": "ವಾಲೆಟ್",
+    "investments": "ಹೂಡಿಕೆಗಳು",
+    "activity": "ಚಟುವಟಿಕೆ",
+    "account": "ಖಾತೆ"
   },
   "vastu": {
     "title": "ವಾಸ್ತು & ಮುಹೂರ್ತ",

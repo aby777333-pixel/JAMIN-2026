@@ -3,30 +3,23 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { TabGarden } from '@/components/brand/LeafDecor';
-import { can } from '@/lib/access';
+import { useUnreadCount } from '@/features/notifications/api';
 import { tap } from '@/lib/haptics';
-import { accents, color } from '@/theme/tokens';
-import { useAuth } from '@/stores/auth';
-
-/** Per-tab active colors — each tab lights up in its own hue. */
-const TAB_COLOR = {
-  index: color.red, //          Home = brand red
-  properties: accents[5].main, // blue
-  card: color.goldDeep, //      business card = gold
-  network: accents[6].main, //  violet
-  wallet: accents[3].main, //   green
-} as const;
+import { color } from '@/theme/tokens';
 
 /**
- * Role-aware bottom tabs (SuperPrompt §5: "role-aware bottom tabs").
- * Buyers get a discovery-focused shell; partners (agent and above) also get
- * Network + Wallet. Role comes from the DB profile — never hardcoded (§13).
+ * Four calm bottom tabs — Properties, Investments, Activity, Account
+ * (simplification brief §6). The earlier tab routes (index/Home, card,
+ * network) stay REGISTERED but hidden (href: null) so every existing
+ * router.push / deep link keeps working; their content now lives inside the
+ * four sections. Role gating happens inside each screen (e.g. Investments
+ * renders the commission wallet for partners and bookings for buyers), so the
+ * shell itself is identical for every role — no tab-set changes on role flips.
  */
 export default function TabsLayout() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const profile = useAuth((s) => s.profile);
+  const { data: unread = 0 } = useUnreadCount();
 
   return (
     <Tabs
@@ -35,17 +28,10 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: color.red,
         tabBarInactiveTintColor: color.muted,
-        // Plants & leaves growing over the tab bar (decorative background layer).
-        tabBarBackground: () => <TabGarden />,
         tabBarStyle: {
           backgroundColor: color.surface,
-          // Floating elevated bar instead of a flat hairline.
-          borderTopWidth: 0,
-          shadowColor: color.charcoal,
-          shadowOpacity: 0.12,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: -4 },
-          elevation: 16,
+          borderTopWidth: 1,
+          borderTopColor: color.line,
           // Edge-to-edge is on (app.json) so the Android system nav bar overlays
           // the app — lift the tab bar above it with the bottom safe-area inset.
           height: 64 + insets.bottom,
@@ -54,48 +40,45 @@ export default function TabsLayout() {
         },
         tabBarLabelStyle: { fontFamily: 'Inter_500Medium', fontSize: 11 },
       }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: t('tabs.home'),
-          tabBarActiveTintColor: TAB_COLOR.index,
-          tabBarIcon: ({ color: c, size }) => <Ionicons name="home" color={c} size={size} />,
-        }}
-      />
+      {/* Hidden: Home merged into the four tabs; index only redirects. */}
+      <Tabs.Screen name="index" options={{ href: null }} />
       <Tabs.Screen
         name="properties"
         options={{
           title: t('tabs.properties'),
-          tabBarActiveTintColor: TAB_COLOR.properties,
           tabBarIcon: ({ color: c, size }) => <Ionicons name="business" color={c} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="card"
-        options={{
-          title: t('tabs.card'),
-          tabBarActiveTintColor: TAB_COLOR.card,
-          tabBarIcon: ({ color: c, size }) => <Ionicons name="qr-code" color={c} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="network"
-        options={{
-          title: t('tabs.network'),
-          href: can(profile, 'team') ? undefined : null,
-          tabBarActiveTintColor: TAB_COLOR.network,
-          tabBarIcon: ({ color: c, size }) => <Ionicons name="people" color={c} size={size} />,
         }}
       />
       <Tabs.Screen
         name="wallet"
         options={{
-          title: t('tabs.wallet'),
-          href: can(profile, 'sell') ? undefined : null,
-          tabBarActiveTintColor: TAB_COLOR.wallet,
-          tabBarIcon: ({ color: c, size }) => <Ionicons name="wallet" color={c} size={size} />,
+          title: t('tabs.investments'),
+          tabBarIcon: ({ color: c, size }) => <Ionicons name="trending-up" color={c} size={size} />,
         }}
       />
+      <Tabs.Screen
+        name="activity"
+        options={{
+          title: t('tabs.activity'),
+          tabBarBadge: unread > 0 ? (unread > 9 ? '9+' : unread) : undefined,
+          tabBarBadgeStyle: { backgroundColor: color.red, fontSize: 10 },
+          tabBarIcon: ({ color: c, size }) => (
+            <Ionicons name="notifications-outline" color={c} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: t('tabs.account'),
+          tabBarIcon: ({ color: c, size }) => (
+            <Ionicons name="person-circle-outline" color={c} size={size} />
+          ),
+        }}
+      />
+      {/* Hidden but routable: reached from Account (My card / My team). */}
+      <Tabs.Screen name="card" options={{ href: null }} />
+      <Tabs.Screen name="network" options={{ href: null }} />
     </Tabs>
   );
 }

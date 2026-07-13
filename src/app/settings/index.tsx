@@ -3,8 +3,6 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { Pressable, Share, View } from 'react-native';
 
-import { BG } from '@/components/brand/backgrounds';
-import { ImageBackdrop } from '@/components/brand/ImageBackdrop';
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
@@ -12,7 +10,7 @@ import { Text } from '@/components/ui/Text';
 import { SITE_URL } from '@/lib/site';
 import { can } from '@/lib/access';
 import { useAuth } from '@/stores/auth';
-import { accentFor, color } from '@/theme/tokens';
+import { color } from '@/theme/tokens';
 
 const ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string; href: string }[] = [
   { icon: 'person-circle', label: 'Edit profile', sub: 'Name, phone, designation, photo', href: '/profile' },
@@ -64,7 +62,7 @@ export default function Settings() {
   }
 
   return (
-    <Screen contentClassName="pb-10 gap-3" backdrop={<ImageBackdrop source={BG.waterfall} height={240} />}>
+    <Screen contentClassName="pb-10 gap-3">
       <BackHeader title="Settings" />
 
       {isRealAdmin ? (
@@ -82,25 +80,20 @@ export default function Settings() {
         </Pressable>
       ) : null}
 
-      {ITEMS.map((it, i) => {
-        const a = accentFor(i);
-        return (
-          <Pressable key={it.href} onPress={() => router.push(it.href as never)}>
-            <Card className="flex-row items-center gap-3">
-              <View
-                className="h-10 w-10 items-center justify-center rounded-xl"
-                style={{ backgroundColor: a.soft }}>
-                <Ionicons name={it.icon} size={18} color={a.main} />
-              </View>
-              <View className="flex-1">
-                <Text variant="title">{it.label}</Text>
-                <Text variant="caption">{it.sub}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={color.muted} />
-            </Card>
-          </Pressable>
-        );
-      })}
+      {ITEMS.map((it) => (
+        <Pressable key={it.href} onPress={() => router.push(it.href as never)}>
+          <Card className="flex-row items-center gap-3">
+            <View className="h-10 w-10 items-center justify-center rounded-xl border border-line bg-paper">
+              <Ionicons name={it.icon} size={18} color={color.ink} />
+            </View>
+            <View className="flex-1">
+              <Text variant="title">{it.label}</Text>
+              <Text variant="caption">{it.sub}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={color.muted} />
+          </Card>
+        </Pressable>
+      ))}
 
       {can(profile, 'sell') && profile?.referral_code ? (
         <Pressable onPress={shareMyPage}>

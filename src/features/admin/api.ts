@@ -1,3 +1,4 @@
+import { isVisibleRole } from '@/lib/access';
 import { supabase } from '@/lib/supabase';
 import type { FormField } from '@/features/forms/types';
 
@@ -52,7 +53,9 @@ export async function listUsers(): Promise<AdminUser[]> {
 export async function getRoles() {
   const { data, error } = await supabase.from('roles').select('id, slug, name, level').order('level');
   if (error) throw error;
-  return data ?? [];
+  // In-app role picker lists only the five public user types (brief). The web
+  // admin console still manages every role; existing users keep theirs.
+  return (data ?? []).filter((r) => isVisibleRole((r as { slug?: string }).slug));
 }
 
 export async function setUserRole(userId: string, roleId: string) {

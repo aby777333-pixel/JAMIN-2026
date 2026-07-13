@@ -26,6 +26,18 @@ const CAP_MAX_LEVEL: Record<Capability, number> = {
   admin: 1, //         Super Admin
 };
 
+/**
+ * User types surfaced in in-app role LISTS (pickers, preview, applications) per
+ * the simplification brief: Super Admin, Promoter, Agent/Broker, Seller, Buyer.
+ * Other DB roles keep working for existing users — they are only hidden from
+ * lists, never removed. The web admin console is unaffected.
+ */
+export const VISIBLE_ROLE_SLUGS = ['super_admin', 'promoter', 'agent', 'broker', 'seller', 'buyer'] as const;
+
+export function isVisibleRole(slug: string | null | undefined): boolean {
+  return !!slug && (VISIBLE_ROLE_SLUGS as readonly string[]).includes(slug);
+}
+
 type ProfileLike = Pick<Profile, 'role_level' | 'role_is_admin'> | null | undefined;
 
 /** Whether a profile's rank can use a capability. Super Admin can do everything. */

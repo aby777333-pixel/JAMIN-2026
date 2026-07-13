@@ -1,0 +1,168 @@
+# CHANGELOG — Mobile App Simplification & Redesign
+
+**2026-07-13 · Presentation-layer only.** No new features, dependencies, backend
+logic or schema changes. All Supabase queries, RLS rules, auth flows and
+role-based permissions preserved. Verified: `tsc` 0 errors, Jest 64/64,
+`expo export` (Android) clean. Reaches devices on the next EAS build.
+
+Design direction: calm, premium, "Signature for Fortune" — brand colors only
+(Crimson `#FD0001`, Gold `#FBBC15`, Charcoal `#202020`, Paper `#F7F7F5`),
+Inter (TT Norms Pro is a commercial font not present in the repo; Inter is the
+approved fallback and remains the shipped face).
+
+---
+
+## Navigation (bottom tabs)
+
+- **Renamed/merged:** 5 tabs (Home, Properties, Card, Network, Wallet) → 4 tabs:
+  **Properties · Investments · Activity · Account**.
+- **Preserved:** the old `index` (Home), `card` and `network` routes stay
+  registered but hidden (`href: null`) so every existing `router.push`, deep
+  link and notification route still resolves. Card and Network open from
+  Account. The tab set is now identical for every role (no tab flips on
+  role preview — the old release-crash vector).
+- **Removed (decorative):** per-tab rainbow active colors, the "TabGarden"
+  plant illustration behind the tab bar, floating-bar shadow. Now a flat
+  surface bar, hairline top border, crimson active tint.
+- **Added (meaningful status):** unread-notifications badge on the Activity tab.
+
+## Global surfaces
+
+- **`components/ui/Card.tsx` — removed:** automatic palette-cycling accents
+  (every plain card was tinted a different hue with a colored left bar). Plain
+  cards are now calm white with a hairline border. Explicit `accent` props
+  (used sparingly for deliberate emphasis) still work.
+- **`components/ui/Screen.tsx` — removed:** the default nature-photo backdrop +
+  petal decorations that rendered behind every scrollable screen. Default is
+  clean paper. Screens that pass their own backdrop (the login hero image)
+  are unchanged.
+- **Added:** `components/ui/Disclosure.tsx` (collapsible "Details" section —
+  children mount only when opened, so their data fetches are deferred) and
+  `components/ui/ListRow.tsx` (the single calm list-row style used by the new
+  screens). No third-party additions.
+
+## Home `(tabs)/index.tsx`
+
+- **Removed as a screen; now a redirect** to Properties (the landing).
+  Nothing was deleted — every block moved:
+  - Announcements rail → **Activity**.
+  - Partner "Today at a glance" digest → **Activity**.
+  - Referral-code strip → **Account**.
+  - KYC banner → **Account** (status row with pill).
+  - Quick-link grid (15 partner / 11 buyer rainbow tiles) → **Account**, as a
+    quiet role-gated directory. Every destination retained.
+  - Wallet/earnings/team/leads stat cards → live in **Investments** (balance,
+    earnings) and **Network** (team stats), where they already existed —
+    duplicates removed.
+  - First-launch Welcome tour → mounts on **Properties**.
+  - Sign out → **Account**.
+- **Removed (fluff):** "Recently sold" social-proof rail (the admin App-Content
+  toggle `home.show_sold` becomes inert in the app), festival banner on Home
+  (festival/muhurat content remains in Vastu & Muhurat and on the astro
+  cards), greeting header + role pill, buyer "browse" promo card.
+- **Removed (redundant realtime):** Home's duplicate notification listener —
+  the root `NotificationsBridge` already refreshes the feed and shows banners.
+
+## Properties `(tabs)/properties.tsx`
+
+- **Preserved:** search, voice search, filters, Projects/Map/Compare chips,
+  "Get alerts", For-you rail, list, skeletons, empty/error states — this was
+  already the cleanest screen and is now the landing.
+- **Added:** the Welcome tour mount (from Home).
+- **Not carried over:** Home's "Featured" rail (the list itself is discovery;
+  admin ★-curation still drives the web site and sold→auto-promote logic).
+
+## Property detail `property/[id].tsx`
+
+- **Above the fold now:** gallery, plot code + status, title, location, price,
+  days-on-market, verification badges (meaningful status only), About,
+  key-facts card, the buyer's own journey stepper, then ONE action block —
+  Enquire (primary), Book visit, Make offer, Reserve.
+- **Moved behind "More information" (hidden, not deleted):** Why-you'll-love-it
+  card (PlotAppeal), Auspicious Insights (FortunePanel), investment-value card,
+  sacred-places card, tours/AR/directions chips, nearby amenities,
+  neighborhood scores, price history, all five calculators (EMI, stamp duty,
+  affordability, rent-vs-buy, ROI), AI panel, journey tracker, project
+  reviews, Shortlist and Co-broke actions. These components no longer fetch
+  until opened (safe deferral).
+- **Moved behind "Partner tools" (partners only):** commission preview,
+  auto-create flyer, suggest-a-photo.
+- **Hidden (metadata):** raw coordinates row in the facts card (directions/maps
+  still available via the location chips inside More information).
+- **Preserved:** share/QR/watch/save header actions, JAMIN-mediated-contact
+  notice (buyer↔seller contact only through JAMIN), trust markers, report
+  link, all sheets and their logic.
+
+## Investments `(tabs)/wallet.tsx` (renamed from Wallet)
+
+- **Now visible to every role** (buyers previously had no Wallet tab).
+- **Buyer view (new composition, existing data):** Total invested (verified
+  booking payments) as the primary value, one-line explanation, then
+  Bookings & payments / My offers / Escrow & milestones actions. Detail lives
+  on the existing screens.
+- **Partner view:** balance card + Withdraw (primary) as before; **moved** the
+  commission ledger, PDF statement and withdrawal history behind a
+  "Transactions" disclosure. **Hidden:** raw ledger `source_ref` internals —
+  unrecognized refs now display "Adjustment" instead of the raw reference.
+- **Removed:** lake-photo backdrop. **Preserved:** all wallet hooks, the
+  withdraw sheet, balance checks, statement export.
+
+## Activity `(tabs)/activity.tsx` (new screen, existing data)
+
+- Partner day digest (follow-ups due / waiting 24h+ / new leads) → taps into
+  Leads; announcements from JAMIN (images + CTA preserved); agenda / site
+  visits / enquiries & offers / leads entry rows; the 8 most recent
+  notifications with unread dots. Full feed + "mark all" stays at
+  `/notifications` (unchanged).
+
+## Account `(tabs)/account.tsx` (new screen, existing destinations)
+
+- Profile card (photo/initials, name, role) → edit profile; KYC status row;
+  referral code (copy/share); My business card → the preserved Card screen.
+- Role-gated tools (same capability gates as the old Home grid):
+  partners — My team (Network screen), Recruit, Team performance, Create ad,
+  Brochures & flyers, AI Studio, Ad chats, Rewards, Applications & forms;
+  buyers — Property alerts, Compare, Recently viewed, Land valuation,
+  Become a partner.
+- More: Community, Help & support, Settings, Admin portal (admins),
+  Preview as role (real admins). Sign out.
+
+## Card `(tabs)/card.tsx` and Network `(tabs)/network.tsx`
+
+- **Preserved unchanged** (all sharing/QR/vCard and team/recruit/referral
+  logic). Only their tab slots were removed — both open from Account.
+
+## Settings `settings/index.tsx`
+
+- **Removed (decorative):** waterfall photo backdrop and the rainbow icon
+  tints — icons are now neutral ink on paper. All rows/destinations preserved.
+
+## Bookings & payments `payments.tsx`
+
+- **Removed:** emoji from action buttons ("🧾", "🏦" → plain labels).
+  Everything else preserved.
+
+## Role visibility (brief: show only the five user types)
+
+- In-app role LISTS now show only **Super Admin, Promoter, Agent, Broker,
+  Seller, Buyer** (`VISIBLE_ROLE_SLUGS` in `lib/access.ts`), applied to:
+  - Preview-as-role picker (`role-preview.tsx`)
+  - Staff application role choices (`staff-apply.tsx`)
+  - In-app admin Users & roles picker (`features/admin/api.ts`)
+- **Preserved:** the roles themselves (DB untouched), existing users holding
+  other roles (their permissions and gating still work), and the web admin
+  console, which continues to manage every role.
+
+## i18n
+
+- **Added:** `tabs.investments`, `tabs.activity`, `tabs.account` in
+  en/hi/ta/te/kn/ml/ur (add-only; verified zero pre-existing keys changed).
+- **Known follow-up:** the new Account/Activity screen bodies are English-first
+  (same as the existing Settings/Network screens); a translation batch can key
+  them later.
+
+## Explicitly NOT changed
+
+- Supabase queries, RLS, auth, onboarding, biometric lock, push/Realtime
+  bridge, commission engine, referral logic, all sheets/forms, admin portal
+  screens, web marketing/admin site, Edge Functions, database.

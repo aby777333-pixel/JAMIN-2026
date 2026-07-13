@@ -25,7 +25,10 @@
     "properties": "प्रॉपर्टी",
     "card": "कार्ड",
     "network": "नेटवर्क",
-    "wallet": "वॉलेट"
+    "wallet": "वॉलेट",
+    "investments": "निवेश",
+    "activity": "गतिविधि",
+    "account": "खाता"
   },
   "vastu": {
     "title": "वास्तु और मुहूर्त",

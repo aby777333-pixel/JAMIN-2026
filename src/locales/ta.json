@@ -25,7 +25,10 @@
     "properties": "சொத்துகள்",
     "card": "அட்டை",
     "network": "வலையமைப்பு",
-    "wallet": "பணப்பை"
+    "wallet": "பணப்பை",
+    "investments": "முதலீடுகள்",
+    "activity": "செயல்பாடு",
+    "account": "கணக்கு"
   },
   "vastu": {
     "title": "வாஸ்து & முகூர்த்தம்",

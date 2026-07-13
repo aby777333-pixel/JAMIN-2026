@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/Badge';
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Disclosure } from '@/components/ui/Disclosure';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
@@ -249,8 +250,6 @@ export default function PropertyDetail() {
         </View>
       ) : null}
 
-      {!isPending && !isRejected ? <PlotAppeal property={property} /> : null}
-
       {isPending || isRejected ? (
         <Card className={`flex-row items-center gap-2.5 ${isRejected ? 'border-danger/40 bg-danger/5' : 'border-gold/40 bg-gold/5'}`}>
           <Ionicons name={isRejected ? 'close-circle' : 'time'} size={18} color={isRejected ? color.red : color.goldDeep} />
@@ -267,28 +266,10 @@ export default function PropertyDetail() {
         </View>
       ) : null}
 
-      <FortunePanel
-        property={{
-          id: property.id,
-          plotCode: property.plot_code,
-          price: property.price,
-          project: property.project?.name,
-          location: property.project?.location,
-        }}
-      />
-
-      <InvestValueCard property={{ id: property.id, price: property.price, attrs: property.attrs }} />
-
       <Card className="flex-row flex-wrap gap-y-3">
         <Detail label={t('property.detail.type')} value={property.type?.name ?? '—'} />
         <Detail label={t('property.detail.plan')} value={property.plan?.name ?? '—'} />
         <Detail label={t('property.detail.projectCode')} value={property.project?.code ?? '—'} />
-        {property.coordinates?.lat ? (
-          <Detail
-            label={t('property.detail.location')}
-            value={`${property.coordinates.lat.toFixed(3)}, ${property.coordinates.lng?.toFixed(3)}`}
-          />
-        ) : null}
         {attrs.map(([k, v]) => (
           <Detail key={k} label={k} value={String(v)} />
         ))}
@@ -328,152 +309,173 @@ export default function PropertyDetail() {
         </Card>
       ) : null}
 
-      {/* Faith & practicality — sacred places, Qibla, land checks (renders only with coords). */}
-      <SacredPlacesCard lat={lat} lng={lng} attrs={property.attrs} />
-
-      {isPartner ? (
-        <CommissionPreview
-          ctx={{
-            price: property.price,
-            project_id: property.project_id,
-            plan_id: property.plan_id,
-            property_type_id: property.property_type_id,
-          }}
-        />
-      ) : null}
-
-      {/* Auto flyer: property photo + details land in the flyer maker prefilled. */}
-      {isPartner && flyerImage ? (
-        <Pressable
-          onPress={() =>
-            router.push({
-              pathname: '/tools/poster',
-              params: {
-                imageUri: flyerImage,
-                title: String((property.attrs as Record<string, unknown>)?.title ?? '').slice(0, 60) || `${property.plot_code} for sale`,
-                price: String(property.price ?? ''),
-                location: String((property.attrs as Record<string, unknown>)?.location ?? ''),
-              },
-            })
-          }>
-          <Card accent={0} className="flex-row items-center gap-3">
-            <Ionicons name="sparkles" size={20} color="#E5484D" />
-            <View className="flex-1">
-              <Text variant="title" className="text-[14px]">{t('property.autoFlyer.title', { defaultValue: 'Auto-create flyer' })}</Text>
-              <Text variant="caption">{t('property.autoFlyer.body', { defaultValue: 'One tap: photo, title & price drop into the flyer maker, branded with your card.' })}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={color.muted} />
-          </Card>
-        </Pressable>
-      ) : null}
-
-      {isPartner ? (
-        <Pressable onPress={onSuggestPhoto} disabled={submitPhotos.isPending}>
-          <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
-            <Ionicons name="cloud-upload" size={20} color={color.goldDeep} />
-            <View className="flex-1">
-              <Text variant="title" className="text-[14px]">
-                {submitPhotos.isPending ? t('property.uploading') : t('property.suggestPhoto')}
-              </Text>
-              <Text variant="caption">{t('property.suggestPhotoBody')}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={color.muted} />
-          </Card>
-        </Pressable>
-      ) : null}
-
-      {tours.length > 0 || hasCoords ? (
-        <View className="gap-2">
-          <Text variant="label">{t('property.toursLocation')}</Text>
-          <View className="flex-row flex-wrap gap-2">
-            {tours.map((tr) => (
-              <Pressable
-                key={tr.label}
-                onPress={() => router.push({ pathname: '/webview', params: { url: tr.url, title: tr.label } })}
-                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
-                <Ionicons name={tr.icon} size={16} color={color.red} />
-                <Text className="text-[13px] font-semibold text-ink">{tr.label}</Text>
-              </Pressable>
-            ))}
-            {hasCoords ? (
-              <Pressable
-                onPress={() =>
-                  Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`)
-                }
-                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
-                <Ionicons name="navigate" size={16} color={color.red} />
-                <Text className="text-[13px] font-semibold text-ink">{t('property.tours.nearby')}</Text>
-              </Pressable>
-            ) : null}
-            {hasCoords ? (
-              <Pressable
-                onPress={() => router.push({ pathname: '/ar', params: { id: property.id } })}
-                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
-                <Ionicons name="scan" size={16} color={color.red} />
-                <Text className="text-[13px] font-semibold text-ink">{t('property.tours.ar')}</Text>
-              </Pressable>
-            ) : null}
-          </View>
-        </View>
-      ) : null}
-
-      {hasCoords ? <NearbyAmenities lat={lat as number} lng={lng as number} /> : null}
-
-      <NeighborhoodScores scores={property.project?.neighborhood} />
-
-      <PriceHistoryPanel propertyId={property.id} />
-
-      <EmiCalculator price={property.price} />
-      <StampDutyCalculator price={property.price} />
-      <AffordabilityCalculator price={property.price} />
-      <RentVsBuyCalculator price={property.price} />
-      <RoiCalculator price={property.price} />
-
-      <AiPropertyPanel
-        ctx={{
-          title: customTitle,
-          project: property.project?.name,
-          location: property.project?.location,
-          price: property.price,
-          type: property.type?.name,
-        }}
-        description={description}
-      />
-
-      <JourneyTracker propertyId={property.id} />
-
-      {property.project_id ? <ReviewsPanel projectId={property.project_id} /> : null}
-
+      {/* JAMIN-mediated contact + the primary actions (brief §4: value → line → action). */}
       <View className="gap-3">
-        {/* JAMIN-mediated contact: buyer↔seller calls & meetings only happen through JAMIN */}
         <View className="flex-row items-center gap-2 rounded-2xl border border-gold/40 bg-gold/10 px-3 py-2.5">
           <Ionicons name="shield-checkmark" size={16} color={color.gold} />
           <Text variant="caption" className="flex-1 text-ink">{t('property.jaminConnect')}</Text>
         </View>
-        <View className="flex-row flex-wrap items-center justify-center gap-x-3 gap-y-1">
-          {[t('property.trust.freeVisit'), t('property.trust.noObligation'), t('property.trust.escrow')].map((r) => (
-            <View key={r} className="flex-row items-center gap-1">
-              <Ionicons name="shield-checkmark" size={12} color={color.success} />
-              <Text variant="caption" className="text-ink">{r}</Text>
-            </View>
-          ))}
-        </View>
         <Button title={t('property.cta.enquire')} onPress={() => setEnquiry(true)} />
         <Button title={t('property.cta.bookVisit')} variant="outline" onPress={() => setVisit(true)} />
-        <Button title={t('property.cta.shortlist')} variant="outline" left={<Ionicons name="people" size={16} color={color.ink} />} onPress={() => setShortlist(true)} />
-        {isPartner ? (
-          <Button title={t('property.cta.cobroke')} variant="outline" left={<Ionicons name="git-network" size={16} color={color.ink} />} onPress={() => setCobroke(true)} />
-        ) : null}
         {property.status === 'available' && property.seller_id !== myId ? (
           <Button title={t('property.cta.makeOffer')} variant="outline" onPress={() => setOffer(true)} />
         ) : null}
         {property.status === 'available' ? (
           <Button title={t('property.cta.reserve')} variant="secondary" loading={reserve.isPending} onPress={onReserve} />
         ) : null}
-        <Pressable onPress={() => setReport(true)} className="items-center pt-1">
-          <Text className="text-[13px] font-semibold text-muted">{t('property.report')}</Text>
-        </Pressable>
       </View>
+
+      {/* Everything secondary sits behind one clear disclosure (brief §2). */}
+      <Disclosure
+        title={t('property.moreInfo', { defaultValue: 'More information' })}
+        subtitle={t('property.moreInfoSub', { defaultValue: 'Insights, tours, nearby places & calculators' })}>
+        {!isPending && !isRejected ? <PlotAppeal property={property} /> : null}
+
+        <FortunePanel
+          property={{
+            id: property.id,
+            plotCode: property.plot_code,
+            price: property.price,
+            project: property.project?.name,
+            location: property.project?.location,
+          }}
+        />
+
+        <InvestValueCard property={{ id: property.id, price: property.price, attrs: property.attrs }} />
+
+        {/* Faith & practicality — sacred places, Qibla, land checks (renders only with coords). */}
+        <SacredPlacesCard lat={lat} lng={lng} attrs={property.attrs} />
+
+        {tours.length > 0 || hasCoords ? (
+          <View className="gap-2">
+            <Text variant="label">{t('property.toursLocation')}</Text>
+            <View className="flex-row flex-wrap gap-2">
+              {tours.map((tr) => (
+                <Pressable
+                  key={tr.label}
+                  onPress={() => router.push({ pathname: '/webview', params: { url: tr.url, title: tr.label } })}
+                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                  <Ionicons name={tr.icon} size={16} color={color.red} />
+                  <Text className="text-[13px] font-semibold text-ink">{tr.label}</Text>
+                </Pressable>
+              ))}
+              {hasCoords ? (
+                <Pressable
+                  onPress={() =>
+                    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`)
+                  }
+                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                  <Ionicons name="navigate" size={16} color={color.red} />
+                  <Text className="text-[13px] font-semibold text-ink">{t('property.tours.nearby')}</Text>
+                </Pressable>
+              ) : null}
+              {hasCoords ? (
+                <Pressable
+                  onPress={() => router.push({ pathname: '/ar', params: { id: property.id } })}
+                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                  <Ionicons name="scan" size={16} color={color.red} />
+                  <Text className="text-[13px] font-semibold text-ink">{t('property.tours.ar')}</Text>
+                </Pressable>
+              ) : null}
+            </View>
+          </View>
+        ) : null}
+
+        {hasCoords ? <NearbyAmenities lat={lat as number} lng={lng as number} /> : null}
+
+        <NeighborhoodScores scores={property.project?.neighborhood} />
+
+        <PriceHistoryPanel propertyId={property.id} />
+
+        <EmiCalculator price={property.price} />
+        <StampDutyCalculator price={property.price} />
+        <AffordabilityCalculator price={property.price} />
+        <RentVsBuyCalculator price={property.price} />
+        <RoiCalculator price={property.price} />
+
+        <AiPropertyPanel
+          ctx={{
+            title: customTitle,
+            project: property.project?.name,
+            location: property.project?.location,
+            price: property.price,
+            type: property.type?.name,
+          }}
+          description={description}
+        />
+
+        <JourneyTracker propertyId={property.id} />
+
+        {property.project_id ? <ReviewsPanel projectId={property.project_id} /> : null}
+
+        <Button title={t('property.cta.shortlist')} variant="outline" left={<Ionicons name="people" size={16} color={color.ink} />} onPress={() => setShortlist(true)} />
+        {isPartner ? (
+          <Button title={t('property.cta.cobroke')} variant="outline" left={<Ionicons name="git-network" size={16} color={color.ink} />} onPress={() => setCobroke(true)} />
+        ) : null}
+      </Disclosure>
+
+      {isPartner ? (
+        <Disclosure
+          title={t('property.partnerTools', { defaultValue: 'Partner tools' })}
+          subtitle={t('property.partnerToolsSub', { defaultValue: 'Commission, flyers & photo submissions' })}>
+          <CommissionPreview
+            ctx={{
+              price: property.price,
+              project_id: property.project_id,
+              plan_id: property.plan_id,
+              property_type_id: property.property_type_id,
+            }}
+          />
+          {flyerImage ? (
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: '/tools/poster',
+                  params: {
+                    imageUri: flyerImage,
+                    title: String((property.attrs as Record<string, unknown>)?.title ?? '').slice(0, 60) || `${property.plot_code} for sale`,
+                    price: String(property.price ?? ''),
+                    location: String((property.attrs as Record<string, unknown>)?.location ?? ''),
+                  },
+                })
+              }>
+              <Card className="flex-row items-center gap-3">
+                <Ionicons name="image" size={20} color={color.ink} />
+                <View className="flex-1">
+                  <Text variant="title" className="text-[14px]">{t('property.autoFlyer.title', { defaultValue: 'Auto-create flyer' })}</Text>
+                  <Text variant="caption">{t('property.autoFlyer.body', { defaultValue: 'One tap: photo, title & price drop into the flyer maker, branded with your card.' })}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={color.muted} />
+              </Card>
+            </Pressable>
+          ) : null}
+
+          <Pressable onPress={onSuggestPhoto} disabled={submitPhotos.isPending}>
+            <Card className="flex-row items-center gap-3">
+              <Ionicons name="cloud-upload" size={20} color={color.ink} />
+              <View className="flex-1">
+                <Text variant="title" className="text-[14px]">
+                  {submitPhotos.isPending ? t('property.uploading') : t('property.suggestPhoto')}
+                </Text>
+                <Text variant="caption">{t('property.suggestPhotoBody')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={color.muted} />
+            </Card>
+          </Pressable>
+        </Disclosure>
+      ) : null}
+
+      <View className="flex-row flex-wrap items-center justify-center gap-x-3 gap-y-1">
+        {[t('property.trust.freeVisit'), t('property.trust.noObligation'), t('property.trust.escrow')].map((r) => (
+          <View key={r} className="flex-row items-center gap-1">
+            <Ionicons name="shield-checkmark" size={12} color={color.success} />
+            <Text variant="caption" className="text-ink">{r}</Text>
+          </View>
+        ))}
+      </View>
+      <Pressable onPress={() => setReport(true)} className="items-center pt-1">
+        <Text className="text-[13px] font-semibold text-muted">{t('property.report')}</Text>
+      </Pressable>
 
       <EnquirySheet visible={enquiry} onClose={() => setEnquiry(false)} propertyId={property.id} propertyLabel={label} />
       <SiteVisitSheet visible={visit} onClose={() => setVisit(false)} propertyId={property.id} propertyLabel={label} />

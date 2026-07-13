@@ -8,7 +8,10 @@
     "properties": "پراپرٹیز",
     "card": "کارڈ",
     "network": "نیٹ ورک",
-    "wallet": "والٹ"
+    "wallet": "والٹ",
+    "investments": "سرمایہ کاری",
+    "activity": "سرگرمی",
+    "account": "اکاؤنٹ"
   },
   "vastu": {
     "title": "واستو اور مہورت",

@@ -7,6 +7,7 @@ import { BackHeader } from '@/components/ui/BackHeader';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { isVisibleRole } from '@/lib/access';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
@@ -30,7 +31,8 @@ export default function RolePreview() {
     queryFn: async () => {
       const { data, error } = await supabase.from('roles').select('id, slug, name, level').order('level');
       if (error) throw error;
-      return (data ?? []) as Role[];
+      // Only the five public user types are listed (brief: hide all others).
+      return ((data ?? []) as Role[]).filter((r) => isVisibleRole(r.slug));
     },
   });
 

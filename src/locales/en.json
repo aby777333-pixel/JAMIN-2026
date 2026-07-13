@@ -39,7 +39,10 @@
     "properties": "Properties",
     "card": "Card",
     "network": "Network",
-    "wallet": "Wallet"
+    "wallet": "Wallet",
+    "investments": "Investments",
+    "activity": "Activity",
+    "account": "Account"
   },
   "home": {
     "greeting": "Welcome back",
