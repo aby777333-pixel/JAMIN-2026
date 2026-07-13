@@ -226,6 +226,24 @@ approved fallback and remains the shipped face).
   manual radar pings confirmed the tab blink + toast render on the calm skin;
   scripts parse; zero console errors.
 
+## Declutter round 2 (2026-07-13, owner device feedback)
+
+- **Property detail gallery**: plots with no uploaded photos now show a
+  scrollable set of 4 bundled land photos (stable per plot code) instead of
+  the dark "Photos coming soon" block — each labelled "Representative image ·
+  actual photos coming soon" so buyers aren't misled. Real photos always win.
+- **Properties screen decluttered**: all filter chip rows now sit behind one
+  "Filters" button beside the search box (with an active-filter count so
+  hidden filters are never a mystery). Search and the any-language voice
+  search stay visible. Zero filter logic changed. "For you" mini-cards show
+  land-photo thumbnails instead of grey icons.
+- **Profile photo upload**: Edit profile's raw "Photo URL" text field replaced
+  with a real picker — avatar preview, Upload/Change photo (gallery pick,
+  square crop, uploads to the user's own folder in the public `user-media`
+  bucket via the existing upload helper), Remove photo. Shows on the Account
+  tab, business card, brochures and agent stamps. No new dependencies; the
+  existing `photo_url` column and RLS policies carry it.
+
 ## Explicitly NOT changed
 
 - Supabase queries, RLS, auth, onboarding, biometric lock, push/Realtime

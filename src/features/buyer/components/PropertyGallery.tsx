@@ -1,9 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Dimensions, ScrollView, View } from 'react-native';
 
 import { Text } from '@/components/ui/Text';
-import { color } from '@/theme/tokens';
+import { plotFallbackSetFor } from './plotFallbacks';
 
 function toUrls(media: unknown): string[] {
   if (!Array.isArray(media)) return [];
@@ -16,15 +15,24 @@ export function PropertyGallery({ media, code }: { media: unknown; code: string 
   const urls = toUrls(media);
   const w = Dimensions.get('window').width - 40;
 
+  // No uploaded photos yet → a scrollable set of bundled land photos (stable
+  // per plot code) instead of a dark empty block. Labelled so buyers know
+  // these are representative, not the actual plot.
   if (urls.length === 0) {
+    const fallbacks = plotFallbackSetFor(code);
     return (
-      <View
-        className="items-center justify-center rounded-2xl bg-charcoal"
-        style={{ height: 200 }}>
-        <Ionicons name="business" size={40} color={color.gold} />
-        <Text className="mt-2 font-mono-bold text-[13px] text-gold">{code}</Text>
-        <Text className="text-[11px] text-white/50">Photos coming soon</Text>
-      </View>
+      <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} className="rounded-2xl">
+        {fallbacks.map((src, i) => (
+          <View key={i} style={{ width: w, height: 200 }}>
+            <Image source={src} style={{ width: w, height: 200, borderRadius: 16 }} contentFit="cover" />
+            <View className="absolute bottom-2 left-2 rounded-full bg-[#1A1A1A]/70 px-2.5 py-1">
+              <Text className="text-[10px] font-semibold text-white">
+                Representative image · actual photos coming soon
+              </Text>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
     );
   }
 

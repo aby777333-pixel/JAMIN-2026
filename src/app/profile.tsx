@@ -1,4 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
@@ -12,6 +14,7 @@ import { Text } from '@/components/ui/Text';
 import { updateMyProfile } from '@/features/auth/api';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
+import { uploadImageToBucket } from '@/lib/upload';
 import { errMessage } from '@/lib/errors';
 
 /**
@@ -26,7 +29,42 @@ export default function EditProfile() {
   const [designation, setDesignation] = useState(profile?.designation ?? '');
   const [photoUrl, setPhotoUrl] = useState(profile?.photo_url ?? '');
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const isPartner = !!profile?.role_slug && profile.role_slug !== 'buyer';
+
+  const initials = (profile?.full_name ?? '?')
+    .split(' ')
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
+  /** Pick a photo from the gallery → own folder in the public user-media
+      bucket (RLS: first path segment must be auth.uid()) → photo URL. */
+  async function onPickPhoto() {
+    if (!profile?.id) return;
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.85,
+      allowsEditing: true,
+      aspect: [1, 1],
+    });
+    if (res.canceled || !res.assets[0]) return;
+    setUploading(true);
+    try {
+      const a = res.assets[0];
+      const { url } = await uploadImageToBucket('user-media', `${profile.id}/profile`, {
+        uri: a.uri,
+        name: a.fileName ?? 'profile.jpg',
+        mimeType: a.mimeType ?? 'image/jpeg',
+      });
+      setPhotoUrl(url);
+    } catch (e) {
+      Alert.alert('Could not upload photo', errMessage(e));
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function onSave() {
     setSaving(true);
@@ -47,17 +85,36 @@ export default function EditProfile() {
       <BackHeader title="Edit profile" />
       <View>
         <View className="mt-2 gap-4">
+          {/* Profile photo — appears on the Account tab, business card & brochures. */}
+          <View className="flex-row items-center gap-4">
+            {photoUrl ? (
+              <Image
+                source={{ uri: photoUrl }}
+                style={{ width: 72, height: 72, borderRadius: 36 }}
+                contentFit="cover"
+              />
+            ) : (
+              <View className="h-[72px] w-[72px] items-center justify-center rounded-full bg-charcoal">
+                <Text className="font-bold text-[22px] text-white">{initials}</Text>
+              </View>
+            )}
+            <View className="flex-1 gap-1.5">
+              <Button
+                title={photoUrl ? 'Change photo' : 'Upload photo'}
+                variant="outline"
+                loading={uploading}
+                onPress={onPickPhoto}
+              />
+              {photoUrl ? (
+                <Pressable onPress={() => setPhotoUrl('')} className="self-center py-0.5">
+                  <Text className="text-[12px] font-semibold text-muted">Remove photo</Text>
+                </Pressable>
+              ) : null}
+            </View>
+          </View>
           <Input label="Full name" value={fullName} onChangeText={setFullName} autoCapitalize="words" placeholder="Your name" />
           <Input label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" inputMode="tel" placeholder="+91 …" />
           <Input label="Designation / title" value={designation} onChangeText={setDesignation} placeholder="e.g. Senior Partner" />
-          <Input
-            label="Photo URL (optional)"
-            value={photoUrl}
-            onChangeText={setPhotoUrl}
-            autoCapitalize="none"
-            keyboardType="url"
-            placeholder="https://…"
-          />
           <Button title="Save profile" loading={saving} onPress={onSave} />
           <Text variant="caption">This is what appears on your Digital Business Card and shared brochures.</Text>
 

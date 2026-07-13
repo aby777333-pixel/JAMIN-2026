@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +12,7 @@ import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { WelcomeTour } from '@/components/WelcomeTour';
 import { FilterBar } from '@/features/buyer/components/FilterBar';
+import { plotFallbackFor } from '@/features/buyer/components/plotFallbacks';
 import { PropertyCard } from '@/features/buyer/components/PropertyCard';
 import { VoiceSearch } from '@/features/buyer/components/VoiceSearch';
 import {
@@ -29,6 +31,8 @@ export default function Properties() {
   const insets = useSafeAreaInsets();
   const { projectId } = useLocalSearchParams<{ projectId?: string }>();
   const [filters, setFilters] = useState<PropertyFilters>({ status: 'available', projectId });
+  // Declutter: the chip rows live behind one Filters button (search + voice stay).
+  const [showFilters, setShowFilters] = useState(false);
   // Apply a project filter when arriving from the Projects browse screen.
   useEffect(() => {
     if (projectId) setFilters((f) => ({ ...f, projectId }));
@@ -42,6 +46,18 @@ export default function Properties() {
   const toggle = useToggleWishlist();
 
   const patch = (p: Partial<PropertyFilters>) => setFilters((f) => ({ ...f, ...p }));
+  // How many non-default filters are on — shown on the Filters button so
+  // hidden chips are never a mystery.
+  const activeFilterCount = [
+    filters.savedOnly,
+    filters.propertyTypeId,
+    filters.projectId,
+    filters.priceMin != null || filters.priceMax != null,
+    filters.facing,
+    filters.verifiedOnly,
+    filters.premiumOnly,
+    (filters.sort ?? 'plot') !== 'plot',
+  ].filter(Boolean).length;
   // Only surface "For you" on the unfiltered default view.
   const showForYou =
     recommended.length > 0 && !filters.search && !filters.projectId && !filters.savedOnly && !filters.propertyTypeId;
@@ -92,14 +108,29 @@ export default function Properties() {
                 <Text className="text-[13px] font-semibold text-ink">{t('properties.compare')}</Text>
               </Pressable>
             </ScrollView>
-            <Input
-              placeholder={t('properties.searchPlaceholder')}
-              autoCapitalize="characters"
-              value={filters.search ?? ''}
-              onChangeText={(v) => patch({ search: v })}
-            />
+            <View className="flex-row items-center gap-2">
+              <View className="min-w-0 flex-1">
+                <Input
+                  placeholder={t('properties.searchPlaceholder')}
+                  autoCapitalize="characters"
+                  value={filters.search ?? ''}
+                  onChangeText={(v) => patch({ search: v })}
+                />
+              </View>
+              <Pressable
+                onPress={() => setShowFilters((s) => !s)}
+                className={`h-12 flex-row items-center gap-1.5 rounded-xl border px-3 ${showFilters ? 'border-red bg-red' : 'border-line bg-surface'}`}>
+                <Ionicons name="options-outline" size={17} color={showFilters ? '#FFFFFF' : color.ink} />
+                <Text className={`text-[13px] font-semibold ${showFilters ? 'text-white' : 'text-ink'}`}>
+                  {t('properties.filtersBtn', { defaultValue: 'Filters' })}
+                  {activeFilterCount > 0 ? ` · ${activeFilterCount}` : ''}
+                </Text>
+              </Pressable>
+            </View>
             <VoiceSearch types={types} projects={projects} onApply={patch} />
-            <FilterBar types={types} projects={projects} filters={filters} onChange={patch} />
+            {showFilters ? (
+              <FilterBar types={types} projects={projects} filters={filters} onChange={patch} />
+            ) : null}
             {showForYou ? (
               <View className="gap-2">
                 <View className="flex-row items-center gap-1.5">
@@ -115,9 +146,11 @@ export default function Properties() {
                   renderItem={({ item }) => (
                     <Pressable onPress={() => router.push(`/property/${item.id}`)} className="w-44">
                       <View className="overflow-hidden rounded-2xl border border-line bg-surface">
-                        <View className="h-24 bg-paper items-center justify-center">
-                          <Ionicons name="home" size={22} color={color.line} />
-                        </View>
+                        <Image
+                          source={plotFallbackFor(item.id)}
+                          style={{ width: '100%', height: 96 }}
+                          contentFit="cover"
+                        />
                         <View className="gap-0.5 p-2.5">
                           <Text className="font-mono-bold text-[12px] text-gold-deep" numberOfLines={1}>{item.plot_code}</Text>
                           <Text variant="caption" numberOfLines={1}>{item.project?.name ?? 'Property'}</Text>

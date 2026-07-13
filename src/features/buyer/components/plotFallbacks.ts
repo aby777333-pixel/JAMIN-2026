@@ -25,9 +25,22 @@ const PLOT_FALLBACKS = [
   require('../../../../assets/images/plots/plot17.jpg'),
 ];
 
-/** Stable id → image, so a plot keeps the same fallback across renders/sessions. */
-export function plotFallbackFor(id: string): number {
+function hash(id: string): number {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return PLOT_FALLBACKS[h % PLOT_FALLBACKS.length];
+  return h;
+}
+
+/** Stable id → image, so a plot keeps the same fallback across renders/sessions. */
+export function plotFallbackFor(id: string): number {
+  return PLOT_FALLBACKS[hash(id) % PLOT_FALLBACKS.length];
+}
+
+/** Stable id → a small scrollable set of distinct images (detail gallery). */
+export function plotFallbackSetFor(id: string, count = 4): number[] {
+  const start = hash(id) % PLOT_FALLBACKS.length;
+  const n = Math.min(count, PLOT_FALLBACKS.length);
+  const out: number[] = [];
+  for (let i = 0; i < n; i++) out.push(PLOT_FALLBACKS[(start + i) % PLOT_FALLBACKS.length]);
+  return out;
 }
