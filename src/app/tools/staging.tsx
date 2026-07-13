@@ -310,7 +310,7 @@ export default function PropertyStudio() {
               <GroupLabel tone={elementTone(gi)} caption>{t(`tools.studio.group.${grp.group}`, { defaultValue: grp.group })}</GroupLabel>
               <View className="flex-row flex-wrap gap-2">
                 {grp.items.map((it) => (
-                  <Chip key={it} label={it} tone={elementTone(gi)} active={elements.includes(it)} onPress={() => toggleElement(it)} />
+                  <Chip key={it} label={t(`tools.studio.element.${it}`, { defaultValue: it })} tone={elementTone(gi)} active={elements.includes(it)} onPress={() => toggleElement(it)} />
                 ))}
               </View>
             </View>

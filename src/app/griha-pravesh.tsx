@@ -58,22 +58,19 @@ export default function GrihaPravesh() {
 
   return (
     <Screen contentClassName="pb-12 gap-4">
-      <BackHeader title="Griha Pravesh" />
+      <BackHeader title={t('griha.title')} />
 
       <Card className="gap-2 border-gold/50 bg-[#FDF3D8]">
         <View className="flex-row items-center gap-2">
           <Ionicons name="home" size={18} color={color.goldDeep} />
           <Text variant="title" className="flex-1">
-            Welcome your new home
+            {t('griha.welcome')}
           </Text>
           <Text className="font-mono-bold text-[14px] text-gold-deep">
             {completed}/{STEPS.length}
           </Text>
         </View>
-        <Text variant="caption">
-          A warm, step-by-step housewarming guide. Tick items off as you go — your progress is saved on
-          this device.
-        </Text>
+        <Text variant="caption">{t('griha.intro')}</Text>
       </Card>
 
       <AuspiciousDatesCard
@@ -95,9 +92,9 @@ export default function GrihaPravesh() {
                 />
                 <View className="flex-1">
                   <Text variant="title" className={`text-[15px] ${isDone ? 'text-muted line-through' : ''}`}>
-                    {s.label}
+                    {t(`griha.step.${s.key}.label`, { defaultValue: s.label })}
                   </Text>
-                  <Text variant="caption">{s.note}</Text>
+                  <Text variant="caption">{t(`griha.step.${s.key}.note`, { defaultValue: s.note })}</Text>
                 </View>
               </Card>
             </Pressable>
@@ -106,8 +103,7 @@ export default function GrihaPravesh() {
       </View>
 
       <Text variant="caption" className="px-1 text-center text-muted">
-        A joyful cultural companion — customs vary by family & region. May your new home bring health,
-        wealth and happiness. 🪔
+        {t('griha.footer')}
       </Text>
     </Screen>
   );

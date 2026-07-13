@@ -390,7 +390,7 @@ export default function AiImage() {
                 {g.items.map((it) => (
                   <ElementTile
                     key={it.term}
-                    el={it}
+                    el={{ ...it, label: t(`tools.aiImage.tile.${it.term}`, { defaultValue: it.label }) }}
                     tone={elementTone(gi)}
                     active={hasElement(prompt, it.term)}
                     onPress={() => toggleElement(it.term)}

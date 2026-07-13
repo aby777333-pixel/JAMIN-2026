@@ -316,6 +316,47 @@
         "Property": "Property",
         "Real estate": "Real estate",
         "Lifestyle": "Lifestyle"
+      },
+      "tile": {
+        "coconut trees": "Coconut trees",
+        "palm trees": "Palm trees",
+        "mountains": "Mountains",
+        "a river": "River",
+        "a lake": "Lake",
+        "a waterfall": "Waterfall",
+        "lush gardens": "Gardens",
+        "rice fields": "Rice fields",
+        "sunset sky": "Sunset",
+        "golden hour light": "Golden hour",
+        "soft clouds": "Clouds",
+        "birds": "Birds",
+        "butterflies": "Butterflies",
+        "a peacock": "Peacock",
+        "elephants": "Elephants",
+        "deer": "Deer",
+        "horses": "Horses",
+        "a modern villa": "Villa",
+        "an apartment tower": "Apartment",
+        "a farmhouse": "Farmhouse",
+        "a luxury bungalow": "Bungalow",
+        "a resort": "Resort",
+        "a temple": "Temple",
+        "a commercial building": "Commercial",
+        "residential plots": "Plots",
+        "a gated community": "Gated",
+        "wide layout roads": "Roads",
+        "a compound wall": "Wall",
+        "a grand entrance gate": "Gate",
+        "a swimming pool": "Pool",
+        "agricultural land": "Farm land",
+        "a plantation": "Plantation",
+        "solar panels": "Solar",
+        "a luxury car": "Luxury car",
+        "a fountain": "Fountain",
+        "street lights": "Lights",
+        "a walking path": "Path",
+        "a children's play area": "Play area",
+        "a gazebo": "Gazebo"
       }
     },
     "translate": {
@@ -396,6 +437,50 @@
         "Ambience": "Ambience",
         "Life": "Life",
         "Interior": "Interior"
+      },
+      "element": {
+        "coconut trees": "coconut trees",
+        "palm trees": "palm trees",
+        "lush gardens": "lush gardens",
+        "flowering plants": "flowering plants",
+        "hedges": "hedges",
+        "a green lawn": "a green lawn",
+        "potted plants": "potted plants",
+        "a modern villa": "a modern villa",
+        "a house": "a house",
+        "a cottage": "a cottage",
+        "a compound wall": "a compound wall",
+        "a fence": "a fence",
+        "a grand entrance gate": "a grand entrance gate",
+        "a gazebo": "a gazebo",
+        "a car porch": "a car porch",
+        "a swimming pool": "a swimming pool",
+        "a pond": "a pond",
+        "a lake": "a lake",
+        "a fountain": "a fountain",
+        "a water feature": "a water feature",
+        "a paved driveway": "a paved driveway",
+        "walking pathways": "walking pathways",
+        "internal roads": "internal roads",
+        "street lights": "street lights",
+        "a parking area": "a parking area",
+        "warm exterior lighting": "warm exterior lighting",
+        "a sunset sky": "a sunset sky",
+        "soft clouds": "soft clouds",
+        "birds": "birds",
+        "a clear blue sky": "a clear blue sky",
+        "golden-hour glow": "golden-hour glow",
+        "parked cars": "parked cars",
+        "people walking": "people walking",
+        "outdoor furniture": "outdoor furniture",
+        "a seating area": "a seating area",
+        "a sofa set": "a sofa set",
+        "a dining table": "a dining table",
+        "a bed": "a bed",
+        "a wardrobe": "a wardrobe",
+        "rugs & curtains": "rugs & curtains",
+        "indoor plants": "indoor plants",
+        "wall art": "wall art"
       }
     },
     "valuation": {
@@ -848,6 +933,66 @@
       "heroTitle": "Choose your language",
       "heroBody": "The whole app switches instantly — menus, tools, guidance and more. Your choice is remembered.",
       "note": "Community posts translate with one tap — and Jamindar AI speaks your language too."
+    }
+  },
+  "escrow": {
+    "title": "Escrow & milestones",
+    "intro": "Booking payments held in stages and released as each milestone is met.",
+    "emptyTitle": "No milestones yet",
+    "emptyBody": "Payment milestones for your bookings will appear here.",
+    "booking": "Booking",
+    "due": "due {{date}}",
+    "markFunded": "Mark funded",
+    "release": "Release",
+    "refund": "Refund",
+    "gatewayNote": "Online auto-capture activates once a payment gateway is connected. Milestones are managed by your agent/admin today."
+  },
+  "griha": {
+    "title": "Griha Pravesh",
+    "welcome": "Welcome your new home",
+    "intro": "A warm, step-by-step housewarming guide. Tick items off as you go — your progress is saved on this device.",
+    "footer": "A joyful cultural companion — customs vary by family & region. May your new home bring health, wealth and happiness. 🪔",
+    "step": {
+      "muhurat": {
+        "label": "Fix an auspicious muhurat",
+        "note": "Pick a favourable day & time with your priest/panchang."
+      },
+      "clean": {
+        "label": "Clean & purify the home",
+        "note": "A fresh, clutter-free space welcomes positive energy."
+      },
+      "toran": {
+        "label": "Decorate the entrance",
+        "note": "Mango-leaf toran, flowers and a rangoli at the main door."
+      },
+      "kalash": {
+        "label": "Prepare the Kalash",
+        "note": "A copper pot with water, coconut and mango leaves for the puja."
+      },
+      "ganesh": {
+        "label": "Ganesh & Lakshmi puja",
+        "note": "Invoke Ganesha for a smooth start and Lakshmi for prosperity."
+      },
+      "vastu_shanti": {
+        "label": "Vastu Shanti / Navagraha havan",
+        "note": "A homam to harmonise the home’s energies (optional but loved)."
+      },
+      "right_foot": {
+        "label": "Enter with the right foot first",
+        "note": "The lady of the house traditionally leads, carrying the Kalash."
+      },
+      "milk": {
+        "label": "Boil milk till it overflows",
+        "note": "An overflowing pot symbolises abundance and never-ending plenty."
+      },
+      "first_meal": {
+        "label": "Cook the first meal",
+        "note": "Prepare something sweet first for a joyful, prosperous home."
+      },
+      "bless": {
+        "label": "Invite elders & seek blessings",
+        "note": "Warmth, good wishes and a housewarming feast with loved ones."
+      }
     }
   }
 }
