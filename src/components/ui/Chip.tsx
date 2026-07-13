@@ -3,44 +3,37 @@ import { Pressable } from 'react-native';
 import { Text } from './Text';
 import { cn } from '@/lib/cn';
 import { tap } from '@/lib/haptics';
-import { accentFor } from '@/theme/tokens';
-
-/** Stable label → palette slot, so untoned chips get a consistent colour. */
-function hashTone(label: string) {
-  let h = 0;
-  for (let i = 0; i < label.length; i++) h = (h * 31 + label.charCodeAt(i)) >>> 0;
-  return h % 8;
-}
+import { color } from '@/theme/tokens';
 
 /**
- * Selectable pill: subtle tinted fill at rest, solid accent fill when active.
- * Pass `tone` (a palette index) to pin a group to one hue; without it the
- * colour derives from the label so pickers are colourful everywhere.
+ * Selectable pill — calm brand treatment (simplification redesign): quiet
+ * surface at rest, solid crimson when active. The earlier hash-toned rainbow
+ * fills are retired; the `tone` prop is still accepted (many callers pass it)
+ * but no longer drives colour, so nothing breaks.
  */
 export function Chip({
   label,
   active,
   onPress,
-  tone,
 }: {
   label: string;
   active?: boolean;
   onPress?: () => void;
+  /** Legacy palette index — accepted for compatibility, no longer used. */
   tone?: number;
 }) {
-  const a = accentFor(tone ?? hashTone(label));
   return (
     <Pressable
       onPress={onPress ? () => { tap(); onPress(); } : undefined}
       className="rounded-full border px-3.5 py-2"
       style={
         active
-          ? { backgroundColor: a.main, borderColor: a.main }
-          : { backgroundColor: a.soft, borderColor: a.main + '4D' }
+          ? { backgroundColor: color.red, borderColor: color.red }
+          : { backgroundColor: color.surface, borderColor: color.line }
       }>
       <Text
         className={cn('text-[13px]', active ? 'font-semibold' : 'font-medium')}
-        style={{ color: active ? '#FFFFFF' : undefined }}>
+        style={{ color: active ? '#FFFFFF' : color.ink }}>
         {label}
       </Text>
     </Pressable>

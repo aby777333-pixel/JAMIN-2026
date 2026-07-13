@@ -151,9 +151,15 @@ export default function Account() {
             <>
               <ListRow
                 icon="camera"
-                label="Create ad"
-                sub="Live photo and video ads with your card"
+                label="Create ad (photo & video)"
+                sub="Live geo-verified ads with your card"
                 onPress={() => router.push('/tools/ad-creator')}
+              />
+              <ListRow
+                icon="image"
+                label="Poster & banner maker"
+                sub="Turn any photo or video into a branded banner"
+                onPress={() => router.push('/tools/poster')}
               />
               <ListRow
                 icon="document-text"

@@ -97,7 +97,7 @@ export function FilterBar({
         showsHorizontalScrollIndicator={false}
         contentContainerClassName="gap-2 pr-4 items-center">
         <Text variant="caption" className="mr-1">
-          🧭 {t('properties.filters.facing')}
+          {t('properties.filters.facing')}
         </Text>
         <Chip label={t('properties.filters.any')} active={!filters.facing} onPress={() => onChange({ facing: null })} />
         {FACINGS.map((f) => (

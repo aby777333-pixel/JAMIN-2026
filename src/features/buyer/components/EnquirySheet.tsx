@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, KeyboardAvoidingView, Modal, Pressable, ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
@@ -98,12 +99,15 @@ export function Sheet({
   title: string;
   children: React.ReactNode;
 }) {
+  // Edge-to-edge is on (app.json): the Android system nav overlays the modal,
+  // so the sheet's last button was hidden behind it — pad by the bottom inset.
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       {/* 'padding' on BOTH platforms: with Android edgeToEdgeEnabled the window
           no longer resizes, so 'height' is a no-op and the keyboard covers inputs. */}
       <KeyboardAvoidingView behavior="padding" className="flex-1 justify-end bg-black/40">
-        <View className="max-h-[85%] rounded-t-3xl bg-paper p-5">
+        <View className="max-h-[85%] rounded-t-3xl bg-paper p-5" style={{ paddingBottom: 20 + insets.bottom }}>
           <View className="mb-3 flex-row items-center justify-between">
             <Text variant="h2">{title}</Text>
             <Pressable onPress={onClose} hitSlop={10}>

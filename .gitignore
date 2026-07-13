@@ -48,3 +48,6 @@ example
 
 # Netlify CLI local state
 .netlify/
+
+# Owner-supplied image originals (160MB) - only the compressed copies in assets/images/plots ship
+assets/images/plot images/

@@ -183,6 +183,32 @@ approved fallback and remains the shipped face).
   and inline-background fixes), the activity radar + toasts, zebra tables,
   section spacing.
 
+## Polish round (2026-07-13, owner device feedback)
+
+- **Filter chips calmed** (`components/ui/Chip.tsx`): the hash-toned rainbow
+  fills (every chip a different color) are retired app-wide — quiet white
+  chips, crimson when active. The `tone` prop is still accepted so no caller
+  breaks. Compass emoji removed from the Facing filter label.
+- **Book a site visit** (`SiteVisitSheet.tsx`): preset day chips replaced with
+  a proper month **calendar grid** (back/forward months, tomorrow → +60 days,
+  past days disabled, auspicious days marked with a small gold dot) plus five
+  clean time slots and a "Your visit" summary line. Writes the same
+  `scheduled_at` field, so the admin console's Site visits table and Dashboard
+  agenda show the chosen date & time exactly as before (verified — admin
+  renders `toLocaleString()`).
+- **Bottom sheets no longer hide their button under the Android nav bar**
+  (`EnquirySheet.tsx` Sheet): safe-area bottom inset added — fixes Confirm
+  visit, Enquire, Withdraw, Make offer and every other sheet at once.
+- **Poster & banner maker surfaced** in Account → Tools (it existed at
+  `/tools/poster` but had no entry point after the redesign); "Create ad"
+  renamed to "Create ad (photo & video)".
+- **Plot cards always show a photo**: 17 owner-supplied land images
+  (compressed 160 MB → 1.2 MB, bundled at `assets/images/plots/`) appear as
+  stable per-plot fallbacks on listing cards with no uploaded photos.
+  Display-only — real listing media always wins, the database is untouched,
+  and the detail gallery still shows only actual photos. Originals folder
+  git-ignored.
+
 ## Explicitly NOT changed
 
 - Supabase queries, RLS, auth, onboarding, biometric lock, push/Realtime

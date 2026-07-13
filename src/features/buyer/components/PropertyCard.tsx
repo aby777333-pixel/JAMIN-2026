@@ -6,6 +6,7 @@ import { Pressable, View } from 'react-native';
 import { Badge } from '@/components/ui/Badge';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Text } from '@/components/ui/Text';
+import { plotFallbackFor } from './plotFallbacks';
 import { ReraBadge } from './ReraBadge';
 import { propertyFortune } from '@/features/astro/engine';
 import { readFacing } from '@/features/astro/vastu';
@@ -39,13 +40,13 @@ export function PropertyCard({
       onPress={() => router.push(`/property/${item.id}`)}
       className="overflow-hidden rounded-2xl border border-line bg-surface">
       <View className="h-36 bg-paper">
-        {img ? (
-          <Image source={{ uri: img }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
-        ) : (
-          <View className="flex-1 items-center justify-center">
-            <Ionicons name="image-outline" size={28} color={color.line} />
-          </View>
-        )}
+        {/* Real listing photos win; otherwise a bundled land photo keeps the
+            card visual (stable per plot id) instead of an empty grey block. */}
+        <Image
+          source={img ? { uri: img } : plotFallbackFor(item.id)}
+          style={{ width: '100%', height: '100%' }}
+          contentFit="cover"
+        />
         <Pressable
           onPress={onToggleSave}
           hitSlop={10}
