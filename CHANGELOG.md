@@ -302,6 +302,25 @@ approved fallback and remains the shipped face).
   present, public, and with **no size or file-type limits**. Nothing missing,
   nothing changed.
 
+## Radar delivery fix (2026-07-13, migration 0095)
+
+- **Root cause of "bulb doesn't burn, no radar pop-ups"**: Realtime evaluates
+  each published table's RLS policies AS the subscriber's role when delivering
+  an event. Anonymous subscribers exist (the shared-ad live chat pages), and
+  the pre-launch hardening had revoked helper-function EXECUTE from anon — so
+  policy expressions calling `auth_is_admin()` / `is_shortlist_member()` /
+  `auth_hierarchy_path()` raised "permission denied" inside Realtime's
+  delivery engine and the WHOLE polling batch died: no events reached anyone,
+  admin radar included (confirmed in the Realtime server logs).
+- **Fix** (migration 0095, applied): EXECUTE granted on those three predicate
+  helpers to anon + authenticated. They are pure boolean/path helpers keyed to
+  the caller's identity — anon simply evaluates to false/null; no data is
+  exposed (they gate access, RLS still decides).
+- **Proven end-to-end**: subscribed with a real anon Realtime client, inserted
+  a test ad-chat row, event delivered in under a second (test row removed).
+  Server-side fix — live immediately for the installed app and any open admin
+  tab (the radar watchdog resubscribes within 60s).
+
 ## Explicitly NOT changed
 
 - Supabase queries, RLS, auth, onboarding, biometric lock, push/Realtime
