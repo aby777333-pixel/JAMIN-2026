@@ -286,6 +286,22 @@ approved fallback and remains the shipped face).
 - **Sub Promoter added to visible role lists** (preview-as-role, staff
   applications, in-app admin picker, web-admin picker + explainer).
 
+## Community visibility + storage audit (2026-07-13)
+
+- **"Community not showing in admin" diagnosed**: the posts were in the
+  database, admin-readable, and the tab renders them — verified end-to-end
+  under the admin's own identity. The real gap: when an event arrived for the
+  tab you were ALREADY viewing, the radar stayed silent and the open tab's
+  content is a snapshot — new posts didn't appear until you clicked away and
+  back. Now an on-tab event pops a "Click to refresh" toast that re-renders
+  the open tab (never auto-rerenders — no typing is ever interrupted).
+- **Storage audit (all upload surfaces)**: plot photos/videos, community
+  media, reels, document vault, shared ads, profile photos, payment proofs
+  and photo submissions all map to the three existing buckets
+  (`property-media`, `user-media`, `property-submissions`) — every one
+  present, public, and with **no size or file-type limits**. Nothing missing,
+  nothing changed.
+
 ## Explicitly NOT changed
 
 - Supabase queries, RLS, auth, onboarding, biometric lock, push/Realtime

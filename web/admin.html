@@ -5278,7 +5278,7 @@
           return a ? a.dataset.tab : null;
         }
 
-        function toast(label, tab, tabName) {
+        function toast(label, tab, tabName, refresh) {
           var wrap = document.getElementById('actToasts');
           if (!wrap) { wrap = document.createElement('div'); wrap.id = 'actToasts'; document.body.appendChild(wrap); }
           var el = document.createElement('div');
@@ -5286,7 +5286,7 @@
           var bulb = document.createElement('span'); bulb.className = 'bulb';
           var txt = document.createElement('div');
           var b = document.createElement('b'); b.textContent = label;
-          var s = document.createElement('small'); s.textContent = 'Open ' + tabName;
+          var s = document.createElement('small'); s.textContent = (refresh ? 'Click to refresh ' : 'Open ') + tabName;
           txt.appendChild(b); txt.appendChild(document.createElement('br')); txt.appendChild(s);
           el.appendChild(bulb); el.appendChild(txt);
           el.onclick = function () {
@@ -5304,13 +5304,16 @@
           // The Dashboard light blinks on ANY activity anywhere (its own view clears it).
           var dash = document.querySelector('.nav-i[data-tab="dashboard"]');
           if (dash && activeTab() !== 'dashboard') dash.classList.add('activity');
-          if (activeTab() === tab) return; // you're already looking at it
           var btn = document.querySelector('.nav-i[data-tab="' + tab + '"]');
-          if (btn) btn.classList.add('activity');
+          var onIt = activeTab() === tab;
+          if (!onIt && btn) btn.classList.add('activity');
           var now = Date.now();
           if (lastToast[tab] && now - lastToast[tab] < 8000) return; // coalesce bursts
           lastToast[tab] = now;
-          toast(label, tab, btn ? btn.textContent.trim() : tab);
+          // Already viewing the tab? Its content is a snapshot — offer a
+          // one-click refresh instead of staying silent (clicking the toast
+          // re-runs switchTab, which re-renders the open tab).
+          toast(label, tab, btn ? btn.textContent.trim() : tab, onIt);
           try {
             if (window.Notification && Notification.permission === 'granted') {
               new Notification('JAMIN Admin', { body: label });
