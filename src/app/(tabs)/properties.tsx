@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,14 +11,12 @@ import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { WelcomeTour } from '@/components/WelcomeTour';
 import { FilterBar } from '@/features/buyer/components/FilterBar';
-import { plotFallbackFor } from '@/features/buyer/components/plotFallbacks';
 import { PropertyCard } from '@/features/buyer/components/PropertyCard';
 import { VoiceSearch } from '@/features/buyer/components/VoiceSearch';
 import {
   useProperties,
   useProjects,
   usePropertyTypes,
-  useRecommended,
   useToggleWishlist,
   useWishlistIds,
 } from '@/features/buyer/hooks';
@@ -42,7 +39,6 @@ export default function Properties() {
   const { data: projects = [] } = useProjects();
   const { data: saved } = useWishlistIds();
   const { data: properties = [], isLoading, isError, refetch, isRefetching } = useProperties(filters);
-  const { data: recommended = [] } = useRecommended();
   const toggle = useToggleWishlist();
 
   const patch = (p: Partial<PropertyFilters>) => setFilters((f) => ({ ...f, ...p }));
@@ -58,9 +54,6 @@ export default function Properties() {
     filters.premiumOnly,
     (filters.sort ?? 'plot') !== 'plot',
   ].filter(Boolean).length;
-  // Only surface "For you" on the unfiltered default view.
-  const showForYou =
-    recommended.length > 0 && !filters.search && !filters.projectId && !filters.savedOnly && !filters.propertyTypeId;
 
   return (
     <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
@@ -131,36 +124,8 @@ export default function Properties() {
             {showFilters ? (
               <FilterBar types={types} projects={projects} filters={filters} onChange={patch} />
             ) : null}
-            {showForYou ? (
-              <View className="gap-2">
-                <View className="flex-row items-center gap-1.5">
-                  <Ionicons name="sparkles" size={14} color={color.gold} />
-                  <Text variant="label">{t('properties.forYou')}</Text>
-                </View>
-                <FlatList
-                  horizontal
-                  data={recommended}
-                  keyExtractor={(p) => `rec-${p.id}`}
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerClassName="gap-3 pr-2"
-                  renderItem={({ item }) => (
-                    <Pressable onPress={() => router.push(`/property/${item.id}`)} className="w-44">
-                      <View className="overflow-hidden rounded-2xl border border-line bg-surface">
-                        <Image
-                          source={plotFallbackFor(item.id)}
-                          style={{ width: '100%', height: 96 }}
-                          contentFit="cover"
-                        />
-                        <View className="gap-0.5 p-2.5">
-                          <Text className="font-mono-bold text-[12px] text-gold-deep" numberOfLines={1}>{item.plot_code}</Text>
-                          <Text variant="caption" numberOfLines={1}>{item.project?.name ?? 'Property'}</Text>
-                        </View>
-                      </View>
-                    </Pressable>
-                  )}
-                />
-              </View>
-            ) : null}
+            {/* "For you" mini-rail removed (owner: no little blocks) — the
+                recommendation hook/api stay in features/buyer for later use. */}
             {!isLoading ? (
               <View className="flex-row items-center justify-between">
                 <Text variant="caption">
