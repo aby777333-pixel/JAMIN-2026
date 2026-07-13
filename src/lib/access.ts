@@ -28,11 +28,11 @@ const CAP_MAX_LEVEL: Record<Capability, number> = {
 
 /**
  * User types surfaced in in-app role LISTS (pickers, preview, applications) per
- * the simplification brief: Super Admin, Promoter, Agent/Broker, Seller, Buyer.
- * Other DB roles keep working for existing users — they are only hidden from
- * lists, never removed. The web admin console is unaffected.
+ * the owner's role model: Super Admin (full access), Promoter, Sub Promoter,
+ * Agent/Broker, Seller, Buyer. Other DB roles keep working for existing users —
+ * they are only hidden from lists, never removed.
  */
-export const VISIBLE_ROLE_SLUGS = ['super_admin', 'promoter', 'agent', 'broker', 'seller', 'buyer'] as const;
+export const VISIBLE_ROLE_SLUGS = ['super_admin', 'promoter', 'sub_promoter', 'agent', 'broker', 'seller', 'buyer'] as const;
 
 export function isVisibleRole(slug: string | null | undefined): boolean {
   return !!slug && (VISIBLE_ROLE_SLUGS as readonly string[]).includes(slug);

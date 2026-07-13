@@ -1228,14 +1228,15 @@
         // Promoter, Agent/Broker, Seller, Buyer. They lead the picker; every
         // other DB role stays assignable under "Other roles" so existing users
         // and workflows keep working.
-        var PUBLIC_ROLES = ['super_admin', 'promoter', 'agent', 'broker', 'seller', 'buyer'];
+        var PUBLIC_ROLES = ['super_admin', 'promoter', 'sub_promoter', 'agent', 'broker', 'seller', 'buyer'];
         el.innerHTML = '<div class="head"><h2>Users &amp; roles</h2></div>' +
-          '<div class="muted" style="margin-bottom:10px;line-height:1.6">Role decides what each person can access in the app. The five public types: ' +
+          '<div class="muted" style="margin-bottom:10px;line-height:1.6">Role decides what each person can access in the app. The public types: ' +
           '<b>Buyer</b> = browse, book &amp; track investments · <b>Agent / Broker</b> = + leads &amp; sales toolkit · ' +
           '<b>Seller</b> = list properties (admin-approved; never contacts buyers directly) · ' +
-          '<b>Promoter</b> = + marketing materials, recruit sub-promoters, team analytics · ' +
-          '<b>Super&nbsp;Admin</b> = sees &amp; controls everything, incl. this portal. ' +
-          'Other roles under "Other" are legacy/internal ranks — hidden in the app\'s pickers but fully functional for users who hold them.</div>' +
+          '<b>Sub&nbsp;Promoter</b> = + recruit a team · <b>Promoter</b> = + marketing materials &amp; team analytics · ' +
+          '<b>Super&nbsp;Admin</b> = full access — sees &amp; controls everything, incl. this portal. ' +
+          'Buyer/Seller/Agent/Broker are self-service in the app; Promoter, Sub&nbsp;Promoter and Super&nbsp;Admin are assigned HERE. ' +
+          'Roles under "Other" are legacy/internal ranks — hidden in the app but fully functional for users who hold them.</div>' +
           '<table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Territory</th><th>KYC</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (u) {
             var curRole = (state.roles.find(function (r) { return r.slug === (u.role && u.role.slug); }) || {}).id;

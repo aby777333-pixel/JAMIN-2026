@@ -264,6 +264,28 @@ approved fallback and remains the shipped face).
   a 12px gap so the next photo never bleeds into the current one; fallback
   label moved to the top corner clear of the dots.
 
+## Role model & switch-role safety (2026-07-13, migration 0094)
+
+- **Incident + restore**: the Switch-role screen allowed the owner's Super
+  Admin account to self-switch to Seller with no way back (self-promotion is
+  blocked by design). The account was restored to Super Admin.
+- **Public role model finalized**: Super Admin (full access, admin-assigned) ·
+  Promoter · Sub Promoter (admin-assigned) · Agent / Broker · Seller · Buyer.
+  Builder, Developer, Legal Consultant and Surveyor removed from self-service
+  pickers (data flag; existing holders keep their role and access; admins can
+  still assign them from the console).
+- **Server-side guard** (migration 0094, applied): `switch_role` now refuses
+  callers whose current rank is admin or management (Super Admin → Sub
+  Promoter) — those roles are admin-assigned, so full access can never be
+  lost by accident again. Takes effect in the CURRENT installed app
+  immediately (server change).
+- **Switch-role screen**: shows the 4 self-service roles; management ranks
+  listed under "Assigned by admin" with a lock (with a pointer to the
+  Become-a-partner application); admins see an explanatory notice instead of
+  switch buttons.
+- **Sub Promoter added to visible role lists** (preview-as-role, staff
+  applications, in-app admin picker, web-admin picker + explainer).
+
 ## Explicitly NOT changed
 
 - Supabase queries, RLS, auth, onboarding, biometric lock, push/Realtime
