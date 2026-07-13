@@ -161,6 +161,28 @@ approved fallback and remains the shipped face).
   (same as the existing Settings/Network screens); a translation batch can key
   them later.
 
+## Web admin console `web/admin.html` (2026-07-13, follow-up pass)
+
+- **Removed (decorative, CSS-only):** the 8-hue rainbow cycling on sidebar
+  tabs, stat tiles and panels; mesh-gradient + dot-grid canvas; glassy blur and
+  hover lift/scale/glow effects; gradient buttons and scrollbar; dark gradient
+  table header; tab-switch slide-in animation; count-up number animation
+  (stats now render final values immediately). Now: flat brand surfaces,
+  crimson active tab, subtle shadows — matching the app's calm redesign.
+- **Merged/organized:** the 50 flat sidebar tabs are grouped under 8 section
+  labels (Overview · Properties · Sales & CRM · People · Marketing ·
+  Conversations · Submissions & media · App & system). Every tab id, badge
+  counter, click handler, radar blink and the mobile horizontal-scroll layout
+  preserved — verified programmatically (tab set identical to the previous
+  version, all inline scripts parse, dark-mode toggle works).
+- **Aligned with the app's role model:** the Users & roles picker lists the
+  five public types first with the remaining ranks under an "Other roles"
+  group (still assignable — no capability loss), and the role explainer text
+  now describes the five public types.
+- **Preserved:** every tab's functionality, dark mode (incl. the date-picker
+  and inline-background fixes), the activity radar + toasts, zebra tables,
+  section spacing.
+
 ## Explicitly NOT changed
 
 - Supabase queries, RLS, auth, onboarding, biometric lock, push/Realtime

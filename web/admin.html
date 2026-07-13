@@ -53,39 +53,23 @@
       .side .brand { display:flex; align-items:center; gap:8px; padding:6px 8px 16px; }
       .side .brand img { height:30px; border-radius:6px; }
       .side .brand b { font-size:13px; letter-spacing:1px; }
-      .nav-i { display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:rgba(255,255,255,.06); border:none; border-left:3px solid transparent; color:rgba(255,255,255,.88); padding:11px 12px; border-radius:10px; font-size:14.5px; font-weight:500; margin-bottom:3px; }
-      /* Color-filled tabs: an 8-hue palette cycles down the sidebar so neighbours
-         always contrast; the active tab stays solid brand red. */
-      .side > .nav-i:nth-of-type(8n+1) { background:rgba(253,97,90,.20);  border-left-color:#fd615a; }
-      .side > .nav-i:nth-of-type(8n+2) { background:rgba(255,151,54,.18); border-left-color:#ff9736; }
-      .side > .nav-i:nth-of-type(8n+3) { background:rgba(240,190,40,.16); border-left-color:#f0be28; }
-      .side > .nav-i:nth-of-type(8n+4) { background:rgba(70,196,126,.18); border-left-color:#46c47e; }
-      .side > .nav-i:nth-of-type(8n+5) { background:rgba(56,192,196,.18); border-left-color:#38c0c4; }
-      .side > .nav-i:nth-of-type(8n+6) { background:rgba(92,156,255,.20); border-left-color:#5c9cff; }
-      .side > .nav-i:nth-of-type(8n+7) { background:rgba(166,130,255,.20); border-left-color:#a682ff; }
-      .side > .nav-i:nth-of-type(8n+8) { background:rgba(244,116,180,.18); border-left-color:#f474b4; }
-      .nav-i:hover { filter:brightness(1.45); color:#fff; }
-      .side > .nav-i.active { background:var(--red); border-left-color:#ffd23f; color:#fff; font-weight:700; }
-      .nav-i.active:hover { filter:none; }
+      /* Calm sidebar (matches the app's brand-only redesign): quiet rows, one
+         crimson active state, grouped under small section labels. */
+      .nav-i { display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:transparent; border:none; border-left:3px solid transparent; color:rgba(255,255,255,.82); padding:9px 12px; border-radius:10px; font-size:14px; font-weight:500; margin-bottom:2px; }
+      .nav-i:hover { background:rgba(255,255,255,.10); color:#fff; }
+      .side > .nav-i.active { background:var(--red); color:#fff; font-weight:700; }
+      .nav-i.active:hover { background:var(--red); }
+      .nav-sec { font-size:10px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.42); padding:14px 12px 5px; }
       .nav-i .dot { margin-left:auto; background:var(--gold); color:var(--ink); font-size:11px; font-weight:700; border-radius:999px; padding:1px 7px; }
       .who { margin-top:22px; padding:10px 12px; font-size:12px; color:rgba(255,255,255,.6); border-top:1px solid rgba(255,255,255,.12); }
       .main { padding:24px 26px; min-width:0; }
       .head { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:12px; }
       .head h2 { margin:0; font-size:24px; font-weight:800; letter-spacing:-.4px; }
-      .head h2::after { content:''; display:block; width:52px; height:4px; border-radius:99px; margin-top:6px; background:linear-gradient(90deg,var(--red),var(--gold)); }
+      .head h2::after { content:''; display:block; width:44px; height:3px; border-radius:99px; margin-top:6px; background:var(--red); }
       .stat-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
       .stat { background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--sa,var(--line)); border-radius:14px; padding:14px 16px; min-width:120px; }
       .stat .n { font-family:"JetBrains Mono",monospace; font-weight:700; font-size:22px; color:var(--sa,var(--ink)); }
       .stat .l { color:var(--muted); font-size:12px; }
-      /* Colourful insides: stats + panels cycle the same 8-hue palette as the sidebar. */
-      .stat:nth-of-type(8n+1) { --sa:#e5484d; background:rgba(229,72,77,.07); }
-      .stat:nth-of-type(8n+2) { --sa:#f76b15; background:rgba(247,107,21,.07); }
-      .stat:nth-of-type(8n+3) { --sa:#c8911e; background:rgba(217,165,20,.08); }
-      .stat:nth-of-type(8n+4) { --sa:#30a46c; background:rgba(48,164,108,.07); }
-      .stat:nth-of-type(8n+5) { --sa:#12a594; background:rgba(18,165,148,.07); }
-      .stat:nth-of-type(8n+6) { --sa:#3e63dd; background:rgba(62,99,221,.07); }
-      .stat:nth-of-type(8n+7) { --sa:#8e4ec6; background:rgba(142,78,198,.07); }
-      .stat:nth-of-type(8n+8) { --sa:#d6409f; background:rgba(214,64,159,.07); }
 
       table { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
       th,td { text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:middle; }
@@ -99,109 +83,38 @@
       .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
       .panel { background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--pa,var(--line)); border-radius:16px; padding:18px; margin-bottom:18px; }
       .panel h3 { margin:0 0 12px; font-size:16px; display:flex; align-items:center; gap:8px; }
-      .panel h3::before { content:''; width:9px; height:9px; border-radius:99px; background:var(--pa,var(--red)); flex:none; }
-      .panel:nth-of-type(8n+1) { --pa:#e5484d; }
-      .panel:nth-of-type(8n+2) { --pa:#3e63dd; }
-      .panel:nth-of-type(8n+3) { --pa:#30a46c; }
-      .panel:nth-of-type(8n+4) { --pa:#f76b15; }
-      .panel:nth-of-type(8n+5) { --pa:#8e4ec6; }
-      .panel:nth-of-type(8n+6) { --pa:#12a594; }
-      .panel:nth-of-type(8n+7) { --pa:#d6409f; }
-      .panel:nth-of-type(8n+8) { --pa:#c8911e; }
+      .panel h3::before { content:''; width:8px; height:8px; border-radius:99px; background:var(--red); flex:none; }
       .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
       .thumbs { display:flex; gap:6px; flex-wrap:wrap; }
       .thumbs img { width:40px; height:40px; object-fit:cover; border-radius:6px; border:1px solid var(--line); }
       .muted { color:var(--muted); font-size:13px; }
       select.inp { height:48px; }
-      @media (max-width:760px){ .shell{ grid-template-columns:1fr; } .side{ display:flex; gap:6px; overflow-x:auto; } .nav-i{ width:auto; white-space:nowrap; } .who{ display:none; } .grid2{ grid-template-columns:1fr; } }
+      @media (max-width:760px){ .shell{ grid-template-columns:1fr; } .side{ display:flex; gap:6px; overflow-x:auto; } .nav-i{ width:auto; white-space:nowrap; } .nav-sec{ display:none; } .who{ display:none; } .grid2{ grid-template-columns:1fr; } }
 
-      /* ── Flashier skin (visual only — overrides above, no markup/JS changes) ── */
-      /* Soft mesh-gradient canvas behind the content. */
-      .main {
-        background:
-          radial-gradient(1100px 520px at 92% -12%, rgba(62,99,221,.09), transparent 60%),
-          radial-gradient(900px 480px at -12% 18%, rgba(229,72,77,.08), transparent 55%),
-          radial-gradient(820px 440px at 55% 112%, rgba(48,164,108,.08), transparent 55%),
-          var(--paper);
-      }
-      .login-wrap {
-        background:
-          radial-gradient(900px 480px at 85% -10%, rgba(62,99,221,.10), transparent 60%),
-          radial-gradient(760px 420px at 0% 100%, rgba(229,72,77,.10), transparent 55%),
-          var(--paper);
-      }
-      .login { box-shadow:0 18px 50px rgba(32,32,32,.14); border-radius:20px; }
-      /* Glassy, lifting cards. */
-      .panel { background:rgba(255,255,255,.86); backdrop-filter:blur(6px); box-shadow:0 6px 18px rgba(32,32,32,.05); transition:transform .15s ease, box-shadow .15s ease; }
-      .panel:hover { transform:translateY(-2px); box-shadow:0 12px 28px rgba(32,32,32,.10); }
-      .stat { box-shadow:0 4px 14px rgba(32,32,32,.05); transition:transform .15s ease, box-shadow .15s ease; }
-      .stat:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 10px 22px rgba(32,32,32,.10); }
-      /* Gradient buttons with coloured glow. */
-      .btn { background:linear-gradient(135deg,#ff4d42,var(--red) 45%,var(--red-deep)); box-shadow:0 4px 12px rgba(253,0,1,.25); transition:transform .12s ease, box-shadow .12s ease; }
-      .btn:hover { background:linear-gradient(135deg,var(--red),var(--red-deep)); transform:translateY(-1px); box-shadow:0 7px 18px rgba(253,0,1,.32); }
-      .btn-g { background:linear-gradient(135deg,#ffd34d,var(--gold) 50%,var(--gold-deep)); box-shadow:0 4px 12px rgba(251,188,21,.30); }
-      .btn-g:hover { background:linear-gradient(135deg,var(--gold),var(--gold-deep)); }
-      .btn-o { transition:transform .12s ease, background .12s ease; }
-      .btn-o:hover { transform:translateY(-1px); }
-      /* Tables: dark gradient header, golden row hover. */
-      table { box-shadow:0 4px 14px rgba(32,32,32,.05); }
-      th { background:linear-gradient(180deg,#2b2b31,#202020); color:rgba(255,255,255,.85); }
-      tbody tr { transition:background .12s ease; }
-      tbody tr:hover td { background:rgba(251,188,21,.07); }
-      /* Inputs glow on focus. */
-      .inp:focus { border-color:var(--red); box-shadow:0 0 0 3px rgba(253,0,1,.12); }
-      /* Sidebar nudge + brand scrollbar. */
-      .nav-i { transition:transform .12s ease, filter .12s ease; }
-      .nav-i:hover { transform:translateX(3px); }
-      ::-webkit-scrollbar { width:10px; height:10px; }
-      ::-webkit-scrollbar-track { background:transparent; }
-      ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--red),var(--gold)); border-radius:99px; border:2px solid var(--paper); }
-
-      /* ── Beautify pass 2: breathing room, glow shadows, subtle texture ── */
-      /* Faint dot-grid over the mesh gradient for a designed canvas. */
-      .main {
-        background:
-          radial-gradient(rgba(32,32,32,.045) 1px, transparent 1.5px),
-          radial-gradient(1100px 520px at 92% -12%, rgba(62,99,221,.09), transparent 60%),
-          radial-gradient(900px 480px at -12% 18%, rgba(229,72,77,.08), transparent 55%),
-          radial-gradient(820px 440px at 55% 112%, rgba(48,164,108,.08), transparent 55%),
-          var(--paper);
-        background-size: 26px 26px, auto, auto, auto, auto;
-      }
-      /* Space between the cards/tables so sections never look glued together. */
+      /* ── Calm skin (matches the app's simplification redesign): brand colors
+         only, flat surfaces, no gradients/glow/motion. Visual layer only. */
+      .login { box-shadow:0 12px 32px rgba(32,32,32,.10); }
+      .panel { box-shadow:0 2px 8px rgba(32,32,32,.04); }
+      table { box-shadow:0 2px 8px rgba(32,32,32,.04); }
+      /* Breathing room between sections. */
       .panel { margin-bottom:22px; }
       table { margin:16px 0 22px; }
       .stat-row { gap:14px; margin-bottom:22px; }
-      /* Shadow lights: each panel/stat glows in its OWN accent colour on hover. */
-      .panel:hover { box-shadow:0 14px 34px color-mix(in srgb, var(--pa, #202020) 22%, transparent); }
-      .stat:hover  { box-shadow:0 12px 26px color-mix(in srgb, var(--sa, #202020) 26%, transparent); }
-      .nav-i.active { box-shadow:0 4px 16px rgba(253,0,1,.38); }
-      .pill { box-shadow:0 2px 8px rgba(32,32,32,.06); }
-      /* Tab switches glide in instead of snapping. */
-      @keyframes riseIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
-      .main > div:not(.hidden) { animation: riseIn .28s ease; }
-      /* Table readability: zebra rows + bolder first column. */
+      /* Table readability: zebra rows + bolder first column + quiet hover. */
       tbody tr:nth-child(even) td { background:rgba(32,32,32,.018); }
-      tbody tr:hover td { background:rgba(251,188,21,.08); }
+      tbody tr:hover td { background:rgba(32,32,32,.035); }
       td:first-child { font-weight:600; }
-      /* Tactile buttons + brand selection colour. */
-      .btn:active, .btn-g:active, .btn-o:active { transform:translateY(0) scale(.97); }
       ::selection { background:rgba(251,188,21,.35); }
+      ::-webkit-scrollbar { width:10px; height:10px; }
+      ::-webkit-scrollbar-track { background:transparent; }
+      ::-webkit-scrollbar-thumb { background:rgba(32,32,32,.25); border-radius:99px; border:2px solid var(--paper); }
 
       /* ── Dark mode (toggle in the sidebar; preference persisted) ── */
       body.dark { --paper:#131316; --surface:#1d1d21; --ink:#ECECEA; --muted:#A4A49D; --line:#2E2E33; color:var(--ink); }
-      body.dark .main {
-        background:
-          radial-gradient(rgba(255,255,255,.05) 1px, transparent 1.5px),
-          radial-gradient(1100px 520px at 92% -12%, rgba(62,99,221,.16), transparent 60%),
-          radial-gradient(900px 480px at -12% 18%, rgba(229,72,77,.13), transparent 55%),
-          radial-gradient(820px 440px at 55% 112%, rgba(48,164,108,.13), transparent 55%),
-          var(--paper);
-        background-size: 26px 26px, auto, auto, auto, auto;
-      }
+      body.dark .main { background:var(--paper); }
       body.dark .login-wrap { background:var(--paper); }
       body.dark .login { background:var(--surface); }
-      body.dark .panel { background:rgba(29,29,33,.88); }
+      body.dark .panel { background:var(--surface); }
       body.dark .inp { background:#232328; color:var(--ink); }
       /* Date/datetime internals (dd-mm-yyyy segments, calendar icon, popup) are
          drawn by the browser with UA colours keyed to the page's color-scheme —
@@ -269,56 +182,64 @@
     <div id="appView" class="shell hidden">
       <aside class="side">
         <div class="brand"><img src="logo.jpg" alt="" /><b>ADMIN</b></div>
+        <div class="nav-sec">Overview</div>
         <button class="nav-i active" data-tab="dashboard">📊 Dashboard</button>
-        <button class="nav-i" data-tab="properties">🏠 Properties</button>
-        <button class="nav-i" data-tab="catalog">📁 Catalog</button>
-        <button class="nav-i" data-tab="users">👤 Users &amp; roles</button>
-        <button class="nav-i" data-tab="staff">🪪 Staff applications</button>
-        <button class="nav-i" data-tab="crm">📇 CRM / Leads</button>
-        <button class="nav-i" data-tab="marketing">🎨 Marketing</button>
-        <button class="nav-i" data-tab="territories">🗺️ Territories</button>
-        <button class="nav-i" data-tab="approvals">✅ Approvals <span id="apprDot" class="dot hidden">0</span></button>
-        <button class="nav-i" data-tab="submissions">🖼️ Photo submissions <span id="subDot" class="dot hidden">0</span></button>
-        <button class="nav-i" data-tab="formsubs">📨 Form submissions <span id="formSubDot" class="dot hidden">0</span></button>
-        <button class="nav-i" data-tab="sharedads">📢 Shared ads</button>
-        <button class="nav-i" data-tab="adchats">📲 Ad chats</button>
-        <button class="nav-i" data-tab="payments">💳 Payments</button>
-        <button class="nav-i" data-tab="chat">💬 Live chat</button>
-        <button class="nav-i" data-tab="forms">📋 Form Builder</button>
-        <button class="nav-i" data-tab="features">🧩 Features</button>
-        <button class="nav-i" data-tab="aisuite">🤖 AI Suite</button>
-        <button class="nav-i" data-tab="aiconvos">📞 AI Conversations</button>
-        <button class="nav-i" data-tab="calldesk">☎️ Call desk</button>
-        <button class="nav-i" data-tab="faith">🕊️ Faith & Culture</button>
-        <button class="nav-i" data-tab="nridesk">🌏 NRI desk</button>
-        <button class="nav-i" data-tab="rewards">🏆 Rewards</button>
-        <button class="nav-i" data-tab="referrals">🔗 Referrals</button>
-        <button class="nav-i" data-tab="commissions">💰 Commissions</button>
-        <button class="nav-i" data-tab="usermedia">🖼️ User media</button>
-        <button class="nav-i" data-tab="content">📝 App Content</button>
-        <button class="nav-i" data-tab="announcements">📣 Announcements</button>
-        <button class="nav-i" data-tab="config">⚙️ System config</button>
-        <button class="nav-i" data-tab="offers">🤝 Offers</button>
-        <button class="nav-i" data-tab="requirements">📍 Requirements</button>
-        <button class="nav-i" data-tab="visits">📅 Site visits</button>
-        <button class="nav-i" data-tab="reviews">⭐ Reviews</button>
-        <button class="nav-i" data-tab="cobroke">🤝 Co-broking</button>
-        <button class="nav-i" data-tab="shortlists">📋 Shortlists</button>
-        <button class="nav-i" data-tab="academy">🎓 Academy</button>
-        <button class="nav-i" data-tab="loans">🏦 Home loans</button>
-        <button class="nav-i" data-tab="documents">📁 Documents</button>
-        <button class="nav-i" data-tab="duplicates">🧬 Duplicates</button>
-        <button class="nav-i" data-tab="campaigns">📣 Campaigns</button>
-        <button class="nav-i" data-tab="escrow">🔒 Escrow</button>
-        <button class="nav-i" data-tab="drips">📨 Drips</button>
-        <button class="nav-i" data-tab="reels">🎬 Reels</button>
-        <button class="nav-i" data-tab="whatsapp">🟢 WhatsApp</button>
-        <button class="nav-i" data-tab="community">🌐 Community</button>
-        <button class="nav-i" data-tab="moderation">🛡️ Moderation</button>
         <button class="nav-i" data-tab="insights">📈 Insights</button>
         <button class="nav-i" data-tab="audit">🧾 Audit log</button>
         <button class="nav-i" data-tab="exports">📤 Exports</button>
+        <div class="nav-sec">Properties</div>
+        <button class="nav-i" data-tab="properties">🏠 Properties</button>
+        <button class="nav-i" data-tab="catalog">📁 Catalog</button>
+        <button class="nav-i" data-tab="territories">🗺️ Territories</button>
+        <button class="nav-i" data-tab="visits">📅 Site visits</button>
+        <button class="nav-i" data-tab="reviews">⭐ Reviews</button>
+        <button class="nav-i" data-tab="duplicates">🧬 Duplicates</button>
+        <div class="nav-sec">Sales &amp; CRM</div>
+        <button class="nav-i" data-tab="crm">📇 CRM / Leads</button>
+        <button class="nav-i" data-tab="offers">🤝 Offers</button>
+        <button class="nav-i" data-tab="requirements">📍 Requirements</button>
+        <button class="nav-i" data-tab="approvals">✅ Approvals <span id="apprDot" class="dot hidden">0</span></button>
+        <button class="nav-i" data-tab="payments">💳 Payments</button>
+        <button class="nav-i" data-tab="escrow">🔒 Escrow</button>
+        <button class="nav-i" data-tab="commissions">💰 Commissions</button>
+        <button class="nav-i" data-tab="cobroke">🤝 Co-broking</button>
+        <button class="nav-i" data-tab="shortlists">📋 Shortlists</button>
+        <div class="nav-sec">People</div>
+        <button class="nav-i" data-tab="users">👤 Users &amp; roles</button>
+        <button class="nav-i" data-tab="staff">🪪 Staff applications</button>
+        <button class="nav-i" data-tab="rewards">🏆 Rewards</button>
+        <button class="nav-i" data-tab="referrals">🔗 Referrals</button>
+        <button class="nav-i" data-tab="academy">🎓 Academy</button>
+        <button class="nav-i" data-tab="community">🌐 Community</button>
+        <button class="nav-i" data-tab="moderation">🛡️ Moderation</button>
+        <div class="nav-sec">Marketing</div>
+        <button class="nav-i" data-tab="marketing">🎨 Marketing</button>
+        <button class="nav-i" data-tab="campaigns">📣 Campaigns</button>
+        <button class="nav-i" data-tab="drips">📨 Drips</button>
+        <button class="nav-i" data-tab="sharedads">📢 Shared ads</button>
+        <button class="nav-i" data-tab="reels">🎬 Reels</button>
+        <button class="nav-i" data-tab="announcements">📣 Announcements</button>
         <button class="nav-i" data-tab="festivals">🪔 Festivals</button>
+        <div class="nav-sec">Conversations</div>
+        <button class="nav-i" data-tab="chat">💬 Live chat</button>
+        <button class="nav-i" data-tab="adchats">📲 Ad chats</button>
+        <button class="nav-i" data-tab="aiconvos">📞 AI Conversations</button>
+        <button class="nav-i" data-tab="calldesk">☎️ Call desk</button>
+        <button class="nav-i" data-tab="whatsapp">🟢 WhatsApp</button>
+        <div class="nav-sec">Submissions &amp; media</div>
+        <button class="nav-i" data-tab="submissions">🖼️ Photo submissions <span id="subDot" class="dot hidden">0</span></button>
+        <button class="nav-i" data-tab="formsubs">📨 Form submissions <span id="formSubDot" class="dot hidden">0</span></button>
+        <button class="nav-i" data-tab="usermedia">🖼️ User media</button>
+        <button class="nav-i" data-tab="documents">📁 Documents</button>
+        <div class="nav-sec">App &amp; system</div>
+        <button class="nav-i" data-tab="content">📝 App Content</button>
+        <button class="nav-i" data-tab="forms">📋 Form Builder</button>
+        <button class="nav-i" data-tab="features">🧩 Features</button>
+        <button class="nav-i" data-tab="aisuite">🤖 AI Suite</button>
+        <button class="nav-i" data-tab="faith">🕊️ Faith & Culture</button>
+        <button class="nav-i" data-tab="nridesk">🌏 NRI desk</button>
+        <button class="nav-i" data-tab="loans">🏦 Home loans</button>
+        <button class="nav-i" data-tab="config">⚙️ System config</button>
         <div style="margin-top:14px;padding:10px 12px;font-size:11px;line-height:1.55;color:rgba(255,255,255,.6);background:rgba(255,255,255,.06);border-radius:10px">✓ Every change you save here is <b style="color:#7ee2a8">live in the phone app instantly</b> — no deploy needed.</div>
         <div class="who"><span id="whoEmail"></span><br /><button id="signOut" class="btn-o btn-sm" style="margin-top:8px">Sign out</button></div>
       </aside>
@@ -1303,17 +1224,26 @@
         el.innerHTML = '<div class="head"><h2>Users &amp; roles</h2></div><div class="muted">Loading…</div>';
         var q = await sb.from('profiles').select('id,full_name,email,phone,kyc_status,territory_id, role:roles(slug,name)').order('created_at', { ascending: false });
         var rows = q.data || [];
+        // The app shows five public user types (redesign brief): Super Admin,
+        // Promoter, Agent/Broker, Seller, Buyer. They lead the picker; every
+        // other DB role stays assignable under "Other roles" so existing users
+        // and workflows keep working.
+        var PUBLIC_ROLES = ['super_admin', 'promoter', 'agent', 'broker', 'seller', 'buyer'];
         el.innerHTML = '<div class="head"><h2>Users &amp; roles</h2></div>' +
-          '<div class="muted" style="margin-bottom:10px;line-height:1.6">Role decides what each person can access in the app: ' +
-          '<b>Buyer</b> = browse &amp; book only · <b>Agent</b> = + sales toolkit (leads, ads, brochures, AI, wallet/commission, card) · ' +
-          '<b>Seller / Builder / Developer / Surveyor / Legal&nbsp;Consultant / Broker</b> = professional partners (Agent-tier toolkit; users self-select these at registration) · ' +
-          '<b>Sub&nbsp;Promoter</b> = + recruit a team &amp; Network · <b>Promoter</b> = + team analytics · ' +
-          '<b>Regional&nbsp;Manager</b> = + region view · <b>State&nbsp;Head</b> = + state view · ' +
-          '<b>Super&nbsp;Admin</b> = + this Admin Portal &amp; all approvals.</div>' +
+          '<div class="muted" style="margin-bottom:10px;line-height:1.6">Role decides what each person can access in the app. The five public types: ' +
+          '<b>Buyer</b> = browse, book &amp; track investments · <b>Agent / Broker</b> = + leads &amp; sales toolkit · ' +
+          '<b>Seller</b> = list properties (admin-approved; never contacts buyers directly) · ' +
+          '<b>Promoter</b> = + marketing materials, recruit sub-promoters, team analytics · ' +
+          '<b>Super&nbsp;Admin</b> = sees &amp; controls everything, incl. this portal. ' +
+          'Other roles under "Other" are legacy/internal ranks — hidden in the app\'s pickers but fully functional for users who hold them.</div>' +
           '<table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Territory</th><th>KYC</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (u) {
             var curRole = (state.roles.find(function (r) { return r.slug === (u.role && u.role.slug); }) || {}).id;
-            var roleSel = state.roles.map(function (r) { return '<option value="' + r.id + '"' + (r.id === curRole ? ' selected' : '') + '>' + esc(r.name) + '</option>'; }).join('');
+            function optRow(r) { return '<option value="' + r.id + '"' + (r.id === curRole ? ' selected' : '') + '>' + esc(r.name) + '</option>'; }
+            var pub = state.roles.filter(function (r) { return PUBLIC_ROLES.indexOf(r.slug) !== -1; });
+            var other = state.roles.filter(function (r) { return PUBLIC_ROLES.indexOf(r.slug) === -1; });
+            var roleSel = pub.map(optRow).join('') +
+              (other.length ? '<optgroup label="Other roles">' + other.map(optRow).join('') + '</optgroup>' : '');
             var terrSel = '<option value="">—</option>' + state.territories.map(function (t) { return '<option value="' + t.id + '"' + (t.id === u.territory_id ? ' selected' : '') + '>' + esc(t.name) + '</option>'; }).join('');
             return '<tr data-id="' + u.id + '"><td>' + esc(u.full_name || '—') + '</td><td>' + esc(u.email || '') + (u.phone ? '<div class="muted" style="font-size:11px">' + esc(u.phone) + '</div>' : '') + '</td>' +
               '<td><select class="inp uu_role" style="width:150px;height:36px">' + roleSel + '</select></td>' +
@@ -5259,7 +5189,7 @@
       boot();
     </script>
     <script>
-      /* ── Visual extras: dark-mode toggle + count-up stat numbers ─────────────
+      /* ── Visual extras: dark-mode toggle ─────────────────────────────────────
          Self-contained and read-only towards the app logic: no shared state,
          no data writes — safe to remove wholesale. */
       (function () {
@@ -5289,38 +5219,8 @@
           applyTheme(saved);
         }
 
-        // Count-up: animate freshly rendered .stat .n numbers (once per node).
-        function countUp(el) {
-          if (el.dataset.counted) return;
-          el.dataset.counted = '1';
-          var txt = el.textContent.trim();
-          var m = txt.match(/^([^\d]*)([\d,]+)([\s\S]*)$/);
-          if (!m) return;
-          var target = parseInt(m[2].replace(/,/g, ''), 10);
-          if (!isFinite(target) || target <= 0 || target > 1e9) return;
-          var prefix = m[1], suffix = m[3], grouped = m[2].indexOf(',') >= 0;
-          var t0 = performance.now(), dur = 650;
-          function fmt(n) { return grouped ? n.toLocaleString('en-IN') : String(n); }
-          function tick(now) {
-            var p = Math.min(1, (now - t0) / dur);
-            var eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
-            el.textContent = prefix + fmt(Math.round(target * eased)) + suffix;
-            if (p < 1) requestAnimationFrame(tick);
-          }
-          requestAnimationFrame(tick);
-        }
-        function scan(root) {
-          if (root.nodeType !== 1) return;
-          if (root.matches && root.matches('.stat .n')) countUp(root);
-          if (root.querySelectorAll) root.querySelectorAll('.stat .n').forEach(countUp);
-        }
-        var main = document.querySelector('.main');
-        if (main) {
-          new MutationObserver(function (muts) {
-            muts.forEach(function (mu) { mu.addedNodes.forEach(scan); });
-          }).observe(main, { childList: true, subtree: true });
-          scan(main);
-        }
+        // (Count-up number animation removed in the calm redesign — stats render
+        // their final values immediately.)
         mountToggle();
       })();
     </script>
