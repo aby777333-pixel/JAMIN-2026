@@ -849,7 +849,7 @@
               '</div></td>' +
               '<td style="text-align:center"><button class="btn-o btn-sm pp_feat"' + (isFeat ? ' style="background:var(--gold);border-color:var(--gold)"' : '') + ' title="' + (isFeat ? 'Featured — tap to remove from the home rail' : 'Tap to feature in the app home rail') + '">' + (isFeat ? '★' : '☆') + '</button></td>' +
               '<td><div class="thumbs" style="align-items:center">' + (imgs.length ? '' : '<span class="pill" style="background:rgba(230,161,13,.16);color:#e6a10d">No photos</span>') + imgs.map(function (m) { var u = m.url || m; return '<a href="' + esc(u) + '" download target="_blank" rel="noopener" title="Open / download"><img src="' + esc(u) + '" /></a>'; }).join('') +
-                '<label class="btn-o btn-sm" style="display:inline-block" title="Upload photos for this plot">⬆ Upload<input type="file" accept="image/*" class="pp_file hidden" multiple /></label></div></td>' +
+                '<label class="btn-o btn-sm" style="display:inline-block" title="Upload photos or videos for this plot — no count limit">⬆ Upload<input type="file" accept="image/*,video/*" class="pp_file hidden" multiple /></label></div></td>' +
               '<td class="row"><button class="btn-o btn-sm pp_det">Details</button><button class="btn btn-sm pp_save">Save</button><button class="btn-d btn-sm pp_del">Delete</button></td>' +
               '</tr>' +
               '<tr class="det" data-for="' + r.id + '" style="display:none"><td colspan="10"><div class="panel" style="margin:0">' +
@@ -859,7 +859,7 @@
                 '</div>' +
                 '<label style="display:block;margin-top:10px">Photos</label>' +
                 '<div class="de_photos" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;align-items:center">' + photoThumbs(r.media) + '</div>' +
-                '<label class="btn-o btn-sm" style="display:inline-block;margin-top:6px">+ Add photos<input type="file" accept="image/*" class="de_file hidden" multiple /></label>' +
+                '<label class="btn-o btn-sm" style="display:inline-block;margin-top:6px">+ Add photos / videos<input type="file" accept="image/*,video/*" class="de_file hidden" multiple /></label>' +
                 '<label style="display:block;margin-top:10px">Custom fields</label><div class="de_custom">' + customRowsFor(r.attrs) + '</div>' +
                 '<button type="button" class="btn-o btn-sm de_addfield" style="margin-top:6px">+ Add field</button> ' +
                 '<button type="button" class="btn btn-sm de_save" style="margin-top:6px">Save details</button> <span class="muted de_msg"></span>' +

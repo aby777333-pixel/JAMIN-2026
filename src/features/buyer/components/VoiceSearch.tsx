@@ -12,6 +12,12 @@ import { parseVoiceQuery, type NamedRow } from '@/features/buyer/voiceQuery';
 import { errMessage } from '@/lib/errors';
 import { color } from '@/theme/tokens';
 
+/** True when the transcript contains any non-ASCII character (native script). */
+function hasNonAscii(s: string): boolean {
+  for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) > 126) return true;
+  return false;
+}
+
 /**
  * Voice property search — tap the mic and say it in ANY Indian language:
  * "கோயம்புத்தூரில் 50 லட்சத்துக்குள் வில்லா" → speech-to-text (Jamindar/Sarvam)
@@ -76,17 +82,26 @@ export function VoiceSearch({
       setHeard(transcript);
 
       // Parse in English: translate unless it was already spoken in English.
+      // STT sometimes omits language_code — a native-script transcript is
+      // treated as non-English so translation still runs (this was why
+      // Malayalam searches were "heard" but applied nothing).
+      const lang = stt.language_code ? String(stt.language_code) : null;
       let english = transcript;
-      if (stt.language_code && !String(stt.language_code).startsWith('en')) {
+      if ((lang && !lang.startsWith('en')) || (!lang && hasNonAscii(transcript))) {
         try {
-          const tr = await translateText(transcript, 'en-IN', String(stt.language_code));
+          const tr = await translateText(transcript, 'en-IN', lang ?? 'auto');
           if (tr.text) english = tr.text;
         } catch {
           /* parse the raw transcript instead */
         }
       }
 
-      const { filters, summary } = parseVoiceQuery(english, types, projects);
+      let { filters, summary } = parseVoiceQuery(english, types, projects);
+      // Translation mangled or unavailable? The parser also understands native
+      // scripts (money words, types, digits) — try the raw transcript too.
+      if (summary.length === 0 && english !== transcript) {
+        ({ filters, summary } = parseVoiceQuery(transcript, types, projects));
+      }
       if (summary.length === 0) {
         setApplied([t('properties.voice.nothingMatched')]);
       } else {

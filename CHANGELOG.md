@@ -244,6 +244,26 @@ approved fallback and remains the shipped face).
   tab, business card, brochures and agent stamps. No new dependencies; the
   existing `photo_url` column and RLS policies carry it.
 
+## Voice, uploads & gallery round (2026-07-13, owner device feedback)
+
+- **Voice search fixed**: the Malayalam query was transcribed but never
+  translated (Sarvam's STT can omit `language_code`, and translation only ran
+  when it was present). Now any native-script transcript triggers translation,
+  AND the parser itself understands native scripts as a fallback: lakh/crore
+  words in 10 languages, budget ranges ("20 to 50 lakhs", "20 തൊട്ട് 50 ലക്ഷം",
+  "20-50 lakh" → min+max), property-type words (प्लॉट, மனை, ప్లాట్, വീട്…) and
+  Indic digits. 5 new tests incl. the exact phrase from the owner's device
+  (69 total).
+- **Upload limits**: verified zero bucket-level size/mime limits and zero
+  code-side count caps; admin plot uploads now accept **videos** as well as
+  photos (both upload inputs), and the partner "suggest a photo" picker
+  accepts videos too. Video entries in a property's media render as a play
+  tile in the app gallery. (The only remaining cap is Supabase's project-wide
+  max-upload setting — Dashboard → Storage, not reachable from code.)
+- **Gallery**: left/right arrow buttons + dot indicators; slides now snap with
+  a 12px gap so the next photo never bleeds into the current one; fallback
+  label moved to the top corner clear of the dots.
+
 ## Explicitly NOT changed
 
 - Supabase queries, RLS, auth, onboarding, biometric lock, push/Realtime

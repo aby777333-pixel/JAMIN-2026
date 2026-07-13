@@ -51,4 +51,40 @@ describe('parseVoiceQuery', () => {
     const { summary } = parseVoiceQuery('hello how are you', TYPES, PROJECTS);
     expect(summary).toHaveLength(0);
   });
+
+  it('parses an English budget range as min + max', () => {
+    const { filters } = parseVoiceQuery('plots from 20 to 50 lakhs', TYPES, PROJECTS);
+    expect(filters.priceMin).toBe(2000000);
+    expect(filters.priceMax).toBe(5000000);
+    expect(filters.propertyTypeId).toBe('t-plot');
+  });
+
+  it('parses the raw Malayalam transcript (range + type, no translation)', () => {
+    // The exact phrase from the owner's device: "plots from 20 to 50 lakhs".
+    const { filters } = parseVoiceQuery('ഒരു 20 തൊട്ട് 50 ലക്ഷം വരെ ഉള്ള പ്ലോട്ട്സ്', TYPES, PROJECTS);
+    expect(filters.priceMin).toBe(2000000);
+    expect(filters.priceMax).toBe(5000000);
+    expect(filters.propertyTypeId).toBe('t-plot');
+  });
+
+  it('parses raw Hindi and Tamil phrases', () => {
+    const hi = parseVoiceQuery('50 लाख तक का प्लॉट', TYPES, PROJECTS).filters;
+    expect(hi.priceMax).toBe(5000000);
+    expect(hi.propertyTypeId).toBe('t-plot');
+    const ta = parseVoiceQuery('50 லட்சம் வரை வில்லா', TYPES, PROJECTS).filters;
+    expect(ta.priceMax).toBe(5000000);
+    expect(ta.propertyTypeId).toBe('t-villa');
+  });
+
+  it('normalizes Indic digits', () => {
+    const { filters } = parseVoiceQuery('५० लाख का फ्लैट', TYPES, PROJECTS);
+    expect(filters.priceMax).toBe(5000000);
+    expect(filters.propertyTypeId).toBe('t-apt');
+  });
+
+  it('still parses "1.5 crore" as a single amount, not a range', () => {
+    const { filters } = parseVoiceQuery('villa above 1.5 crore', TYPES, PROJECTS);
+    expect(filters.priceMin).toBe(15000000);
+    expect(filters.priceMax).toBeUndefined();
+  });
 });

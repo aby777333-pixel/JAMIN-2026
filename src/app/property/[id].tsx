@@ -89,7 +89,7 @@ export default function PropertyDetail() {
   async function onSuggestPhoto() {
     const res = await ImagePicker.launchImageLibraryAsync({
       quality: 0.85,
-      mediaTypes: ['images'],
+      mediaTypes: ['images', 'videos'],
       allowsMultipleSelection: true,
     });
     if (res.canceled || !property) return;
