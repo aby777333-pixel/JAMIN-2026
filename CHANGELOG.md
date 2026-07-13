@@ -209,6 +209,23 @@ approved fallback and remains the shipped face).
   and the detail gallery still shows only actual photos. Originals folder
   git-ignored.
 
+## Activity radar — full coverage (2026-07-13, migration 0093)
+
+- **Every app action now blinks its admin menu light and pops a radar toast.**
+  11 previously silent activity tables added: co-broking listings & interests,
+  document uploads, home-loan applications, escrow milestones, referral
+  events, wishlist saves, property watches, academy enrollments, shortlist
+  items & members — joining the 27 already covered (leads, offers, visits,
+  chats, payments, signups, errors…). 38 tables total, each mapped to its
+  sidebar tab.
+- Migration 0093 (additive): the 11 tables added to the Realtime publication,
+  plus admin-read policies on `wishlists`, `shortlist_items`,
+  `shortlist_members` (they were owner/member-only, so Realtime couldn't
+  deliver their events to the admin). No existing policy or trigger touched.
+- Verified: every radar table confirmed present in the publication via SQL;
+  manual radar pings confirmed the tab blink + toast render on the calm skin;
+  scripts parse; zero console errors.
+
 ## Explicitly NOT changed
 
 - Supabase queries, RLS, auth, onboarding, biometric lock, push/Realtime
