@@ -31,7 +31,19 @@ interface PickedDoc {
   uri: string;
   name: string;
   mimeType?: string | null;
+  docType: string;
 }
+
+/** Common Indian land documents — tags each upload so the admin knows what it is. */
+const DOC_TYPES = [
+  'Patta',
+  'Chitta / Adangal',
+  'EC (Encumbrance)',
+  'Title deed',
+  'Tax receipt',
+  'Layout approval',
+  'Other',
+];
 
 export default function NewListing() {
   const { data: projects, isLoading: projLoading } = useProjects();
@@ -52,13 +64,18 @@ export default function NewListing() {
   const [lng, setLng] = useState('');
   const [media, setMedia] = useState<PickedMedia[]>([]);
   const [docs, setDocs] = useState<PickedDoc[]>([]);
+  const [docType, setDocType] = useState(DOC_TYPES[0]);
+  const [surveyNo, setSurveyNo] = useState('');
+  const [pattaNo, setPattaNo] = useState('');
+  const [khataNo, setKhataNo] = useState('');
+  const [dtcpNo, setDtcpNo] = useState('');
 
   async function pickDocs() {
     const res = await DocumentPicker.getDocumentAsync({ multiple: true, copyToCacheDirectory: true });
     if (res.canceled || !res.assets?.length) return;
     setDocs((d) => [
       ...d,
-      ...res.assets.map((a) => ({ uri: a.uri, name: a.name, mimeType: a.mimeType })),
+      ...res.assets.map((a) => ({ uri: a.uri, name: a.name, mimeType: a.mimeType, docType })),
     ]);
   }
 
@@ -100,6 +117,10 @@ export default function NewListing() {
         facing: facing ?? undefined,
         lat: !isNaN(latNum) ? latNum : null,
         lng: !isNaN(lngNum) ? lngNum : null,
+        surveyNo: surveyNo.trim() || undefined,
+        pattaNo: pattaNo.trim() || undefined,
+        khataNo: khataNo.trim() || undefined,
+        dtcpNo: dtcpNo.trim() || undefined,
       });
       // Attach the picked photos/videos through the existing submissions
       // pipeline (admin reviews them alongside the listing). Best-effort: a
@@ -120,7 +141,14 @@ export default function NewListing() {
       let docsFail = 0;
       for (const d of docs) {
         try {
-          await addDocument({ title: d.name, kind: 'property', propertyId: id, ...d });
+          await addDocument({
+            title: `${d.docType} — ${d.name}`,
+            kind: d.docType.toLowerCase(),
+            propertyId: id,
+            uri: d.uri,
+            name: d.name,
+            mimeType: d.mimeType,
+          });
           docsUp++;
         } catch {
           docsFail++;
@@ -186,6 +214,24 @@ export default function NewListing() {
       <Input label="Land category / zoning (optional)" value={zoning} onChangeText={setZoning} placeholder="Residential / Commercial / Agricultural" />
       <Input label="Ownership / document status (optional)" value={ownership} onChangeText={setOwnership} placeholder="Clear title / Patta / Khata-A" />
 
+      <Text variant="label" className="mt-1">Land records (optional)</Text>
+      <View className="flex-row gap-3">
+        <View className="flex-1">
+          <Input label="Survey no." value={surveyNo} onChangeText={setSurveyNo} placeholder="e.g. 123/4B" />
+        </View>
+        <View className="flex-1">
+          <Input label="Patta no." value={pattaNo} onChangeText={setPattaNo} placeholder="e.g. 456" />
+        </View>
+      </View>
+      <View className="flex-row gap-3">
+        <View className="flex-1">
+          <Input label="Khata no." value={khataNo} onChangeText={setKhataNo} placeholder="e.g. 789" />
+        </View>
+        <View className="flex-1">
+          <Input label="DTCP / layout no." value={dtcpNo} onChangeText={setDtcpNo} placeholder="Approval no." />
+        </View>
+      </View>
+
       <View className="gap-1.5">
         <Text variant="label">Facing (Vastu) — optional</Text>
         <View className="flex-row flex-wrap gap-2">
@@ -249,9 +295,12 @@ export default function NewListing() {
                 key={`${d.uri}-${i}`}
                 className="flex-row items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2">
                 <Ionicons name="document-text" size={16} color={color.red} />
-                <Text className="flex-1 text-[13px] text-ink" numberOfLines={1}>
-                  {d.name}
-                </Text>
+                <View className="min-w-0 flex-1">
+                  <Text className="text-[13px] text-ink" numberOfLines={1}>
+                    {d.name}
+                  </Text>
+                  <Text variant="caption">{d.docType}</Text>
+                </View>
                 <Pressable onPress={() => setDocs((arr) => arr.filter((_, j) => j !== i))} hitSlop={6}>
                   <Ionicons name="close-circle" size={18} color={color.muted} />
                 </Pressable>
@@ -259,15 +308,21 @@ export default function NewListing() {
             ))}
           </View>
         ) : null}
+        <Text variant="caption">Pick the document type, then attach the file(s):</Text>
+        <View className="flex-row flex-wrap gap-2">
+          {DOC_TYPES.map((k) => (
+            <Chip key={k} label={k} active={docType === k} onPress={() => setDocType(k)} />
+          ))}
+        </View>
         <Button
-          title="📄 Add documents (deed, patta, EC…)"
+          title={`📄 Add ${docType} document`}
           variant="outline"
           onPress={pickDocs}
           left={<Ionicons name="folder-open" size={16} color={color.ink} />}
         />
         <Text variant="caption">
-          Title deed, patta, EC, tax receipts — any file type. Shared with the JAMIN team for
-          verification and kept in your Document vault.
+          Any file type (PDF or photo). Shared with the JAMIN team for verification and kept in
+          your Document vault.
         </Text>
       </View>
 

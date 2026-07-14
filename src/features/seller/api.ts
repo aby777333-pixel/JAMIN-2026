@@ -37,6 +37,11 @@ export interface CreateListingInput {
   facing?: string;
   lat?: number | null;
   lng?: number | null;
+  /** Indian land-record details — shown on the listing like any other attr. */
+  surveyNo?: string;
+  pattaNo?: string;
+  khataNo?: string;
+  dtcpNo?: string;
 }
 
 /**
@@ -60,6 +65,10 @@ export async function createListing(
   if (input.ownership) attrs['Ownership / document status'] = input.ownership;
   if (input.area) attrs['Plot area'] = input.area;
   if (input.facing) attrs['Facing'] = input.facing;
+  if (input.surveyNo) attrs['Survey number'] = input.surveyNo;
+  if (input.pattaNo) attrs['Patta number'] = input.pattaNo;
+  if (input.khataNo) attrs['Khata number'] = input.khataNo;
+  if (input.dtcpNo) attrs['DTCP / layout approval no.'] = input.dtcpNo;
 
   const body: PropertyInsert = {
     project_id: input.projectId,

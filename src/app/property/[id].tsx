@@ -125,6 +125,26 @@ export default function PropertyDetail() {
   const isSaved = saved?.has(property.id) ?? false;
   const isWatching = watchIds?.has(property.id) ?? false;
   const label = `${property.project?.name ?? 'Property'} · ${property.plot_code}`;
+  // Role-aware CTAs: buyers enquire/offer/reserve; partners (promoter/agent/
+  // broker/seller) are the SELLING side — they share the plot with clients and
+  // team instead of making offers to JAMIN; a seller's own listing is managed.
+  const isOwnListing = !!myId && property.seller_id === myId;
+
+  async function sharePlot() {
+    const url = `${SITE_URL}/p/${property!.id}`;
+    try {
+      await Share.share({
+        message:
+          `🏡 ${label}\n` +
+          'JAMIN Properties · Signature for Fortune\n' +
+          'View details, photos & price 👇\n' +
+          url,
+        url,
+      });
+    } catch {
+      /* user dismissed the share sheet */
+    }
+  }
 
   // Tours are data-driven: the admin sets URLs on the property's attrs.
   const a = (property.attrs ?? {}) as Record<string, unknown>;
@@ -309,21 +329,49 @@ export default function PropertyDetail() {
         </Card>
       ) : null}
 
-      {/* JAMIN-mediated contact + the primary actions (brief §4: value → line → action). */}
-      <View className="gap-3">
-        <View className="flex-row items-center gap-2 rounded-2xl border border-gold/40 bg-gold/10 px-3 py-2.5">
-          <Ionicons name="shield-checkmark" size={16} color={color.gold} />
-          <Text variant="caption" className="flex-1 text-ink">{t('property.jaminConnect')}</Text>
+      {/* JAMIN-mediated contact + the primary actions (brief §4: value → line → action).
+          Role-aware: buyer CTAs only make sense for buyers — a promoter/agent/broker
+          works this plot FOR clients, and a seller manages their own listing. */}
+      {isOwnListing ? (
+        <View className="gap-3">
+          <View className="flex-row items-center gap-2 rounded-2xl border border-gold/40 bg-gold/10 px-3 py-2.5">
+            <Ionicons name="home" size={16} color={color.gold} />
+            <Text variant="caption" className="flex-1 text-ink">
+              This is your listing — buyers enquire, offer and reserve here while you track it all
+              from My listings.
+            </Text>
+          </View>
+          <Button title="Manage in My listings" onPress={() => router.push('/sell')} />
+          <Button title="Share this listing" variant="outline" onPress={sharePlot} />
         </View>
-        <Button title={t('property.cta.enquire')} onPress={() => setEnquiry(true)} />
-        <Button title={t('property.cta.bookVisit')} variant="outline" onPress={() => setVisit(true)} />
-        {property.status === 'available' && property.seller_id !== myId ? (
-          <Button title={t('property.cta.makeOffer')} variant="outline" onPress={() => setOffer(true)} />
-        ) : null}
-        {property.status === 'available' ? (
-          <Button title={t('property.cta.reserve')} variant="secondary" loading={reserve.isPending} onPress={onReserve} />
-        ) : null}
-      </View>
+      ) : isPartner ? (
+        <View className="gap-3">
+          <View className="flex-row items-center gap-2 rounded-2xl border border-gold/40 bg-gold/10 px-3 py-2.5">
+            <Ionicons name="briefcase" size={16} color={color.gold} />
+            <Text variant="caption" className="flex-1 text-ink">
+              You're on the selling side — share this plot with your clients and team. They enquire,
+              offer and reserve through your link, and the sale counts as yours.
+            </Text>
+          </View>
+          <Button title="Share with a client" onPress={sharePlot} />
+          <Button title={t('property.cta.bookVisit')} variant="outline" onPress={() => setVisit(true)} />
+        </View>
+      ) : (
+        <View className="gap-3">
+          <View className="flex-row items-center gap-2 rounded-2xl border border-gold/40 bg-gold/10 px-3 py-2.5">
+            <Ionicons name="shield-checkmark" size={16} color={color.gold} />
+            <Text variant="caption" className="flex-1 text-ink">{t('property.jaminConnect')}</Text>
+          </View>
+          <Button title={t('property.cta.enquire')} onPress={() => setEnquiry(true)} />
+          <Button title={t('property.cta.bookVisit')} variant="outline" onPress={() => setVisit(true)} />
+          {property.status === 'available' ? (
+            <Button title={t('property.cta.makeOffer')} variant="outline" onPress={() => setOffer(true)} />
+          ) : null}
+          {property.status === 'available' ? (
+            <Button title={t('property.cta.reserve')} variant="secondary" loading={reserve.isPending} onPress={onReserve} />
+          ) : null}
+        </View>
+      )}
 
       {/* Everything secondary sits behind one clear disclosure (brief §2). */}
       <Disclosure
