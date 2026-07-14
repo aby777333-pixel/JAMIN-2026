@@ -78,6 +78,25 @@ export async function getTeamRoster(): Promise<RosterMember[]> {
   return ((data ?? []) as unknown as RosterMember[]).filter((r) => r.id !== me.user?.id);
 }
 
+export interface TeamActivity {
+  kind: 'join' | 'commission' | 'booking';
+  who: string | null;
+  summary: string;
+  amount: number | null;
+  happened_at: string;
+}
+
+/**
+ * Recent subtree events — joins, commissions, bookings (RPC team_activity_feed,
+ * 0097). Subtree-guarded server-side like team_summary, so promoters see what
+ * their team is doing, not just totals.
+ */
+export async function getTeamActivity(): Promise<TeamActivity[]> {
+  const { data, error } = await supabase.rpc('team_activity_feed', { p_limit: 30 });
+  if (error) throw error;
+  return (data ?? []) as TeamActivity[];
+}
+
 /** Resolve a territory name for display (§6 Territory Management — assigned by admin). */
 export async function getTerritoryName(territoryId: string | null): Promise<string | null> {
   if (!territoryId) return null;

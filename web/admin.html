@@ -1375,11 +1375,16 @@
         if (q.error) { el.innerHTML = '<div class="head"><h2>Photo submissions</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
         var rows = q.data || [];
         el.innerHTML = '<div class="head"><h2>Photo submissions — pending</h2></div>' +
-          '<div class="muted" style="margin-bottom:10px">Photos suggested by partners. Approving adds the photo to the property (live in the app); rejecting discards it.</div>' +
+          '<div class="muted" style="margin-bottom:10px">Photos &amp; videos submitted by partners and sellers (including new-listing media). Approving adds them to the property (live in the app); rejecting discards them.</div>' +
           (rows.length ? '<table><thead><tr><th>Photo</th><th>Property</th><th>Submitted by</th><th>When</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (s) {
+            // Sellers can attach videos too (sell/new) — render a playable thumb, not a broken <img>.
+            var isVideo = /\.(mp4|mov|webm|m4v|3gp|mkv)(\?|$)/i.test(s.url || '');
+            var thumb = isVideo
+              ? '<video src="' + esc(s.url) + '" muted preload="metadata" style="height:54px;width:54px;object-fit:cover;border-radius:8px;border:1px solid #e6e7e2;background:#000"></video>'
+              : '<img src="' + esc(s.url) + '" style="height:54px;width:54px;object-fit:cover;border-radius:8px;border:1px solid #e6e7e2" />';
             return '<tr data-id="' + s.id + '" data-path="' + esc(s.path) + '">' +
-              '<td><a href="' + esc(s.url) + '" target="_blank" rel="noopener"><img src="' + esc(s.url) + '" style="height:54px;width:54px;object-fit:cover;border-radius:8px;border:1px solid #e6e7e2" /></a></td>' +
+              '<td><a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + thumb + '</a></td>' +
               '<td class="mono">' + esc(s.property ? s.property.plot_code : '—') + '</td>' +
               '<td>' + esc(s.submitter ? s.submitter.full_name : '—') + '</td>' +
               '<td class="muted">' + new Date(s.created_at).toLocaleDateString() + '</td>' +
@@ -1523,7 +1528,8 @@
               '<td class="muted">' + new Date(s.created_at).toLocaleDateString() + '</td>' +
               '<td style="font-size:12px;line-height:1.5">' + (details || '<span class="muted">—</span>') + '</td>' +
               '<td><select class="inp fs_status" style="width:130px;height:36px">' + FORM_SUB_STATUSES.map(function (t) { return '<option value="' + t + '"' + (t === s.status ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select> <span class="muted fs_msg" style="font-size:11px"></span>' +
-              (s.form_key === 'kyc' ? '<div class="muted" style="font-size:10px;margin-top:2px">Approve → unlocks the member’s KYC in the app</div>' : '') + '</td></tr>';
+              (s.form_key === 'kyc' ? '<div class="muted" style="font-size:10px;margin-top:2px">Approve → unlocks the member’s KYC in the app</div>' : '') +
+              (s.form_key === 'broker' ? '<div class="muted" style="font-size:10px;margin-top:2px">Approve → assigns the verified Broker role in the app</div>' : '') + '</td></tr>';
           }).join('') + '</tbody></table>' : '<div class="muted">No submissions' + (formSubFilter === 'all' ? '' : ' for “' + esc(formSubFilter) + '”') + ' yet.</div>');
         el.querySelectorAll('.fs_filt').forEach(function (b) { b.onclick = function () { formSubFilter = b.dataset.k; renderFormSubs(); }; });
         el.querySelectorAll('tr[data-id]').forEach(function (tr) {
@@ -1538,6 +1544,16 @@
               var kyc = val === 'approved' ? 'verified' : val === 'rejected' ? 'rejected' : 'pending';
               var pr = await sb.from('profiles').update({ kyc_status: kyc }).eq('id', tr.dataset.uid);
               if (pr.error) { if (msg) { msg.style.color = '#c00'; msg.textContent = 'Profile not updated'; } alert('Saved on the form, but updating the member profile failed: ' + pr.error.message); refreshFormSubsBadge(); refreshApprovalsBadge(); return; }
+            }
+            // Broker is apply-first (0097): approving the application assigns the Broker role.
+            if (tr.dataset.key === 'broker' && tr.dataset.uid && val === 'approved') {
+              var br = await sb.from('roles').select('id').eq('slug', 'broker').maybeSingle();
+              if (br.data && br.data.id) {
+                var ur = await sb.from('profiles').update({ role_id: br.data.id }).eq('id', tr.dataset.uid);
+                if (ur.error) { if (msg) { msg.style.color = '#c00'; msg.textContent = 'Role not assigned'; } alert('Approved, but assigning the Broker role failed: ' + ur.error.message); refreshFormSubsBadge(); refreshApprovalsBadge(); return; }
+              } else {
+                alert('Approved, but the broker role was not found — assign it manually in Users.');
+              }
             }
             if (msg) { msg.style.color = '#0a0'; msg.textContent = 'Saved ✓'; setTimeout(function () { msg.textContent = ''; }, 2500); }
             refreshFormSubsBadge(); refreshApprovalsBadge();

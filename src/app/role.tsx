@@ -69,6 +69,18 @@ export default function RoleSwitch() {
         </Text>
       )}
 
+      {!isAssignedRank && current === 'broker' ? (
+        <Card className="flex-row items-center gap-3 border-red bg-red/5">
+          <View className="flex-1">
+            <Text variant="title">Broker</Text>
+            <Text variant="caption">
+              You're a verified Broker ✓ — switching to another role means re-applying to return.
+            </Text>
+          </View>
+          <Text className="text-[12px] font-bold text-red">CURRENT</Text>
+        </Card>
+      ) : null}
+
       {!isAssignedRank ? (
         isLoading ? (
           <ActivityIndicator color={color.red} className="mt-6" />
@@ -89,6 +101,25 @@ export default function RoleSwitch() {
             </Pressable>
           ))
         )
+      ) : null}
+
+      {/* Broker is apply-first (0097): verified by the JAMIN team, never instant. */}
+      {!isAssignedRank && current !== 'broker' ? (
+        <Pressable onPress={() => router.push('/forms/broker')}>
+          <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
+            <View className="h-10 w-10 items-center justify-center rounded-xl bg-gold/15">
+              <Ionicons name="ribbon" size={18} color={color.goldDeep} />
+            </View>
+            <View className="flex-1">
+              <Text variant="title">Broker — apply & get verified</Text>
+              <Text variant="caption">
+                Submit your details and license proof. The JAMIN team verifies and upgrades you to a
+                verified Broker.
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={color.muted} />
+          </Card>
+        </Pressable>
       ) : null}
 
       <Text variant="label" className="mt-2">

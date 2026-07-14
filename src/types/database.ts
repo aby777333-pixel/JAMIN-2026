@@ -4368,6 +4368,16 @@ export type Database = {
         Returns: Json
       }
       switch_role: { Args: { p_slug: string }; Returns: string }
+      team_activity_feed: {
+        Args: { p_limit?: number }
+        Returns: {
+          kind: string
+          who: string | null
+          summary: string
+          amount: number | null
+          happened_at: string
+        }[]
+      }
       team_member_stats: { Args: { p_member: string }; Returns: Json }
       team_summary: { Args: never; Returns: Json }
       text2ltree: { Args: { "": string }; Returns: unknown }

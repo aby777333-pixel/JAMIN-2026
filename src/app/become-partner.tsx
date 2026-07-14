@@ -94,6 +94,11 @@ export default function BecomePartner() {
 
           <Button title="Join now — it's free" loading={busy} onPress={joinNow} />
           <Button
+            title="Apply as a verified Broker"
+            variant="outline"
+            onPress={() => router.push('/forms/broker')}
+          />
+          <Button
             title="Apply for a senior role (Promoter)"
             variant="outline"
             onPress={() => router.push('/forms/promoter')}

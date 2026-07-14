@@ -1,6 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Button } from '@/components/ui/Button';
@@ -10,9 +13,17 @@ import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { useProjects, usePropertyTypes } from '@/features/buyer/hooks';
 import { useCreateListing } from '@/features/seller/hooks';
+import { submitPropertyPhotos } from '@/features/submissions/api';
 import { FACINGS } from '@/features/astro/vastu';
 import { color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
+
+interface PickedMedia {
+  uri: string;
+  name?: string | null;
+  mimeType?: string | null;
+  kind: 'image' | 'video';
+}
 
 export default function NewListing() {
   const { data: projects, isLoading: projLoading } = useProjects();
@@ -31,6 +42,24 @@ export default function NewListing() {
   const [facing, setFacing] = useState<string | null>(null);
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
+  const [media, setMedia] = useState<PickedMedia[]>([]);
+
+  async function pickMedia() {
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images', 'videos'],
+      quality: 0.85,
+      allowsMultipleSelection: true,
+      videoMaxDuration: 90,
+    });
+    if (res.canceled) return;
+    const picked: PickedMedia[] = res.assets.map((a) => ({
+      uri: a.uri,
+      name: a.fileName,
+      mimeType: a.mimeType,
+      kind: a.type === 'video' ? 'video' : 'image',
+    }));
+    setMedia((m) => [...m, ...picked]);
+  }
 
   async function onSubmit() {
     if (!projectId) return Alert.alert('Pick a project', 'Choose which project this plot belongs to.');
@@ -40,7 +69,7 @@ export default function NewListing() {
     const latNum = parseFloat(lat);
     const lngNum = parseFloat(lng);
     try {
-      const code = await create.mutateAsync({
+      const { id, plot_code } = await create.mutateAsync({
         projectId,
         propertyTypeId: typeId,
         price: priceNum,
@@ -54,9 +83,25 @@ export default function NewListing() {
         lat: !isNaN(latNum) ? latNum : null,
         lng: !isNaN(lngNum) ? lngNum : null,
       });
+      // Attach the picked photos/videos through the existing submissions
+      // pipeline (admin reviews them alongside the listing). Best-effort: a
+      // failed upload never loses the listing itself.
+      let uploaded = 0;
+      let failed = 0;
+      for (const m of media) {
+        try {
+          await submitPropertyPhotos(id, [m]);
+          uploaded++;
+        } catch {
+          failed++;
+        }
+      }
       Alert.alert(
         'Listing submitted',
-        `${code} was created and sent for admin approval. It becomes visible to buyers once approved.`,
+        `${plot_code} was created and sent for admin approval.` +
+          (uploaded > 0 ? ` ${uploaded} photo/video${uploaded === 1 ? '' : 's'} attached.` : '') +
+          (failed > 0 ? ` ${failed} upload${failed === 1 ? '' : 's'} failed — you can add more from the listing page.` : '') +
+          ' It becomes visible to buyers once approved.',
       );
       router.replace('/sell');
     } catch (e) {
@@ -70,7 +115,7 @@ export default function NewListing() {
 
       <Text variant="caption">
         Submit a plot for review. An admin verifies it before it goes live — you’ll see its status under My listings.
-        Add photos from the listing page after it’s created.
+        Add photos and videos below, or later from the listing page.
       </Text>
 
       <View className="gap-1.5">
@@ -124,6 +169,42 @@ export default function NewListing() {
         <View className="flex-1">
           <Input label="Longitude (optional)" value={lng} onChangeText={setLng} keyboardType="numeric" inputMode="decimal" placeholder="77.5946" />
         </View>
+      </View>
+
+      <View className="gap-1.5">
+        <Text variant="label">Photos & videos (optional)</Text>
+        {media.length > 0 ? (
+          <View className="flex-row flex-wrap" style={{ gap: 10 }}>
+            {media.map((m, i) => (
+              <View key={`${m.uri}-${i}`} style={{ width: 76 }} className="gap-1">
+                <View>
+                  <Image
+                    source={{ uri: m.uri }}
+                    style={{ width: 76, height: 76, borderRadius: 10 }}
+                    contentFit="cover"
+                  />
+                  {m.kind === 'video' ? (
+                    <View className="absolute bottom-1 right-1 rounded-md bg-black/60 p-0.5">
+                      <Ionicons name="videocam" size={12} color="#FFFFFF" />
+                    </View>
+                  ) : null}
+                </View>
+                <Pressable onPress={() => setMedia((arr) => arr.filter((_, j) => j !== i))} hitSlop={6}>
+                  <Text className="text-center text-[11px] font-semibold text-red">Remove</Text>
+                </Pressable>
+              </View>
+            ))}
+          </View>
+        ) : null}
+        <Button
+          title="📎 Add photos / videos"
+          variant="outline"
+          onPress={pickMedia}
+          left={<Ionicons name="images" size={16} color={color.ink} />}
+        />
+        <Text variant="caption">
+          They’re reviewed by the admin along with your listing and go live once approved.
+        </Text>
       </View>
 
       <Button title="Submit for approval" loading={create.isPending} onPress={onSubmit} />

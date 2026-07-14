@@ -43,9 +43,12 @@ export interface CreateListingInput {
  * A seller submits a new listing. The DB guard forces approval_status='pending'
  * and seller_id=self, so the listing stays hidden from buyers until an admin
  * approves it in the web console (item 7-9). Descriptive fields go into attrs,
- * matching how the admin console stores guided specs.
+ * matching how the admin console stores guided specs. Returns the new row's id
+ * (so photos/videos can be attached right away) and its plot code.
  */
-export async function createListing(input: CreateListingInput): Promise<string> {
+export async function createListing(
+  input: CreateListingInput,
+): Promise<{ id: string; plot_code: string }> {
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) throw new Error('Not signed in');
 
@@ -76,5 +79,5 @@ export async function createListing(input: CreateListingInput): Promise<string> 
     .select('id, plot_code')
     .single();
   if (error) throw error;
-  return (data as { plot_code: string }).plot_code;
+  return data as { id: string; plot_code: string };
 }

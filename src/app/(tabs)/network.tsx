@@ -10,8 +10,8 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatCard } from '@/components/ui/StatCard';
 import { Text } from '@/components/ui/Text';
-import { useDownline, useTeamSummary, useTerritoryName } from '@/features/team/hooks';
-import type { TeamMember } from '@/features/team/api';
+import { useDownline, useTeamActivity, useTeamSummary, useTerritoryName } from '@/features/team/hooks';
+import type { TeamActivity, TeamMember } from '@/features/team/api';
 import { formatINR } from '@/lib/money';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
@@ -22,6 +22,7 @@ export default function Network() {
   const { data: team = [], isLoading, refetch, isRefetching } = useDownline();
   const { data: summary } = useTeamSummary();
   const { data: territory } = useTerritoryName(profile?.territory_id);
+  const { data: activity = [] } = useTeamActivity();
 
   const direct = team.filter((m) => m.parent_id === profile?.id).length;
   const sorted = [...team].sort((a, b) => (a.role?.level ?? 99) - (b.role?.level ?? 99));
@@ -107,6 +108,15 @@ export default function Network() {
               <Button title="Open" variant="outline" onPress={() => router.push('/incentives')} />
             </Card>
 
+            {activity.length > 0 ? (
+              <Card className="gap-2.5">
+                <Text variant="label">Recent team activity</Text>
+                {activity.slice(0, 10).map((a, i) => (
+                  <ActivityRow key={`${a.kind}-${a.happened_at}-${i}`} item={a} />
+                ))}
+              </Card>
+            ) : null}
+
             {team.length > 0 ? (
               <Text variant="label" className="mt-1">
                 Your team
@@ -129,6 +139,29 @@ export default function Network() {
           )
         }
       />
+    </View>
+  );
+}
+
+/** One line of the team feed — joins, commissions and bookings from the subtree (0097). */
+function ActivityRow({ item }: { item: TeamActivity }) {
+  const icon =
+    item.kind === 'join' ? 'person-add' : item.kind === 'booking' ? 'checkmark-done' : 'cash';
+  const tint = item.kind === 'commission' ? color.goldDeep : color.red;
+  return (
+    <View className="flex-row items-center gap-2.5">
+      <View className="h-8 w-8 items-center justify-center rounded-full bg-paper">
+        <Ionicons name={icon} size={14} color={tint} />
+      </View>
+      <View className="min-w-0 flex-1">
+        <Text className="text-[13px] text-ink" numberOfLines={1}>
+          {item.summary}
+        </Text>
+        <Text variant="caption">
+          {new Date(item.happened_at).toLocaleDateString('en-IN')}
+          {item.amount != null && Number(item.amount) > 0 ? ` · ${formatINR(item.amount)}` : ''}
+        </Text>
+      </View>
     </View>
   );
 }
