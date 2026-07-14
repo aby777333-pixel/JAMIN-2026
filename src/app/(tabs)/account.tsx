@@ -156,6 +156,12 @@ export default function Account() {
                 onPress={() => router.push('/tools/ad-creator')}
               />
               <ListRow
+                icon="albums"
+                label="My posts & videos"
+                sub="View your uploaded ads, photos and videos"
+                onPress={() => router.push('/my-posts')}
+              />
+              <ListRow
                 icon="image"
                 label="Poster & banner maker"
                 sub="Turn any photo or video into a branded banner"
@@ -268,7 +274,13 @@ export default function Account() {
         ) : null}
       </View>
 
-      <Pressable onPress={() => signOut()} className="self-center py-4">
+      <Pressable
+        onPress={async () => {
+          // Clearing the session doesn't unmount the tabs — leave explicitly.
+          await signOut();
+          router.replace('/(auth)/login');
+        }}
+        className="self-center py-4">
         <Text className="font-semibold text-muted">Sign out</Text>
       </Pressable>
     </Screen>

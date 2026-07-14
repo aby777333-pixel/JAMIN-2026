@@ -7,7 +7,8 @@ export type FieldType =
   | 'email'
   | 'select'
   | 'checkbox'
-  | 'date';
+  | 'date'
+  | 'photo';
 
 export interface FormField {
   name: string;
@@ -28,6 +29,7 @@ export const FIELD_TYPES: FieldType[] = [
   'select',
   'checkbox',
   'date',
+  'photo',
 ];
 
 export type FormValues = Record<string, string | number | boolean | undefined>;

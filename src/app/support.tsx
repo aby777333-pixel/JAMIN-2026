@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Linking, Pressable, View } from 'react-native';
+import { Alert, Linking, Pressable, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Card } from '@/components/ui/Card';
@@ -10,14 +10,25 @@ import { color } from '@/theme/tokens';
 
 type Row = { icon: keyof typeof Ionicons.glyphMap; label: string; value: string; url: string };
 
+/** Admin-entered values sometimes arrive wrapped in quotes/spaces — normalise before use. */
+function clean(raw: string): string {
+  return raw.trim().replace(/^["']+|["']+$/g, '').trim();
+}
+
 export default function Support() {
   const { get } = useContent();
-  const phone = get('support.phone');
-  const email = get('support.email');
-  const whatsapp = get('support.whatsapp');
+  const phone = clean(get('support.phone'));
+  const email = clean(get('support.email'));
+  const whatsapp = clean(get('support.whatsapp'));
   const hours = get('support.hours');
   const about = get('about.company');
   const tagline = get('brand.tagline');
+  const website = clean(get('social.website'));
+  const facebook = clean(get('social.facebook'));
+  const instagram = clean(get('social.instagram'));
+  const youtube = clean(get('social.youtube'));
+  const termsUrl = clean(get('legal.terms_url'));
+  const privacyUrl = clean(get('legal.privacy_url'));
 
   const contacts: Row[] = [
     phone ? { icon: 'call', label: 'Call us', value: phone, url: `tel:${phone}` } : null,
@@ -28,15 +39,15 @@ export default function Support() {
   ].filter(Boolean) as Row[];
 
   const legal: Row[] = [
-    get('legal.terms_url') ? { icon: 'document-text', label: 'Terms & Conditions', value: 'View', url: get('legal.terms_url') } : null,
-    get('legal.privacy_url') ? { icon: 'shield-checkmark', label: 'Privacy Policy', value: 'View', url: get('legal.privacy_url') } : null,
+    termsUrl ? { icon: 'document-text', label: 'Terms & Conditions', value: 'View', url: termsUrl } : null,
+    privacyUrl ? { icon: 'shield-checkmark', label: 'Privacy Policy', value: 'View', url: privacyUrl } : null,
   ].filter(Boolean) as Row[];
 
   const socials: Row[] = [
-    get('social.website') ? { icon: 'globe', label: 'Website', value: get('social.website'), url: get('social.website') } : null,
-    get('social.facebook') ? { icon: 'logo-facebook', label: 'Facebook', value: 'Facebook', url: get('social.facebook') } : null,
-    get('social.instagram') ? { icon: 'logo-instagram', label: 'Instagram', value: 'Instagram', url: get('social.instagram') } : null,
-    get('social.youtube') ? { icon: 'logo-youtube', label: 'YouTube', value: 'YouTube', url: get('social.youtube') } : null,
+    website ? { icon: 'globe', label: 'Website', value: website, url: website } : null,
+    facebook ? { icon: 'logo-facebook', label: 'Facebook', value: 'Facebook', url: facebook } : null,
+    instagram ? { icon: 'logo-instagram', label: 'Instagram', value: 'Instagram', url: instagram } : null,
+    youtube ? { icon: 'logo-youtube', label: 'YouTube', value: 'YouTube', url: youtube } : null,
   ].filter(Boolean) as Row[];
 
   return (
@@ -96,7 +107,12 @@ export default function Support() {
 
 function LinkRow({ icon, label, value, url }: Row) {
   return (
-    <Pressable onPress={() => Linking.openURL(url)}>
+    <Pressable
+      onPress={() =>
+        Linking.openURL(url).catch(() =>
+          Alert.alert('Could not open', 'No app available to open this link.'),
+        )
+      }>
       <Card className="flex-row items-center gap-3">
         <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
           <Ionicons name={icon} size={18} color={color.red} />

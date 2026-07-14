@@ -131,7 +131,15 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
-    await supabase.auth.signOut();
+    // Best-effort server sign-out. If the token is already expired/invalid or the
+    // network fails, still remove the LOCAL session (scope: 'local' skips the
+    // server) so the button always signs the user out on this device.
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) await supabase.auth.signOut({ scope: 'local' });
+    } catch {
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+    }
     await SecureStore.deleteItemAsync(BIOMETRIC_TOKEN_KEY).catch(() => {});
     set({ session: null, profile: null, needsOnboarding: false, locked: false, previewRole: null, isRealAdmin: false });
   },

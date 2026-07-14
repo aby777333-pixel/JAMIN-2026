@@ -1409,7 +1409,7 @@
       }
 
       // ─── Form Builder (form_definitions: activate + edit fields) ─────────
-      var FORM_FIELD_TYPES = ['text', 'textarea', 'number', 'tel', 'email', 'select', 'checkbox', 'date'];
+      var FORM_FIELD_TYPES = ['text', 'textarea', 'number', 'tel', 'email', 'select', 'checkbox', 'date', 'photo'];
       var formEditState = {};
       async function renderFormBuilder() {
         var el = $('tabForms');
@@ -1509,7 +1509,14 @@
           (shown.length ? '<table><thead><tr><th>Type</th><th>From</th><th>When</th><th>Details</th><th>Status</th></tr></thead><tbody>' +
           shown.map(function (s) {
             var d = s.data || {};
-            var details = Object.keys(d).map(function (k) { return '<div><span class="muted">' + esc(k.replace(/_/g, ' ')) + ':</span> ' + esc(d[k] == null || d[k] === '' ? '—' : String(d[k])) + '</div>'; }).join('');
+            var details = Object.keys(d).map(function (k) {
+              var v = d[k] == null || d[k] === '' ? '—' : String(d[k]);
+              // Uploaded documents (e.g. KYC proof photos) arrive as URLs — link them so the reviewer can open them.
+              var val = /^https?:\/\//.test(v)
+                ? '<a href="' + esc(v) + '" target="_blank" rel="noopener">View document ↗</a>'
+                : esc(v);
+              return '<div><span class="muted">' + esc(k.replace(/_/g, ' ')) + ':</span> ' + val + '</div>';
+            }).join('');
             return '<tr data-id="' + s.id + '" data-key="' + esc(s.form_key) + '" data-uid="' + esc(s.user_id || '') + '">' +
               '<td><b>' + esc(s.form_key) + '</b></td>' +
               '<td>' + esc(s.user ? s.user.full_name : '—') + '</td>' +

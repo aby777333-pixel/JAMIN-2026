@@ -173,6 +173,7 @@ export default function RootLayout() {
             <Stack.Screen name="role-preview" />
             <Stack.Screen name="support" />
             <Stack.Screen name="media" />
+            <Stack.Screen name="my-posts" />
             <Stack.Screen name="submissions" />
             <Stack.Screen name="features" />
             <Stack.Screen name="admin" />
