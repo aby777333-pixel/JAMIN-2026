@@ -860,6 +860,8 @@
                 '<label style="display:block;margin-top:10px">Photos</label>' +
                 '<div class="de_photos" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;align-items:center">' + photoThumbs(r.media) + '</div>' +
                 '<label class="btn-o btn-sm" style="display:inline-block;margin-top:6px">+ Add photos / videos<input type="file" accept="image/*,video/*" class="de_file hidden" multiple /></label>' +
+                '<label style="display:block;margin-top:10px">Property documents (seller uploads)</label>' +
+                '<div class="de_docs muted" style="font-size:12px;line-height:1.7">Loading…</div>' +
                 '<label style="display:block;margin-top:10px">Custom fields</label><div class="de_custom">' + customRowsFor(r.attrs) + '</div>' +
                 '<button type="button" class="btn-o btn-sm de_addfield" style="margin-top:6px">+ Add field</button> ' +
                 '<button type="button" class="btn btn-sm de_save" style="margin-top:6px">Save details</button> <span class="muted de_msg"></span>' +
@@ -979,7 +981,24 @@
           });
           var detRow = el.querySelector('tr.det[data-for="' + id + '"]');
           tr.querySelector('.pp_det').onclick = function () {
-            if (detRow) detRow.style.display = detRow.style.display === 'none' ? 'table-row' : 'none';
+            if (!detRow) return;
+            detRow.style.display = detRow.style.display === 'none' ? 'table-row' : 'none';
+            // Lazily load the seller's property documents (deal_documents linked
+            // to this plot from the app's List-a-property flow) on first open.
+            if (detRow.style.display !== 'none' && !detRow.dataset.docsLoaded) {
+              detRow.dataset.docsLoaded = '1';
+              (async function () {
+                var docsEl = detRow.querySelector('.de_docs'); if (!docsEl) return;
+                var dq = await sb.from('deal_documents')
+                  .select('id,title,kind,doc_url,created_at, owner:profiles!owner_id(full_name)')
+                  .eq('property_id', id).order('created_at', { ascending: false });
+                if (dq.error) { docsEl.textContent = 'Could not load documents: ' + dq.error.message; return; }
+                var ds = dq.data || [];
+                docsEl.innerHTML = ds.length ? ds.map(function (d) {
+                  return '<div>📄 <a href="' + esc(d.doc_url) + '" target="_blank" rel="noopener">' + esc(d.title) + '</a> <span class="muted">' + esc(d.kind || '') + (d.owner && d.owner.full_name ? ' · ' + esc(d.owner.full_name) : '') + ' · ' + new Date(d.created_at).toLocaleDateString() + '</span></div>';
+                }).join('') : 'No documents uploaded for this plot yet.';
+              })();
+            }
           };
           if (detRow) {
             var custom = detRow.querySelector('.de_custom');

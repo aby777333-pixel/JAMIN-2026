@@ -25,6 +25,8 @@ export async function addDocument(input: {
   uri: string;
   name?: string | null;
   mimeType?: string | null;
+  /** Optional — links the doc to a listing so the admin sees it under that plot. */
+  propertyId?: string | null;
 }) {
   const { data: me } = await supabase.auth.getUser();
   if (!me.user) throw new Error('Not signed in');
@@ -41,6 +43,7 @@ export async function addDocument(input: {
     kind: input.kind,
     doc_url: up.url,
     doc_path: up.path,
+    property_id: input.propertyId ?? null,
   });
   if (error) throw error;
 }

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
@@ -12,6 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { useProjects, usePropertyTypes } from '@/features/buyer/hooks';
+import { addDocument } from '@/features/documents/api';
 import { useCreateListing } from '@/features/seller/hooks';
 import { submitPropertyPhotos } from '@/features/submissions/api';
 import { FACINGS } from '@/features/astro/vastu';
@@ -23,6 +25,12 @@ interface PickedMedia {
   name?: string | null;
   mimeType?: string | null;
   kind: 'image' | 'video';
+}
+
+interface PickedDoc {
+  uri: string;
+  name: string;
+  mimeType?: string | null;
 }
 
 export default function NewListing() {
@@ -43,6 +51,16 @@ export default function NewListing() {
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
   const [media, setMedia] = useState<PickedMedia[]>([]);
+  const [docs, setDocs] = useState<PickedDoc[]>([]);
+
+  async function pickDocs() {
+    const res = await DocumentPicker.getDocumentAsync({ multiple: true, copyToCacheDirectory: true });
+    if (res.canceled || !res.assets?.length) return;
+    setDocs((d) => [
+      ...d,
+      ...res.assets.map((a) => ({ uri: a.uri, name: a.name, mimeType: a.mimeType })),
+    ]);
+  }
 
   async function pickMedia() {
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -96,11 +114,26 @@ export default function NewListing() {
           failed++;
         }
       }
+      // Property documents (deed / patta / EC …) go into the Document Vault
+      // linked to this listing, so the admin sees them under the plot's Details.
+      let docsUp = 0;
+      let docsFail = 0;
+      for (const d of docs) {
+        try {
+          await addDocument({ title: d.name, kind: 'property', propertyId: id, ...d });
+          docsUp++;
+        } catch {
+          docsFail++;
+        }
+      }
       Alert.alert(
         'Listing submitted',
         `${plot_code} was created and sent for admin approval.` +
           (uploaded > 0 ? ` ${uploaded} photo/video${uploaded === 1 ? '' : 's'} attached.` : '') +
-          (failed > 0 ? ` ${failed} upload${failed === 1 ? '' : 's'} failed — you can add more from the listing page.` : '') +
+          (docsUp > 0 ? ` ${docsUp} document${docsUp === 1 ? '' : 's'} attached.` : '') +
+          (failed + docsFail > 0
+            ? ` ${failed + docsFail} upload${failed + docsFail === 1 ? '' : 's'} failed — you can add more from the listing page or Document vault.`
+            : '') +
           ' It becomes visible to buyers once approved.',
       );
       router.replace('/sell');
@@ -204,6 +237,37 @@ export default function NewListing() {
         />
         <Text variant="caption">
           They’re reviewed by the admin along with your listing and go live once approved.
+        </Text>
+      </View>
+
+      <View className="gap-1.5">
+        <Text variant="label">Property documents (optional)</Text>
+        {docs.length > 0 ? (
+          <View className="gap-1.5">
+            {docs.map((d, i) => (
+              <View
+                key={`${d.uri}-${i}`}
+                className="flex-row items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2">
+                <Ionicons name="document-text" size={16} color={color.red} />
+                <Text className="flex-1 text-[13px] text-ink" numberOfLines={1}>
+                  {d.name}
+                </Text>
+                <Pressable onPress={() => setDocs((arr) => arr.filter((_, j) => j !== i))} hitSlop={6}>
+                  <Ionicons name="close-circle" size={18} color={color.muted} />
+                </Pressable>
+              </View>
+            ))}
+          </View>
+        ) : null}
+        <Button
+          title="📄 Add documents (deed, patta, EC…)"
+          variant="outline"
+          onPress={pickDocs}
+          left={<Ionicons name="folder-open" size={16} color={color.ink} />}
+        />
+        <Text variant="caption">
+          Title deed, patta, EC, tax receipts — any file type. Shared with the JAMIN team for
+          verification and kept in your Document vault.
         </Text>
       </View>
 
