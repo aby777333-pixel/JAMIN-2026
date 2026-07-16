@@ -2927,6 +2927,7 @@ export type Database = {
           language: string
           notification_prefs: Json
           parent_id: string | null
+          partner_profile: Json
           phone: string | null
           phone_verified: boolean
           photo_url: string | null
@@ -2952,6 +2953,7 @@ export type Database = {
           language?: string
           notification_prefs?: Json
           parent_id?: string | null
+          partner_profile?: Json
           phone?: string | null
           phone_verified?: boolean
           photo_url?: string | null
@@ -2977,6 +2979,7 @@ export type Database = {
           language?: string
           notification_prefs?: Json
           parent_id?: string | null
+          partner_profile?: Json
           phone?: string | null
           phone_verified?: boolean
           photo_url?: string | null
@@ -4533,6 +4536,22 @@ export type Database = {
         }
         Returns: string
       }
+      admin_agent_overview: {
+        Args: never
+        Returns: {
+          assigned_buyers: number
+          assigned_sellers: number
+          direct_recruits: number
+          full_name: string
+          listings: number
+          month_credits: number
+          role_slug: string
+          status: string
+          team_size: number
+          total_credits: number
+          user_id: string
+        }[]
+      }
       admin_ai_key_status: {
         Args: never
         Returns: {
@@ -4738,6 +4757,13 @@ export type Database = {
           listings: number
           location: string
           sold: number
+        }[]
+      }
+      my_monthly_earnings: {
+        Args: { p_months?: number }
+        Returns: {
+          earned: number
+          month: string
         }[]
       }
       next_plot_code: { Args: { p_type: string }; Returns: string }

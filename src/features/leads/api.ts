@@ -1,3 +1,6 @@
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
+
 import { supabase } from '@/lib/supabase';
 
 export const LEAD_STATUSES = ['new', 'contacted', 'qualified', 'visit', 'won', 'lost'] as const;
@@ -136,6 +139,50 @@ export async function updateLeadDeal(id: string, input: { value?: number | null;
   if ('expected_close' in input) patch.expected_close = input.expected_close;
   const { error } = await supabase.from('leads').update(patch).eq('id', id);
   if (error) throw error;
+}
+
+/** Quote a CSV field when it contains a comma, quote or newline. */
+const csvField = (v: string | number) => {
+  const s = String(v ?? '');
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+
+/**
+ * Excel-friendly CSV of the given leads — same write-to-cache + OS share-sheet
+ * mechanics as the wallet statement export (features/wallet/statement.ts).
+ */
+export async function exportLeadsCsv(rows: (Lead & { last_touch_at?: string | null })[]) {
+  const lines = [
+    ['Created', 'Name', 'Phone', 'Source', 'Status', 'Score', 'Property', 'Value', 'Last touch'].join(','),
+  ];
+  for (const l of rows) {
+    const property = l.property
+      ? [l.property.project?.name, l.property.plot_code].filter(Boolean).join(' · ')
+      : '';
+    const lastTouch = l.last_touch_at ?? l.stage_changed_at;
+    lines.push(
+      [
+        new Date(l.created_at).toLocaleDateString('en-IN'),
+        l.contact?.name ?? '',
+        l.contact?.phone ?? '',
+        l.source ?? '',
+        l.status,
+        l.score,
+        property,
+        l.value ?? '',
+        lastTouch ? new Date(lastTouch).toLocaleDateString('en-IN') : '',
+      ]
+        .map(csvField)
+        .join(','),
+    );
+  }
+  const uri = `${FileSystem.cacheDirectory ?? ''}jamin-leads.csv`;
+  await FileSystem.writeAsStringAsync(uri, lines.join('\n'), {
+    encoding: FileSystem.EncodingType.UTF8,
+  });
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(uri, { mimeType: 'text/csv', dialogTitle: 'Leads (CSV)' });
+  }
 }
 
 export interface LeadScoreResult {

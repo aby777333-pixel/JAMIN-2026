@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, ScrollView, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Alert, FlatList, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackHeader } from '@/components/ui/BackHeader';
@@ -9,16 +10,34 @@ import { Chip } from '@/components/ui/Chip';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
-import { LEAD_STATUSES, type Lead } from '@/features/leads/api';
+import { exportLeadsCsv, LEAD_STATUSES, type Lead } from '@/features/leads/api';
 import { ScoreBandPill } from '@/features/leads/ScoreBandPill';
 import { useLeads } from '@/features/leads/hooks';
 import { router } from 'expo-router';
+import { errMessage } from '@/lib/errors';
 import { color } from '@/theme/tokens';
 
 export default function LeadsList() {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [status, setStatus] = useState<string | undefined>(undefined);
   const { data: leads = [], isLoading, refetch, isRefetching } = useLeads(status);
+
+  /** Share the currently loaded leads as an Excel-friendly CSV (0103). */
+  async function onExportCsv() {
+    try {
+      if (leads.length === 0) {
+        Alert.alert(
+          t('leads.exportEmptyTitle', { defaultValue: 'Nothing to export' }),
+          t('leads.exportEmptyBody', { defaultValue: 'No leads in this view yet.' }),
+        );
+        return;
+      }
+      await exportLeadsCsv(leads);
+    } catch (e) {
+      Alert.alert(t('leads.exportFailed', { defaultValue: 'Could not export' }), errMessage(e));
+    }
+  }
 
   return (
     <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
@@ -29,6 +48,15 @@ export default function LeadsList() {
             <View className="flex-row items-center gap-2">
               <Pressable onPress={() => router.push('/cobroke')} hitSlop={10}>
                 <Ionicons name="git-network" size={18} color={color.ink} />
+              </Pressable>
+              <Pressable
+                onPress={() => void onExportCsv()}
+                hitSlop={10}
+                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5">
+                <Ionicons name="download-outline" size={14} color={color.ink} />
+                <Text className="text-[12px] font-semibold text-ink">
+                  {t('leads.exportCsv', { defaultValue: 'Export CSV' })}
+                </Text>
               </Pressable>
               <Pressable
                 onPress={() => router.push('/leads/pipeline')}

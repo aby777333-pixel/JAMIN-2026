@@ -8,7 +8,11 @@ import { ListRow } from '@/components/ui/ListRow';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { usePromoterDashboard, type PromoterDashboard } from '@/features/team/promoter';
+import {
+  useMonthlyEarnings,
+  usePromoterDashboard,
+  type PromoterDashboard,
+} from '@/features/team/promoter';
 import { can } from '@/lib/access';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
@@ -83,6 +87,54 @@ function TargetCard({ d }: { d: PromoterDashboard }) {
   );
 }
 
+/** '12k'-style short amount for the tiny labels above the trend bars. */
+function shortAmount(earned: number): string {
+  return earned >= 1000 ? `${Math.round(earned / 1000)}k` : String(Math.round(earned));
+}
+
+/**
+ * Earnings trend (0103) — last 6 months as a pure-RN bar chart. Bars scale to
+ * the best month (max ~72px, min 4px); the current month is gold. Renders
+ * nothing while loading, on error, or when every month is zero.
+ */
+function EarningsTrendCard() {
+  const { t } = useTranslation();
+  const { data } = useMonthlyEarnings();
+  if (!data || data.length === 0 || !data.some((m) => m.earned > 0)) return null;
+
+  const max = Math.max(...data.map((m) => m.earned), 1);
+  const now = new Date();
+  return (
+    <Card className="gap-3">
+      <Text variant="label">
+        {t('promoterHub.earningsTrend', { defaultValue: 'Earnings trend' })}
+      </Text>
+      <View className="flex-row items-end gap-2">
+        {data.map((m) => {
+          const date = new Date(m.month);
+          const isCurrent =
+            date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+          const height = m.earned > 0 ? Math.max(4, Math.round((m.earned / max) * 72)) : 4;
+          return (
+            <View key={m.month} className="flex-1 items-center gap-1">
+              <Text className="font-mono text-[10px] text-muted" numberOfLines={1}>
+                {shortAmount(m.earned)}
+              </Text>
+              <View
+                className="w-full rounded-t-md"
+                style={{ height, backgroundColor: isCurrent ? color.gold : color.red }}
+              />
+              <Text variant="caption" className="text-[11px]" numberOfLines={1}>
+                {date.toLocaleDateString('en-IN', { month: 'short' })}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    </Card>
+  );
+}
+
 /**
  * Promoter dashboard (0102) — targets, clients & earnings in one view.
  * Read-only rollup from promoter_dashboard() plus quick links to every
@@ -126,6 +178,8 @@ export default function PromoterHub() {
         <Stat label={t('promoterHub.pendingCommission', { defaultValue: 'Pending commission' })} value={d?.commission_pending ?? 0} money />
         <Stat label={t('promoterHub.walletBalance', { defaultValue: 'Wallet balance' })} value={d?.wallet_balance ?? 0} money />
       </View>
+
+      <EarningsTrendCard />
 
       {d && Number(d.target_amount) > 0 ? <TargetCard d={d} /> : null}
 

@@ -37,6 +37,26 @@ export function usePromoterDashboard() {
   return useQuery({ queryKey: ['promoter-dashboard'], queryFn: getPromoterDashboard });
 }
 
+export interface MonthlyEarning {
+  /** First day of the month as a date-string (e.g. '2026-02-01'). */
+  month: string;
+  earned: number;
+}
+
+/** Last 6 months of the caller's earnings, oldest first (RPC my_monthly_earnings, 0103). */
+export async function getMonthlyEarnings(): Promise<MonthlyEarning[]> {
+  const { data, error } = await supabase.rpc('my_monthly_earnings', { p_months: 6 });
+  if (error) throw error;
+  return ((data ?? []) as { month: string; earned: number }[]).map((r) => ({
+    month: r.month,
+    earned: Number(r.earned ?? 0),
+  }));
+}
+
+export function useMonthlyEarnings() {
+  return useQuery({ queryKey: ['monthly-earnings'], queryFn: getMonthlyEarnings });
+}
+
 export type ClientKind = 'buyer' | 'seller';
 
 export interface PromoterClient {
