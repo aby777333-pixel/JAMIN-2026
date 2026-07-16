@@ -23,15 +23,25 @@ export async function getMyPromoterContact(): Promise<PromoterContact | null> {
   return rows[0] ?? null;
 }
 
-/** The assigned promoter's contact — only populated for referral-installed buyers. */
+/** Roles whose contact routing follows the install source (buyer + seller-side roles). */
+export const CONTACT_ROUTED_ROLES = ['buyer', 'seller', 'builder', 'developer'];
+
+/** True when this profile's contact should route to their assigned promoter. */
+export function isReferralRouted(profile: { role_slug?: string | null; install_source?: string | null } | null): boolean {
+  return (
+    !!profile?.role_slug &&
+    CONTACT_ROUTED_ROLES.includes(profile.role_slug) &&
+    profile.install_source === 'referral'
+  );
+}
+
+/** The assigned promoter's contact — only populated for referral-installed buyers/sellers. */
 export function usePromoterContact() {
   const profile = useAuth((s) => s.profile);
-  const isReferralBuyer =
-    profile?.role_slug === 'buyer' && (profile as { install_source?: string }).install_source === 'referral';
   return useQuery({
     queryKey: ['promoter_contact', profile?.id],
     queryFn: getMyPromoterContact,
-    enabled: !!isReferralBuyer,
+    enabled: isReferralRouted(profile),
     staleTime: 5 * 60_000,
   });
 }

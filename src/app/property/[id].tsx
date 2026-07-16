@@ -295,9 +295,17 @@ export default function PropertyDetail() {
       {isPending || isRejected ? (
         <Card className={`flex-row items-center gap-2.5 ${isRejected ? 'border-danger/40 bg-danger/5' : 'border-gold/40 bg-gold/5'}`}>
           <Ionicons name={isRejected ? 'close-circle' : 'time'} size={18} color={isRejected ? color.red : color.goldDeep} />
-          <Text variant="caption" className="flex-1">
-            {isRejected ? t('property.rejected') : t('property.pending')}
-          </Text>
+          <View className="min-w-0 flex-1">
+            <Text variant="caption">
+              {isRejected ? t('property.rejected') : t('property.pending')}
+            </Text>
+            {/* Admin's review reason — only the owner can see non-approved rows. */}
+            {isOwnListing && property.approval_note ? (
+              <Text variant="caption" className="mt-0.5 font-semibold text-ink">
+                {t('property.reviewNote', { defaultValue: 'Reviewer note:' })} {property.approval_note}
+              </Text>
+            ) : null}
+          </View>
         </Card>
       ) : null}
 

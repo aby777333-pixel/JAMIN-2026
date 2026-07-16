@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import type { Database } from '@/types/database';
 
 type PropertyInsert = Database['public']['Tables']['properties']['Insert'];
+type Json = Database['public']['Tables']['properties']['Row']['attrs'];
 
 /** Per-listing engagement stats for the signed-in seller (RPC seller_listing_stats). */
 export interface SellerListingStat {
@@ -15,12 +16,83 @@ export interface SellerListingStat {
   saves: number;
   bookings: number;
   offers: number;
+  /** Lifecycle fields (0101) — merged from properties; not part of the stats RPC. */
+  is_hidden?: boolean;
+  archived_at?: string | null;
+  approval_note?: string | null;
 }
 
 export async function getMyListingStats(): Promise<SellerListingStat[]> {
   const { data, error } = await supabase.rpc('seller_listing_stats');
   if (error) throw error;
-  return (data ?? []) as unknown as SellerListingStat[];
+  const stats = (data ?? []) as unknown as SellerListingStat[];
+  if (stats.length === 0) return stats;
+
+  // Additive merge (0101): the stats RPC predates the lifecycle columns, so
+  // pull is_hidden/archived_at/approval_note straight from properties (RLS
+  // lets the seller read their own rows even when hidden/archived).
+  const { data: extras, error: extrasError } = await supabase
+    .from('properties')
+    .select('id, is_hidden, archived_at, approval_note')
+    .in('id', stats.map((s) => s.property_id));
+  if (extrasError) throw extrasError;
+  const byId = new Map(
+    (extras ?? []).map((e) => [e.id, e] as const),
+  );
+  return stats.map((s) => {
+    const e = byId.get(s.property_id);
+    return e
+      ? { ...s, is_hidden: e.is_hidden, archived_at: e.archived_at, approval_note: e.approval_note }
+      : s;
+  });
+}
+
+/** Fields a seller may edit on their own listing (0101). Approval/verification
+ *  columns are silently protected by a DB guard trigger. */
+export interface ListingPatch {
+  price?: number;
+  attrs?: Json;
+  is_hidden?: boolean;
+  archived_at?: string | null;
+  renewed_at?: string | null;
+  status?: 'available' | 'reserved' | 'sold' | 'rented';
+}
+
+export async function updateListing(id: string, patch: ListingPatch): Promise<void> {
+  // Whitelist — never let stray keys (e.g. approval_status) reach the update.
+  const body: ListingPatch = {};
+  if (patch.price !== undefined) body.price = patch.price;
+  if (patch.attrs !== undefined) body.attrs = patch.attrs;
+  if (patch.is_hidden !== undefined) body.is_hidden = patch.is_hidden;
+  if (patch.archived_at !== undefined) body.archived_at = patch.archived_at;
+  if (patch.renewed_at !== undefined) body.renewed_at = patch.renewed_at;
+  if (patch.status !== undefined) body.status = patch.status;
+  const { error } = await supabase.from('properties').update(body).eq('id', id);
+  if (error) throw error;
+}
+
+/** One of the signed-in seller's own listings (RLS returns nothing for other sellers'). */
+export interface MyListing {
+  id: string;
+  plot_code: string;
+  price: number;
+  status: string;
+  approval_status: string;
+  approval_note: string | null;
+  is_hidden: boolean;
+  archived_at: string | null;
+  attrs: Json;
+  media: Json;
+}
+
+export async function getMyListing(id: string): Promise<MyListing | null> {
+  const { data, error } = await supabase
+    .from('properties')
+    .select('id, plot_code, price, status, approval_status, approval_note, is_hidden, archived_at, attrs, media')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as MyListing | null) ?? null;
 }
 
 export interface CreateListingInput {

@@ -19,6 +19,9 @@ import { useAuth } from '@/stores/auth';
 import { errMessage } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
 
+/** Roles that list property — they get the "Selling as" entity-type select (0101). */
+const SELLER_ROLES = ['seller', 'builder', 'developer'];
+
 const ROLE_HINT: Record<string, string> = {
   buyer: 'Browse & buy properties',
   agent: 'Sales partner — earn commissions',
@@ -38,6 +41,7 @@ export default function Onboarding() {
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState<string>('buyer');
   const [buyerType, setBuyerType] = useState<string>('individual');
+  const [sellerEntityType, setSellerEntityType] = useState<string>('individual');
   const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ fullName?: string; phone?: string }>({});
@@ -87,6 +91,21 @@ export default function Onboarding() {
           const me = data.user?.id;
           if (me) {
             await supabase.from('profiles').update({ buyer_type: buyerType }).eq('id', me);
+          }
+        } catch {
+          /* non-fatal */
+        }
+      }
+      // Seller entity type (0101): best-effort — onboarding must never fail on it.
+      if (SELLER_ROLES.includes(role) && sellerEntityType !== 'individual') {
+        try {
+          const { data } = await supabase.auth.getUser();
+          const me = data.user?.id;
+          if (me) {
+            await supabase
+              .from('profiles')
+              .update({ seller_entity_type: sellerEntityType })
+              .eq('id', me);
           }
         } catch {
           /* non-fatal */
@@ -155,6 +174,24 @@ export default function Onboarding() {
                 { value: 'company', label: t('onboarding.buyerType.company', { defaultValue: 'Company' }) },
               ]}
               onChange={setBuyerType}
+            />
+          ) : null}
+          {SELLER_ROLES.includes(role) ? (
+            <Select
+              label={t('onboarding.sellingAs', { defaultValue: 'Selling as' })}
+              value={sellerEntityType}
+              options={[
+                { value: 'individual', label: t('onboarding.sellerEntity.individual', { defaultValue: 'Individual owner' }) },
+                { value: 'joint', label: t('onboarding.sellerEntity.joint', { defaultValue: 'Joint owners' }) },
+                { value: 'builder_developer', label: t('onboarding.sellerEntity.builderDeveloper', { defaultValue: 'Builder / Developer' }) },
+                { value: 'company', label: t('onboarding.sellerEntity.company', { defaultValue: 'Real-estate company' }) },
+                { value: 'partnership', label: t('onboarding.sellerEntity.partnership', { defaultValue: 'Partnership firm' }) },
+                { value: 'llp', label: t('onboarding.sellerEntity.llp', { defaultValue: 'LLP' }) },
+                { value: 'private_limited', label: t('onboarding.sellerEntity.privateLimited', { defaultValue: 'Private Limited' }) },
+                { value: 'trust_society', label: t('onboarding.sellerEntity.trustSociety', { defaultValue: 'Trust / Society' }) },
+                { value: 'poa', label: t('onboarding.sellerEntity.poa', { defaultValue: 'Power of Attorney holder' }) },
+              ]}
+              onChange={setSellerEntityType}
             />
           ) : null}
           <Input

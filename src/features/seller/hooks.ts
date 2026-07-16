@@ -16,3 +16,24 @@ export function useCreateListing() {
     },
   });
 }
+
+export function useMyListing(id: string) {
+  return useQuery({
+    queryKey: ['seller-listing', id],
+    queryFn: () => api.getMyListing(id),
+    enabled: !!id,
+  });
+}
+
+export function useUpdateListing() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: api.ListingPatch }) =>
+      api.updateListing(id, patch),
+    onSuccess: (_data, vars) => {
+      void qc.invalidateQueries({ queryKey: ['seller-listings'] });
+      void qc.invalidateQueries({ queryKey: ['properties'] });
+      void qc.invalidateQueries({ queryKey: ['seller-listing', vars.id] });
+    },
+  });
+}

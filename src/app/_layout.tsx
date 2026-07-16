@@ -142,6 +142,7 @@ export default function RootLayout() {
             <Stack.Screen name="role" />
             <Stack.Screen name="sell/index" />
             <Stack.Screen name="sell/new" />
+            <Stack.Screen name="sell/edit/[id]" />
             <Stack.Screen name="vastu" />
             <Stack.Screen name="tools/insights" />
             <Stack.Screen name="tools/poster" />

@@ -36,6 +36,8 @@ export interface PropertyDetail extends PropertyListItem {
   plan_id: string | null;
   property_type_id: string;
   plan: { name: string } | null;
+  /** Admin's review note (0037/0101) — shown only to the listing's own seller. */
+  approval_note?: string | null;
 }
 
 export interface PropertyFilters {

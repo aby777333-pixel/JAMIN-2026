@@ -5,7 +5,7 @@ import { BackHeader } from '@/components/ui/BackHeader';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
-import { logContactEvent, usePromoterContact } from '@/features/buyer/contact';
+import { isReferralRouted, logContactEvent, usePromoterContact } from '@/features/buyer/contact';
 import { useContent } from '@/features/content/hooks';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
@@ -27,7 +27,8 @@ function clean(raw: string): string {
 export default function Support() {
   const { get } = useContent();
   const profile = useAuth((s) => s.profile);
-  const isReferralBuyer = profile?.role_slug === 'buyer' && profile?.install_source === 'referral';
+  // Buyers AND seller-side roles route to their promoter when referral-installed.
+  const isReferralBuyer = isReferralRouted(profile);
   const { data: promoter, isLoading: promoterLoading } = usePromoterContact();
 
   const phone = clean(get('support.phone'));

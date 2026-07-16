@@ -48,6 +48,22 @@ export async function addDocument(input: {
   if (error) throw error;
 }
 
+export interface DocumentType {
+  id: string;
+  name: string;
+}
+
+/** Active document types (seeded catalogue, migration 0101) ordered for pickers. */
+export async function listDocumentTypes(): Promise<DocumentType[]> {
+  const { data, error } = await supabase
+    .from('document_types')
+    .select('id, name')
+    .eq('active', true)
+    .order('sort_order', { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as DocumentType[];
+}
+
 export async function setSignStatus(id: string, status: 'none' | 'requested' | 'signed') {
   const { error } = await supabase.from('deal_documents').update({ sign_status: status }).eq('id', id);
   if (error) throw error;

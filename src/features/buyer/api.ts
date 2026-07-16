@@ -181,7 +181,7 @@ export async function getRecentlyViewed(limit = 12): Promise<PropertyListItem[]>
 export async function getProperty(id: string): Promise<PropertyDetail | null> {
   const { data, error } = await supabase
     .from('properties')
-    .select(`${LIST_SELECT}, project_id, plan_id, property_type_id, plan:plans(name)`)
+    .select(`${LIST_SELECT}, project_id, plan_id, property_type_id, approval_note, plan:plans(name)`)
     .eq('id', id)
     .maybeSingle();
   if (error) throw error;

@@ -207,6 +207,7 @@
         <div class="nav-sec">People</div>
         <button class="nav-i" data-tab="users">👤 Users &amp; roles</button>
         <button class="nav-i" data-tab="buyers">🛒 Buyers</button>
+        <button class="nav-i" data-tab="sellers">🏷️ Sellers</button>
         <button class="nav-i" data-tab="staff">🪪 Staff applications</button>
         <button class="nav-i" data-tab="rewards">🏆 Rewards</button>
         <button class="nav-i" data-tab="referrals">🔗 Referrals</button>
@@ -250,6 +251,7 @@
         <div id="tabCatalog" class="hidden"></div>
         <div id="tabUsers" class="hidden"></div>
         <div id="tabBuyers" class="hidden"></div>
+        <div id="tabSellers" class="hidden"></div>
         <div id="tabStaff" class="hidden"></div>
         <div id="tabCrm" class="hidden"></div>
         <div id="tabMarketing" class="hidden"></div>
@@ -401,12 +403,13 @@
         var mainEl = document.querySelector('.main');
         if (mainEl) mainEl.scrollTop = 0;
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['dashboard', 'properties', 'catalog', 'users', 'buyers', 'staff', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'aisuite', 'aiconvos', 'calldesk', 'faith', 'nridesk', 'rewards', 'referrals', 'commissions', 'usermedia', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'community', 'moderation', 'insights', 'audit', 'exports', 'festivals'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['dashboard', 'properties', 'catalog', 'users', 'buyers', 'sellers', 'staff', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'aisuite', 'aiconvos', 'calldesk', 'faith', 'nridesk', 'rewards', 'referrals', 'commissions', 'usermedia', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'community', 'moderation', 'insights', 'audit', 'exports', 'festivals'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'dashboard') renderDashboard();
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
         if (tab === 'users') renderUsers();
         if (tab === 'buyers') renderBuyers();
+        if (tab === 'sellers') renderSellers();
         if (tab === 'staff') renderStaff();
         if (tab === 'crm') renderCrm();
         if (tab === 'marketing') renderMarketing();
@@ -964,10 +967,18 @@
           var apprSel = tr.querySelector('.pp_appr');
           if (apprSel) apprSel.onchange = async function () {
             var v = this.value; this.disabled = true;
-            var r = await sb.from('properties').update({ approval_status: v, reviewed_by: state.user.id, reviewed_at: new Date().toISOString() }).eq('id', id);
+            // Rejections carry a reason the seller sees on their listing (0101).
+            var patch = { approval_status: v, reviewed_by: state.user.id, reviewed_at: new Date().toISOString() };
+            if (v === 'rejected') {
+              var note = prompt('Reason for rejection (shown to the seller):', rec.approval_note || '');
+              if (note === null) { this.value = rec.approval_status || 'approved'; this.disabled = false; return; }
+              patch.approval_note = note.trim() || null;
+            }
+            var r = await sb.from('properties').update(patch).eq('id', id);
             this.disabled = false;
             if (r.error) { alert(r.error.message); return; }
-            rec.approval_status = v; refreshApprovalsBadge();
+            rec.approval_status = v; if (patch.approval_note !== undefined) rec.approval_note = patch.approval_note;
+            refreshApprovalsBadge();
           };
           // Verification badges — toggle a single boolean column.
           tr.querySelectorAll('.pp_badge').forEach(function (b) {
@@ -1463,6 +1474,134 @@
         };
       }
 
+      // ─── Sellers (Seller module: profile, entity, KYC, promoter, listings) ──
+      async function renderSellers() {
+        var el = $('tabSellers');
+        el.innerHTML = '<div class="head"><h2>Sellers</h2></div><div class="muted">Loading…</div>';
+        var res = await Promise.all([
+          sb.from('profiles').select('id,full_name,email,phone,kyc_status,install_source,assigned_promoter_id,seller_entity_type,created_at, role:roles!inner(slug,name)').in('role.slug', ['seller', 'builder', 'developer']).order('created_at', { ascending: false }),
+          sb.from('properties').select('seller_id,status,approval_status').not('seller_id', 'is', null).limit(2000),
+          sb.from('profiles').select('id,full_name, role:roles!inner(slug,name)').in('role.slug', ['promoter', 'sub_promoter']).order('full_name')
+        ]);
+        if (res[0].error) { el.innerHTML = '<div class="head"><h2>Sellers</h2></div><div class="muted">' + esc(res[0].error.message) + '</div>'; return; }
+        var sellers = res[0].data || [];
+        var promoters = res[2].data || [];
+        var listings = {};
+        (res[1].data || []).forEach(function (p) {
+          var m = listings[p.seller_id] = listings[p.seller_id] || { total: 0, pending: 0, live: 0, sold: 0 };
+          m.total++;
+          if (p.approval_status === 'pending') m.pending++;
+          if (p.approval_status === 'approved' && p.status === 'available') m.live++;
+          if (p.status === 'sold' || p.status === 'rented') m.sold++;
+        });
+        var promoterName = {};
+        promoters.forEach(function (p) { promoterName[p.id] = p.full_name; });
+        var missing = sellers.map(function (s) { return s.assigned_promoter_id; }).filter(function (id) { return id && !promoterName[id]; });
+        if (missing.length) {
+          var mq = await sb.from('profiles').select('id,full_name').in('id', missing);
+          (mq.data || []).forEach(function (p) { promoterName[p.id] = p.full_name; });
+        }
+        el.innerHTML = '<div class="head"><h2>Sellers</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px;line-height:1.6">Every seller-side member (Seller / Builder / Developer) with their <b>entity type</b>, <b>install source</b> and <b>assigned promoter</b>. ' +
+          'Referral-installed sellers contact ONLY their promoter in the app; direct installs contact JAMIN. KYC must be verified before listings go live. ' +
+          'Open <b>Details</b> for listings, documents, enquiries, contact taps, audit trail and notifications.</div>' +
+          (sellers.length ? '<table><thead><tr><th>Seller</th><th>Role</th><th>Entity</th><th>Install source</th><th>Promoter</th><th>KYC</th><th>Listings</th><th></th></tr></thead><tbody>' +
+            sellers.map(function (s) {
+              var L = listings[s.id] || { total: 0, pending: 0, live: 0, sold: 0 };
+              var src = s.install_source === 'referral' ? '<span class="pill available">Referral</span>' : '<span class="pill neutral">Direct</span>';
+              return '<tr data-id="' + s.id + '"><td>' + esc(s.full_name || '—') +
+                '<div class="muted" style="font-size:11px">' + esc(s.email || '') + (s.phone ? ' · ' + esc(s.phone) : '') + '</div></td>' +
+                '<td>' + esc(s.role && s.role.name ? s.role.name : '—') + '</td>' +
+                '<td><span class="pill neutral">' + esc((s.seller_entity_type || 'individual').replace(/_/g, ' ')) + '</span></td>' +
+                '<td>' + src + '</td>' +
+                '<td>' + (s.assigned_promoter_id ? esc(promoterName[s.assigned_promoter_id] || '—') : '<span class="muted">—</span>') + '</td>' +
+                '<td><span class="pill ' + (s.kyc_status || 'neutral') + '">' + esc(s.kyc_status) + '</span></td>' +
+                '<td style="font-size:12px" class="mono">' + L.total + ' total · ' + L.live + ' live · ' + L.pending + ' pending · ' + L.sold + ' closed</td>' +
+                '<td><button class="btn-o btn-sm sl_details">☰ Details</button></td></tr>';
+            }).join('') + '</tbody></table>' : '<div class="muted">No sellers yet.</div>');
+        el.querySelectorAll('tr[data-id]').forEach(function (tr) {
+          var s = sellers.find(function (x) { return x.id === tr.dataset.id; });
+          var btn = tr.querySelector('.sl_details');
+          if (btn) btn.onclick = function () { openSellerDetails(tr, btn, s, promoters); };
+        });
+      }
+
+      // Expand-row: listings, documents, enquiries, contact, audit, notifications.
+      async function openSellerDetails(tr, btn, seller, promoters) {
+        var existing = tr.nextElementSibling;
+        if (existing && existing.classList.contains('seller_detail')) { existing.remove(); btn.textContent = '☰ Details'; return; }
+        btn.textContent = '…';
+        var id = seller.id;
+        var res = await Promise.all([
+          sb.from('properties').select('id,plot_code,price,status,approval_status,approval_note,is_hidden,archived_at,created_at').eq('seller_id', id).order('created_at', { ascending: false }).limit(20),
+          sb.from('deal_documents').select('title,kind,doc_url,created_at').eq('owner_id', id).order('created_at', { ascending: false }).limit(20),
+          sb.from('leads').select('source,status,created_at, property:properties!inner(plot_code,seller_id)').eq('property.seller_id', id).order('created_at', { ascending: false }).limit(15),
+          sb.from('contact_events').select('target,channel,created_at, promoter:profiles!promoter_id(full_name)').eq('user_id', id).order('created_at', { ascending: false }).limit(10),
+          sb.from('audit_logs').select('action,entity,payload,created_at').eq('actor_id', id).order('created_at', { ascending: false }).limit(15),
+          sb.from('notifications').select('type,title,created_at,read_at').eq('user_id', id).order('created_at', { ascending: false }).limit(10)
+        ]);
+        btn.textContent = '× Close';
+        function when(d) { return '<span class="muted" style="min-width:130px;font-size:11px">' + new Date(d).toLocaleString('en-IN') + '</span>'; }
+        function section(title, rowsHtml) {
+          return '<b style="font-size:12px">' + title + '</b><div style="max-height:180px;overflow:auto;margin:4px 0 10px">' +
+            (rowsHtml || '<div class="muted" style="font-size:12px">None yet.</div>') + '</div>';
+        }
+        function line(inner) { return '<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px dashed #eee;font-size:12px;align-items:center">' + inner + '</div>'; }
+        var listHtml = (res[0].data || []).map(function (p) {
+          var flags = (p.is_hidden ? ' <span class="pill neutral">hidden</span>' : '') + (p.archived_at ? ' <span class="pill neutral">archived</span>' : '');
+          var note = p.approval_status === 'rejected' && p.approval_note ? '<div class="muted" style="font-size:11px">Reason: ' + esc(p.approval_note) + '</div>' : '';
+          return line(when(p.created_at) + '<span class="mono" style="min-width:80px">' + esc(p.plot_code || '—') + '</span>' +
+            '<span class="mono" style="min-width:90px">' + inr(p.price) + '</span>' +
+            '<span class="pill ' + (p.status === 'available' ? 'available' : p.status === 'reserved' ? 'reserved' : 'sold') + '">' + esc(p.status) + '</span>' +
+            '<span class="pill ' + (p.approval_status === 'approved' ? 'available' : p.approval_status === 'rejected' ? 'rejected' : 'pending') + '">' + esc(p.approval_status) + '</span>' + flags + '<span style="flex:1">' + note + '</span>');
+        }).join('');
+        var docsHtml = (res[1].data || []).map(function (d) {
+          return line(when(d.created_at) + '<a href="' + esc(d.doc_url) + '" target="_blank" rel="noopener" style="flex:1">📎 ' + esc(d.title) + '</a><span class="muted" style="font-size:11px">' + esc(d.kind) + '</span>');
+        }).join('');
+        var leadsHtml = (res[2].data || []).map(function (l) {
+          return line(when(l.created_at) + '<span class="mono" style="min-width:80px">' + esc(l.property ? l.property.plot_code : '—') + '</span>' +
+            '<span class="mono" style="min-width:80px">' + esc(l.source || '—') + '</span><span>' + esc(l.status || '') + '</span>');
+        }).join('');
+        var contactsHtml = (res[3].data || []).map(function (e) {
+          return line(when(e.created_at) + '<span class="mono" style="min-width:90px">' + esc(e.channel) + '</span>' +
+            '<span>' + (e.target === 'promoter' ? '→ ' + esc(e.promoter ? e.promoter.full_name : 'promoter') : '→ JAMIN') + '</span>');
+        }).join('');
+        var auditHtml = (res[4].data || []).map(function (a) {
+          return line(when(a.created_at) + '<span class="mono" style="min-width:150px">' + esc(a.action) + '</span><span class="muted" style="font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(a.payload ? JSON.stringify(a.payload) : '') + '</span>');
+        }).join('');
+        var notifHtml = (res[5].data || []).map(function (n) {
+          return line(when(n.created_at) + '<span class="mono" style="min-width:90px">' + esc(n.type) + '</span><span style="flex:1">' + esc(n.title || '') + '</span>' + (n.read_at ? '<span class="muted" style="font-size:11px">read</span>' : '<span class="pill pending">unread</span>'));
+        }).join('');
+        var promSel = '<option value="">— none (direct install) —</option>' + promoters.map(function (p) {
+          return '<option value="' + p.id + '"' + (p.id === seller.assigned_promoter_id ? ' selected' : '') + '>' +
+            esc(p.full_name || '—') + (p.role && p.role.name ? ' (' + esc(p.role.name) + ')' : '') + '</option>';
+        }).join('');
+        var detail = document.createElement('tr');
+        detail.className = 'seller_detail';
+        detail.innerHTML = '<td colspan="8" style="background:#fafaf8;padding:12px 16px">' +
+          '<div class="row" style="gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px">' +
+            '<b style="font-size:12px">Assigned promoter</b>' +
+            '<select class="inp sl_prom" style="width:260px;height:36px">' + promSel + '</select>' +
+            '<button class="btn btn-sm sl_prom_save">Save</button>' +
+            '<span class="muted" style="font-size:11px">Reassigning updates who this seller calls in the app; clearing switches them to JAMIN contact.</span></div>' +
+          section('Listings (status · approval · reasons)', listHtml) +
+          section('Uploaded documents', docsHtml) +
+          section('Enquiries on their listings', leadsHtml) +
+          section('Contact activity (call / WhatsApp / email taps)', contactsHtml) +
+          section('Audit trail (uploads, edits, status changes)', auditHtml) +
+          section('Notifications sent to this seller', notifHtml) +
+          '</td>';
+        tr.parentNode.insertBefore(detail, tr.nextSibling);
+        detail.querySelector('.sl_prom_save').onclick = async function () {
+          var v = detail.querySelector('.sl_prom').value || null;
+          this.textContent = '…';
+          var r = await sb.from('profiles').update({ assigned_promoter_id: v, install_source: v ? 'referral' : 'direct' }).eq('id', id);
+          this.textContent = r.error ? 'Err' : 'Saved';
+          if (r.error) return alert(r.error.message);
+          renderSellers();
+        };
+      }
+
       // ─── Approvals (withdrawals) ────────────────────────────────────────
       async function renderApprovals() {
         var el = $('tabApprovals');
@@ -1526,7 +1665,13 @@
         el.querySelectorAll('.la_set').forEach(function (b) {
           b.onclick = async function () {
             var id = b.closest('tr').dataset.lid, s = b.dataset.s;
-            var r = await sb.from('properties').update({ approval_status: s, reviewed_by: state.user.id, reviewed_at: new Date().toISOString() }).eq('id', id);
+            var patch = { approval_status: s, reviewed_by: state.user.id, reviewed_at: new Date().toISOString() };
+            if (s === 'rejected') {
+              var note = prompt('Reason for rejection (shown to the seller):', '');
+              if (note === null) return;
+              patch.approval_note = note.trim() || null;
+            }
+            var r = await sb.from('properties').update(patch).eq('id', id);
             if (r.error) return alert(r.error.message); renderApprovals(); refreshApprovalsBadge();
           };
         });
@@ -4331,8 +4476,22 @@
         var q = await sb.from('deal_documents').select('id,title,kind,doc_url,sign_status,created_at, owner:profiles!deal_documents_owner_id_fkey(full_name)').order('created_at', { ascending: false }).limit(300);
         if (q.error) { el.innerHTML = '<div class="head"><h2>Documents</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
         var rows = q.data || [];
+        // Dynamic document-type catalog (0101): sellers pick from this list when
+        // attaching property documents — add new Indian doc types here, no code.
+        var dtq = await sb.from('document_types').select('id,name,category,active,sort_order').order('sort_order');
+        var dtypes = dtq.data || [];
+        var dtypesHtml = '<div class="panel"><h3>Document types (seller upload checklist)</h3>' +
+          '<div class="muted" style="margin-bottom:8px;font-size:12px">The typed list sellers choose from when attaching property documents (Sale Deed, Patta, EC, Khata…). Add a type and it appears in the app instantly — zero code changes. Disable instead of deleting to keep old uploads labelled.</div>' +
+          '<div class="row" style="margin-bottom:8px"><input id="dt_name" class="inp" style="max-width:260px" placeholder="New document type (e.g. Gift Deed)" />' +
+          '<input id="dt_sort" class="inp" type="number" style="max-width:100px" placeholder="order" />' +
+          '<button id="dt_add" class="btn btn-sm">Add type</button></div>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+          dtypes.map(function (d) {
+            return '<span class="pill ' + (d.active ? 'available' : 'sold') + '" data-dtid="' + d.id + '" style="cursor:pointer" title="Tap to ' + (d.active ? 'disable' : 'enable') + '">' + esc(d.name) + (d.active ? '' : ' (off)') + '</span>';
+          }).join('') + '</div></div>';
         var SS = ['none', 'requested', 'signed'];
         el.innerHTML = '<div class="head"><h2>Document vault</h2></div>' +
+          dtypesHtml +
           '<div class="muted" style="margin-bottom:10px">Documents members have stored. ' + rows.length + ' total.</div>' +
           (rows.length ? '<table><thead><tr><th>Title</th><th>Owner</th><th>Kind</th><th>File</th><th>e-Sign</th><th></th></tr></thead><tbody>' +
           rows.map(function (d) {
@@ -4351,6 +4510,21 @@
             if (!confirm('Delete this document?')) return;
             var r = await sb.from('deal_documents').delete().eq('id', id);
             if (r.error) alert(r.error.message); else renderDocuments();
+          };
+        });
+        // Document-type catalog handlers (0101).
+        var dtAdd = $('dt_add');
+        if (dtAdd) dtAdd.onclick = async function () {
+          var n = $('dt_name').value.trim(); if (!n) return alert('Type name required');
+          var r = await sb.from('document_types').insert({ name: n, sort_order: $('dt_sort').value ? parseInt($('dt_sort').value, 10) : 500 });
+          if (r.error) return alert(r.error.message); renderDocuments();
+        };
+        el.querySelectorAll('[data-dtid]').forEach(function (pill) {
+          pill.onclick = async function () {
+            var d = dtypes.find(function (x) { return x.id === pill.dataset.dtid; });
+            if (!d) return;
+            var r = await sb.from('document_types').update({ active: !d.active }).eq('id', d.id);
+            if (r.error) return alert(r.error.message); renderDocuments();
           };
         });
       }

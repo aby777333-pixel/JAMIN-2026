@@ -1765,6 +1765,33 @@ export type Database = {
           },
         ]
       }
+      document_types: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       drip_enrollments: {
         Row: {
           created_at: string
@@ -2819,6 +2846,7 @@ export type Database = {
           photo_url: string | null
           referral_code: string
           role_id: string | null
+          seller_entity_type: string
           status: string
           territory_id: string | null
           tradition: string | null
@@ -2843,6 +2871,7 @@ export type Database = {
           photo_url?: string | null
           referral_code: string
           role_id?: string | null
+          seller_entity_type?: string
           status?: string
           territory_id?: string | null
           tradition?: string | null
@@ -2867,6 +2896,7 @@ export type Database = {
           photo_url?: string | null
           referral_code?: string
           role_id?: string | null
+          seller_entity_type?: string
           status?: string
           territory_id?: string | null
           tradition?: string | null
@@ -2967,10 +2997,12 @@ export type Database = {
         Row: {
           approval_note: string | null
           approval_status: string
+          archived_at: string | null
           attrs: Json
           coordinates: Json | null
           created_at: string
           id: string
+          is_hidden: boolean
           is_premium: boolean
           media: Json
           plan_id: string | null
@@ -2978,6 +3010,7 @@ export type Database = {
           price: number
           project_id: string
           property_type_id: string
+          renewed_at: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           seller_id: string | null
@@ -2990,10 +3023,12 @@ export type Database = {
         Insert: {
           approval_note?: string | null
           approval_status?: string
+          archived_at?: string | null
           attrs?: Json
           coordinates?: Json | null
           created_at?: string
           id?: string
+          is_hidden?: boolean
           is_premium?: boolean
           media?: Json
           plan_id?: string | null
@@ -3001,6 +3036,7 @@ export type Database = {
           price?: number
           project_id: string
           property_type_id: string
+          renewed_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           seller_id?: string | null
@@ -3013,10 +3049,12 @@ export type Database = {
         Update: {
           approval_note?: string | null
           approval_status?: string
+          archived_at?: string | null
           attrs?: Json
           coordinates?: Json | null
           created_at?: string
           id?: string
+          is_hidden?: boolean
           is_premium?: boolean
           media?: Json
           plan_id?: string | null
@@ -3024,6 +3062,7 @@ export type Database = {
           price?: number
           project_id?: string
           property_type_id?: string
+          renewed_at?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           seller_id?: string | null

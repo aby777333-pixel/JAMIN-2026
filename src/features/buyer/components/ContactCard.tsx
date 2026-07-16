@@ -4,7 +4,7 @@ import { Alert, Linking, Pressable, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
-import { logContactEvent, usePromoterContact } from '@/features/buyer/contact';
+import { CONTACT_ROUTED_ROLES, isReferralRouted, logContactEvent, usePromoterContact } from '@/features/buyer/contact';
 import { useContent } from '@/features/content/hooks';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
@@ -23,21 +23,21 @@ type ContactRow = {
 };
 
 /**
- * Buyer contact block (Buyer module spec). Routing follows the install source:
+ * Contact block (Buyer + Seller module specs). Routing follows the install source:
  *  - direct install       → call/WhatsApp/email JAMIN (app_content support.*)
  *  - promoter referral    → call/WhatsApp ONLY the assigned promoter
  * Every tap is captured in contact_events for the admin's engagement view.
- * Renders only for buyers; partners/sellers keep their existing CTA blocks.
+ * Renders for buyers and seller-side roles; partners keep their CTA blocks.
  */
 export function ContactCard({ propertyId }: { propertyId?: string }) {
   const { t } = useTranslation();
   const profile = useAuth((s) => s.profile);
-  const isBuyer = profile?.role_slug === 'buyer';
-  const isReferral = isBuyer && profile?.install_source === 'referral';
+  const isEligible = !!profile?.role_slug && CONTACT_ROUTED_ROLES.includes(profile.role_slug);
+  const isReferral = isReferralRouted(profile);
   const { data: promoter, isLoading: promoterLoading } = usePromoterContact();
   const { get } = useContent();
 
-  if (!isBuyer) return null;
+  if (!isEligible) return null;
   // Referral buyer: never show JAMIN numbers while the promoter is still loading.
   if (isReferral && promoterLoading) return null;
 
