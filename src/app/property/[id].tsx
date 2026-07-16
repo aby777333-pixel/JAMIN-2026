@@ -29,6 +29,7 @@ import { NeighborhoodScores } from '@/features/buyer/components/NeighborhoodScor
 import { PriceHistoryPanel } from '@/features/buyer/components/PriceHistoryPanel';
 import { PropertyDocuments } from '@/features/buyer/components/PropertyDocuments';
 import { PropertyGallery } from '@/features/buyer/components/PropertyGallery';
+import { PropertyVideos } from '@/features/buyer/components/PropertyVideos';
 import { PlotAppeal } from '@/features/buyer/components/PlotAppeal';
 import { RentVsBuyCalculator } from '@/features/buyer/components/RentVsBuyCalculator';
 import { ReraBadge } from '@/features/buyer/components/ReraBadge';
@@ -174,7 +175,7 @@ export default function PropertyDetail() {
   // Digital brochure — the admin sets a URL on attrs (brochure / brochure_url).
   const brochureUrl = pick('brochure', 'brochure_url', 'digital_brochure');
   // Keys with dedicated rendering — excluded from the generic key/value detail list.
-  const RESERVED_KEYS = ['featured', 'title', 'description', 'video_tour', 'video_url', 'video', 'virtual_tour', 'virtual_tour_url', 'tour_360', 'walkthrough', 'tour_3d', 'walkthrough_3d', 'brochure', 'brochure_url', 'digital_brochure'];
+  const RESERVED_KEYS = ['featured', 'title', 'description', 'video_tour', 'video_url', 'video', 'virtual_tour', 'virtual_tour_url', 'tour_360', 'walkthrough', 'tour_3d', 'walkthrough_3d', 'brochure', 'brochure_url', 'digital_brochure', 'drone_video', 'drone', 'walkthrough_video'];
   const attrs = Object.entries(property.attrs ?? {}).filter(([k]) => !RESERVED_KEYS.includes(k));
   const lat = property.coordinates?.lat;
   const lng = property.coordinates?.lng;
@@ -245,6 +246,10 @@ export default function PropertyDetail() {
       />
 
       <PropertyGallery media={property.media} code={property.plot_code} />
+
+      {/* Videos, first-class: every uploaded clip plays inline (multiple
+          supported); admin-set tour/drone links open in the webview. */}
+      <PropertyVideos media={property.media} attrs={property.attrs as Record<string, unknown>} />
 
       <View className="gap-1">
         <View className="flex-row items-center justify-between">
