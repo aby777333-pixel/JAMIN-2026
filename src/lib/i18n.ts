@@ -10,6 +10,7 @@ import hi from '@/locales/hi.json';
 import kn from '@/locales/kn.json';
 import ml from '@/locales/ml.json';
 import mr from '@/locales/mr.json';
+import pa from '@/locales/pa.json';
 import ta from '@/locales/ta.json';
 import te from '@/locales/te.json';
 import ur from '@/locales/ur.json';
@@ -30,6 +31,7 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'mr', label: 'मराठी' },
   { code: 'bn', label: 'বাংলা' },
   { code: 'gu', label: 'ગુજરાતી' },
+  { code: 'pa', label: 'ਪੰਜਾਬੀ' },
 ] as const;
 
 const resources = {
@@ -43,6 +45,7 @@ const resources = {
   mr: { translation: mr },
   bn: { translation: bn },
   gu: { translation: gu },
+  pa: { translation: pa },
 } as const;
 
 const deviceLanguage = getLocales()[0]?.languageCode ?? 'en';

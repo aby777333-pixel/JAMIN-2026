@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Button } from '@/components/ui/Button';
@@ -12,19 +14,60 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
 import { useApplyLoan, useLenders, useMyApplications } from '@/features/loans/hooks';
 import { formatINR, money } from '@/lib/money';
+import { supabase } from '@/lib/supabase';
+import { uploadFileToBucket } from '@/lib/upload';
 import { color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
 
 /** Home-loan / pre-approval marketplace — browse lenders, request a pre-approval. */
 export default function Loans() {
+  const { t } = useTranslation();
   const { data: lenders = [], isLoading } = useLenders();
-  const { data: apps = [] } = useMyApplications();
+  const { data: apps = [], refetch: refetchApps } = useMyApplications();
   const apply = useApplyLoan();
 
   const [lenderId, setLenderId] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [tenure, setTenure] = useState('20');
   const [income, setIncome] = useState('');
+  const [attachingId, setAttachingId] = useState<string | null>(null);
+
+  /** Pick documents → upload to Storage → append to the application via RPC. */
+  async function attachDocs(applicationId: string) {
+    try {
+      const res = await DocumentPicker.getDocumentAsync({ multiple: true, copyToCacheDirectory: true });
+      if (res.canceled || !res.assets?.length) return;
+      setAttachingId(applicationId);
+      const { data: me } = await supabase.auth.getUser();
+      if (!me.user) throw new Error(t('loans.notSignedIn', { defaultValue: 'Not signed in' }));
+      const docs: { name: string; url: string }[] = [];
+      for (const a of res.assets) {
+        const up = await uploadFileToBucket('user-media', `${me.user.id}/loan-docs`, {
+          uri: a.uri,
+          name: a.name,
+          mimeType: a.mimeType,
+        });
+        docs.push({ name: up.name, url: up.url });
+      }
+      const { error } = await supabase.rpc('attach_loan_docs', {
+        p_application: applicationId,
+        p_docs: docs,
+      });
+      if (error) throw error;
+      await refetchApps();
+      Alert.alert(
+        t('loans.docsAttachedTitle', { defaultValue: 'Documents attached' }),
+        t('loans.docsAttachedBody', {
+          defaultValue: '{{count}} document(s) added to your application.',
+          count: docs.length,
+        }),
+      );
+    } catch (e) {
+      Alert.alert(t('loans.docsFailed', { defaultValue: 'Could not attach documents' }), errMessage(e));
+    } finally {
+      setAttachingId(null);
+    }
+  }
 
   async function submit() {
     if (!amount.trim()) {
@@ -101,6 +144,26 @@ export default function Loans() {
                   {a.lender?.name ?? 'Any lender'}
                   {a.tenure_years ? ` · ${a.tenure_years}y` : ''} · {new Date(a.created_at).toLocaleDateString('en-IN')}
                 </Text>
+                {Array.isArray(a.docs) && a.docs.length > 0 ? (
+                  <Text variant="caption" className="text-gold-deep">
+                    {t('loans.docsCount', {
+                      defaultValue: '{{count}} document(s) attached',
+                      count: a.docs.length,
+                    })}
+                  </Text>
+                ) : null}
+                <Pressable
+                  onPress={() => attachDocs(a.id)}
+                  disabled={attachingId === a.id}
+                  className={`mt-1.5 flex-row items-center gap-1.5 self-start rounded-full border border-line bg-paper px-3 py-1.5 ${attachingId === a.id ? 'opacity-50' : ''}`}
+                >
+                  <Ionicons name="attach" size={14} color={color.ink} />
+                  <Text variant="caption" className="text-ink">
+                    {attachingId === a.id
+                      ? t('loans.uploading', { defaultValue: 'Uploading…' })
+                      : t('loans.attachDocs', { defaultValue: 'Attach documents' })}
+                  </Text>
+                </Pressable>
               </View>
               <StatusPill status={a.status} />
             </Card>

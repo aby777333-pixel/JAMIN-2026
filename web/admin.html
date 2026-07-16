@@ -1295,7 +1295,7 @@
         var el = $('tabBuyers');
         el.innerHTML = '<div class="head"><h2>Buyers</h2></div><div class="muted">Loading…</div>';
         var res = await Promise.all([
-          sb.from('profiles').select('id,full_name,email,phone,kyc_status,install_source,assigned_promoter_id,referral_code,created_at, role:roles!inner(slug)').eq('role.slug', 'buyer').order('created_at', { ascending: false }),
+          sb.from('profiles').select('id,full_name,email,phone,kyc_status,install_source,assigned_promoter_id,referral_code,buyer_type,created_at, role:roles!inner(slug)').eq('role.slug', 'buyer').order('created_at', { ascending: false }),
           sb.from('property_views').select('viewer_id').order('created_at', { ascending: false }).limit(1000),
           sb.from('leads').select('user_id,owner_id').order('created_at', { ascending: false }).limit(1000),
           sb.from('contact_events').select('user_id').order('created_at', { ascending: false }).limit(1000),
@@ -1331,7 +1331,7 @@
           'A buyer who joined through a promoter’s referral link contacts ONLY that promoter in the app; direct installs contact JAMIN. ' +
           'The referral relationship persists for the buyer’s whole journey unless you change it here — reassign or clear the promoter in <b>Details</b>. ' +
           'Activity = property views · enquiries · contact taps (call/WhatsApp/email) · brochure &amp; document opens, all captured live from the app.</div>' +
-          (buyers.length ? '<table><thead><tr><th>Buyer</th><th>Install source</th><th>Assigned promoter</th><th>KYC</th><th>Activity</th><th>Joined</th><th></th></tr></thead><tbody>' +
+          (buyers.length ? '<table><thead><tr><th>Buyer</th><th>Type</th><th>Install source</th><th>Assigned promoter</th><th>KYC</th><th>Activity</th><th>Joined</th><th></th></tr></thead><tbody>' +
             buyers.map(function (b) {
               var src = b.install_source === 'referral'
                 ? '<span class="pill available">Referral</span>'
@@ -1340,6 +1340,7 @@
               var act = (views[b.id] || 0) + ' views · ' + (enquiries[b.id] || 0) + ' enq · ' + (contacts[b.id] || 0) + ' taps · ' + (docs[b.id] || 0) + ' docs';
               return '<tr data-id="' + b.id + '"><td>' + esc(b.full_name || '—') +
                 '<div class="muted" style="font-size:11px">' + esc(b.email || '') + (b.phone ? ' · ' + esc(b.phone) : '') + '</div></td>' +
+                '<td><span class="pill neutral">' + esc(b.buyer_type || 'individual') + '</span></td>' +
                 '<td>' + src + '</td><td>' + prom + '</td>' +
                 '<td><span class="pill ' + (b.kyc_status || 'neutral') + '">' + esc(b.kyc_status) + '</span></td>' +
                 '<td style="font-size:12px" class="mono">' + act + '</td>' +
@@ -1365,7 +1366,12 @@
           sb.from('leads').select('source,status,created_at,contact, property:properties(plot_code)').or('user_id.eq.' + id + ',owner_id.eq.' + id).order('created_at', { ascending: false }).limit(15),
           sb.from('contact_events').select('target,channel,created_at, property:properties(plot_code), promoter:profiles!promoter_id(full_name)').eq('user_id', id).order('created_at', { ascending: false }).limit(15),
           sb.from('brochure_downloads').select('title,created_at, property:properties(plot_code)').eq('user_id', id).order('created_at', { ascending: false }).limit(15),
-          sb.from('wishlists').select('id', { count: 'exact', head: true }).eq('user_id', id)
+          sb.from('wishlists').select('id', { count: 'exact', head: true }).eq('user_id', id),
+          sb.from('buyer_preferences').select('prefs,updated_at').eq('user_id', id).maybeSingle(),
+          sb.from('saved_searches').select('name,filters,notify,created_at').eq('user_id', id).order('created_at', { ascending: false }).limit(10),
+          sb.from('search_events').select('query,created_at').eq('user_id', id).order('created_at', { ascending: false }).limit(10),
+          sb.from('compare_events').select('property_ids,created_at').eq('user_id', id).order('created_at', { ascending: false }).limit(8),
+          sb.from('loan_applications').select('amount,status,created_at, lender:lenders(name)').eq('user_id', id).order('created_at', { ascending: false }).limit(8)
         ]);
         btn.textContent = '× Close';
         function when(d) { return '<span class="muted" style="min-width:130px;font-size:11px">' + new Date(d).toLocaleString('en-IN') + '</span>'; }
@@ -1393,17 +1399,45 @@
             '<span class="mono">' + esc(d.property ? d.property.plot_code : '') + '</span>');
         }).join('');
         var saved = res[4].count || 0;
+        // Buyer-declared preferences + intent analytics (migration 0100).
+        var prefsRow = res[5] && res[5].data ? res[5].data : null;
+        var prefsHtml = '';
+        if (prefsRow && prefsRow.prefs && Object.keys(prefsRow.prefs).length) {
+          prefsHtml = '<div style="margin-bottom:10px"><b style="font-size:12px">Preferences</b><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">' +
+            Object.keys(prefsRow.prefs).map(function (k) {
+              var v = prefsRow.prefs[k];
+              if (v == null || v === '' || v === false || v === 'any') return '';
+              return '<span class="pill neutral" style="font-size:11px">' + esc(k.replace(/([A-Z])/g, ' $1').toLowerCase()) + ': ' + esc(v === true ? 'yes' : String(v)) + '</span>';
+            }).join('') + '</div></div>';
+        }
+        var searchesHtml = ((res[6] && res[6].data) || []).map(function (s) {
+          return line(when(s.created_at) + '<span style="flex:1">' + esc(s.name) + '</span>' +
+            '<span class="muted" style="font-size:11px">' + (s.notify ? '🔔 alerts on' : 'alerts off') + '</span>');
+        }).join('');
+        var searchEvHtml = ((res[7] && res[7].data) || []).map(function (s) {
+          return line(when(s.created_at) + '<span class="mono">' + esc(s.query || '—') + '</span>');
+        }).join('');
+        var compareHtml = ((res[8] && res[8].data) || []).map(function (c) {
+          return line(when(c.created_at) + '<span>Compared ' + ((c.property_ids || []).length) + ' properties</span>');
+        }).join('');
+        var loansHtml = ((res[9] && res[9].data) || []).map(function (l) {
+          return line(when(l.created_at) + '<span class="mono" style="min-width:100px">' + (l.amount != null ? inr(l.amount) : '—') + '</span>' +
+            '<span style="min-width:120px">' + esc(l.lender ? l.lender.name : 'Any lender') + '</span>' +
+            '<span class="pill ' + (l.status === 'approved' ? 'available' : l.status === 'rejected' ? 'sold' : 'pending') + '">' + esc(l.status) + '</span>');
+        }).join('');
         var promSel = '<option value="">— none (direct install) —</option>' + promoters.map(function (p) {
           return '<option value="' + p.id + '"' + (p.id === buyer.assigned_promoter_id ? ' selected' : '') + '>' +
             esc(p.full_name || '—') + (p.role && p.role.name ? ' (' + esc(p.role.name) + ')' : '') + '</option>';
         }).join('');
         var detail = document.createElement('tr');
         detail.className = 'buyer_detail';
-        detail.innerHTML = '<td colspan="7" style="background:#fafaf8;padding:12px 16px">' +
+        detail.innerHTML = '<td colspan="8" style="background:#fafaf8;padding:12px 16px">' +
           '<div class="row" style="gap:14px;flex-wrap:wrap;margin-bottom:10px;font-size:12px">' +
+            '<span><span class="muted">Buying as:</span> ' + esc(buyer.buyer_type || 'individual') + '</span>' +
             '<span><span class="muted">Referral code:</span> <span class="mono">' + esc(buyer.referral_code || '—') + '</span></span>' +
             '<span><span class="muted">Install source:</span> ' + esc(buyer.install_source || 'direct') + '</span>' +
             '<span><span class="muted">Saved properties:</span> ' + saved + '</span></div>' +
+          prefsHtml +
           '<div class="row" style="gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px">' +
             '<b style="font-size:12px">Assigned promoter</b>' +
             '<select class="inp by_prom" style="width:260px;height:36px">' + promSel + '</select>' +
@@ -1413,6 +1447,10 @@
           section('Enquiries &amp; leads', leadsHtml) +
           section('Contact activity (call / WhatsApp / email taps)', contactsHtml) +
           section('Brochure &amp; document opens', docsHtml) +
+          section('Saved searches', searchesHtml) +
+          section('Recent searches', searchEvHtml) +
+          section('Property comparisons', compareHtml) +
+          section('Loan enquiries', loansHtml) +
           '</td>';
         tr.parentNode.insertBefore(detail, tr.nextSibling);
         detail.querySelector('.by_prom_save').onclick = async function () {
@@ -4228,7 +4266,7 @@
         var el = $('tabLoans');
         el.innerHTML = '<div class="head"><h2>Home loans</h2></div><div class="muted">Loading…</div>';
         var lq = await sb.from('lenders').select('id,name,interest_from,max_tenure_years,blurb,active').order('sort_order');
-        var aq = await sb.from('loan_applications').select('id,amount,tenure_years,monthly_income,status,created_at, user:profiles!loan_applications_user_id_fkey(full_name), lender:lenders(name)').order('created_at', { ascending: false }).limit(300);
+        var aq = await sb.from('loan_applications').select('id,amount,tenure_years,monthly_income,status,docs,created_at, user:profiles!loan_applications_user_id_fkey(full_name), lender:lenders(name)').order('created_at', { ascending: false }).limit(300);
         if (lq.error) { el.innerHTML = '<div class="head"><h2>Home loans</h2></div><div class="muted">' + esc(lq.error.message) + '</div>'; return; }
         var lenders = lq.data || [], apps = aq.data || [];
         var STAT = ['submitted', 'contacted', 'approved', 'rejected'];
@@ -4247,12 +4285,17 @@
                 '<td class="row"><button class="btn-o btn-sm ld_tog">' + (l.active ? 'Disable' : 'Enable') + '</button><button class="btn-d btn-sm ld_del">Delete</button></td></tr>';
             }).join('') + '</tbody></table>' : '<div class="muted">No lenders yet.</div>') +
           '<div class="head" style="margin-top:18px"><h2>Pre-approval requests</h2></div>' +
-          (apps.length ? '<table><thead><tr><th>Buyer</th><th>Amount</th><th>Tenure</th><th>Income</th><th>Lender</th><th>Status</th></tr></thead><tbody>' +
+          (apps.length ? '<table><thead><tr><th>Buyer</th><th>Amount</th><th>Tenure</th><th>Income</th><th>Lender</th><th>Docs</th><th>Status</th></tr></thead><tbody>' +
             apps.map(function (a) {
+              var docs = Array.isArray(a.docs) ? a.docs : [];
+              var docsHtml = docs.length
+                ? docs.map(function (d, i) { return '<a href="' + esc(d.url || '#') + '" target="_blank" rel="noopener" style="font-size:11px;display:block">📎 ' + esc(d.name || ('Document ' + (i + 1))) + '</a>'; }).join('')
+                : '<span class="muted" style="font-size:11px">—</span>';
               return '<tr data-aid="' + a.id + '"><td>' + esc(a.user ? a.user.full_name : '—') + '</td>' +
                 '<td class="mono">' + (a.amount != null ? inr(a.amount) : '—') + '</td><td class="mono">' + (a.tenure_years || '—') + '</td>' +
                 '<td class="mono">' + (a.monthly_income != null ? inr(a.monthly_income) : '—') + '</td>' +
                 '<td>' + esc(a.lender ? a.lender.name : 'Any') + '</td>' +
+                '<td>' + docsHtml + '</td>' +
                 '<td><select class="inp la_status" style="width:130px;height:34px">' + STAT.map(function (s) { return '<option value="' + s + '"' + (s === a.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select></td></tr>';
             }).join('') + '</tbody></table>' : '<div class="muted">No requests yet.</div>');
         $('ld_add').onclick = async function () {
@@ -5441,6 +5484,9 @@
           // Buyer module (migration 0099): contact taps + brochure/doc opens.
           contact_events: ['buyers', 'Buyer contact activity'],
           brochure_downloads: ['buyers', 'Brochure / document opened'],
+          // Buyer enhancements (migration 0100).
+          saved_searches: ['buyers', 'Buyer saved a search'],
+          compare_events: ['buyers', 'Buyer compared properties'],
           // Full-coverage pass (migration 0093 put these in the publication).
           cobroke_listings: ['cobroke', 'New co-broking listing'],
           cobroke_interests: ['cobroke', 'New co-broking interest'],

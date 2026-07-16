@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Linking, Pressable, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
@@ -18,6 +19,7 @@ import { useAuth } from '@/stores/auth';
  * recent notifications. The full feed with mark-all stays at /notifications.
  */
 export default function Activity() {
+  const { t } = useTranslation();
   const profile = useAuth((s) => s.profile);
   const isPartner = !!profile?.role_slug && profile.role_slug !== 'buyer';
   const canSell = can(profile, 'sell');
@@ -64,6 +66,14 @@ export default function Activity() {
         </Pressable>
       ) : null}
 
+      {!isPartner ? (
+        <ListRow
+          icon="grid-outline"
+          label={t('activity.buyerHub', { defaultValue: 'My dashboard' })}
+          sub={t('activity.buyerHubSub', { defaultValue: 'Everything about your search in one place' })}
+          onPress={() => router.push('/buyer-hub')}
+        />
+      ) : null}
       <ListRow
         icon="calendar"
         label={canSell ? 'My agenda' : 'My site visits'}

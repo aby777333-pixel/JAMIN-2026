@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { Alert, FlatList, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -20,7 +20,11 @@ import {
   useToggleWishlist,
   useWishlistIds,
 } from '@/features/buyer/hooks';
+import { logSearchEvent } from '@/features/buyer/enhancements';
 import type { PropertyFilters } from '@/features/buyer/types';
+import { supabase } from '@/lib/supabase';
+import type { Json } from '@/types/database';
+import { useSearchStore } from '@/stores/search';
 import { color } from '@/theme/tokens';
 
 export default function Properties() {
@@ -34,6 +38,25 @@ export default function Properties() {
   useEffect(() => {
     if (projectId) setFilters((f) => ({ ...f, projectId }));
   }, [projectId]);
+  // Apply a saved search when arriving from /saved-searches (0100).
+  const consumePendingFilters = useSearchStore((s) => s.consumePendingFilters);
+  useFocusEffect(
+    useCallback(() => {
+      const pending = consumePendingFilters();
+      if (pending) {
+        setFilters((f) => ({ ...f, ...(pending as Partial<PropertyFilters>) }));
+        setShowFilters(true);
+      }
+    }, [consumePendingFilters]),
+  );
+  // Search analytics (0100): log settled text searches, throttled in the helper.
+  useEffect(() => {
+    const term = filters.search?.trim();
+    if (!term) return;
+    const timer = setTimeout(() => logSearchEvent(term, filters as Record<string, unknown>), 1200);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.search]);
 
   const { data: types = [] } = usePropertyTypes();
   const { data: projects = [] } = useProjects();
@@ -53,7 +76,59 @@ export default function Properties() {
     filters.verifiedOnly,
     filters.premiumOnly,
     (filters.sort ?? 'plot') !== 'plot',
+    filters.bedroomsMin != null,
+    filters.bathroomsMin != null,
+    filters.furnishing,
+    filters.parkingOnly,
+    filters.waterOnly,
+    filters.cornerOnly,
+    filters.gatedOnly,
+    filters.roadWidthMin != null,
+    filters.possession,
+    filters.saleType,
+    filters.verifiedDocsOnly,
+    filters.loanEligibleOnly,
+    filters.newOnly,
+    filters.priceReducedOnly,
   ].filter(Boolean).length;
+
+  // Save the current filter combination as a named search (0100). The server
+  // notifies on new matching listings while `notify` stays on.
+  function onSaveSearch() {
+    const parts: string[] = [];
+    if (filters.search?.trim()) parts.push(`"${filters.search.trim()}"`);
+    const typeName = types.find((ty) => ty.id === filters.propertyTypeId)?.name;
+    if (typeName) parts.push(typeName);
+    if (filters.bedroomsMin) parts.push(`${filters.bedroomsMin}+ BHK`);
+    if (filters.priceMax != null) parts.push(`≤ ₹${Math.round(filters.priceMax / 100000)}L`);
+    if (filters.facing) parts.push(filters.facing);
+    if (filters.cornerOnly) parts.push(t('properties.filters.corner', { defaultValue: 'Corner plot' }));
+    const name = parts.length ? parts.join(' · ') : t('properties.savedSearchDefault', { defaultValue: 'My search' });
+    Alert.alert(
+      t('properties.saveSearchTitle', { defaultValue: 'Save this search?' }),
+      t('properties.saveSearchBody', {
+        defaultValue: '"{{name}}" — we\'ll notify you when a matching property goes live.',
+        name,
+      }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('properties.saveSearchAction', { defaultValue: 'Save' }),
+          onPress: async () => {
+            const { error } = await supabase
+              .from('saved_searches')
+              .insert({ name, filters: filters as unknown as Json });
+            if (error) Alert.alert(t('properties.saveSearchFailed', { defaultValue: 'Could not save' }), error.message);
+            else
+              Alert.alert(
+                t('properties.saveSearchDone', { defaultValue: 'Search saved' }),
+                t('properties.saveSearchDoneBody', { defaultValue: 'Manage it under Account → Saved searches.' }),
+              );
+          },
+        },
+      ],
+    );
+  }
 
   return (
     <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
@@ -122,7 +197,7 @@ export default function Properties() {
             </View>
             <VoiceSearch types={types} projects={projects} onApply={patch} />
             {showFilters ? (
-              <FilterBar types={types} projects={projects} filters={filters} onChange={patch} />
+              <FilterBar types={types} projects={projects} filters={filters} onChange={patch} onSaveSearch={onSaveSearch} />
             ) : null}
             {/* "For you" mini-rail removed (owner: no little blocks) — the
                 recommendation hook/api stay in features/buyer for later use. */}

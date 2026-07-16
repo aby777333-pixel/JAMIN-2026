@@ -16,6 +16,8 @@ export interface LoanApplication {
   status: string;
   created_at: string;
   lender: { name: string } | null;
+  /** Buyer-attached documents (migration 0100) — appended via rpc attach_loan_docs. */
+  docs?: { name: string; url: string }[] | null;
 }
 
 export async function listLenders(): Promise<Lender[]> {
@@ -31,7 +33,7 @@ export async function listLenders(): Promise<Lender[]> {
 export async function myApplications(): Promise<LoanApplication[]> {
   const { data, error } = await supabase
     .from('loan_applications')
-    .select('id, amount, tenure_years, status, created_at, lender:lenders(name)')
+    .select('id, amount, tenure_years, status, created_at, docs, lender:lenders(name)')
     .order('created_at', { ascending: false });
   if (error) throw error;
   return (data ?? []) as unknown as LoanApplication[];

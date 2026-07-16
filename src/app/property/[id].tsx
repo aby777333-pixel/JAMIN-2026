@@ -18,6 +18,11 @@ import { AffordabilityCalculator } from '@/features/buyer/components/Affordabili
 import { ContactCard } from '@/features/buyer/components/ContactCard';
 import { EmiCalculator } from '@/features/buyer/components/EmiCalculator';
 import { EnquirySheet } from '@/features/buyer/components/EnquirySheet';
+import { LoanEligibilityCalculator } from '@/features/buyer/components/LoanEligibilityCalculator';
+import { NotesSheet } from '@/features/buyer/components/NotesSheet';
+import { PropertyInsights } from '@/features/buyer/components/PropertyInsights';
+import { RentalYieldCalculator } from '@/features/buyer/components/RentalYieldCalculator';
+import { TotalCostCalculator } from '@/features/buyer/components/TotalCostCalculator';
 import { ListingQrSheet } from '@/features/buyer/components/ListingQrSheet';
 import { NearbyAmenities } from '@/features/buyer/components/NearbyAmenities';
 import { NeighborhoodScores } from '@/features/buyer/components/NeighborhoodScores';
@@ -88,6 +93,7 @@ export default function PropertyDetail() {
   const [qr, setQr] = useState(false);
   const [shortlist, setShortlist] = useState(false);
   const [cobroke, setCobroke] = useState(false);
+  const [notes, setNotes] = useState(false);
 
   async function onSuggestPhoto() {
     const res = await ImagePicker.launchImageLibraryAsync({
@@ -180,6 +186,17 @@ export default function PropertyDetail() {
   if (property.verified_documents) verifiedBadges.push({ label: t('property.badges.verifiedDocs'), icon: 'document-text' });
   if (property.verified_location) verifiedBadges.push({ label: t('property.badges.verifiedLocation'), icon: 'location' });
   if (property.is_premium) verifiedBadges.push({ label: t('property.badges.premium'), icon: 'star' });
+  // Trust badges (0100): bank-loan eligibility (admin-set attr) + freshness.
+  {
+    const le = String((a.loan_eligible ?? a['Loan eligible'] ?? a.bank_approved ?? '') as string).toLowerCase();
+    if (le && le !== 'no' && le !== 'false' && le !== 'none' && le !== '0') {
+      verifiedBadges.push({ label: t('property.badges.loanEligible', { defaultValue: 'Bank loan eligible' }), icon: 'business' });
+    }
+    const freshAt = (property as { updated_at?: string }).updated_at ?? property.created_at;
+    if (freshAt && Date.now() - new Date(freshAt).getTime() <= 7 * 864e5) {
+      verifiedBadges.push({ label: t('property.badges.recentlyUpdated', { defaultValue: 'Recently updated' }), icon: 'time' });
+    }
+  }
   const isPending = property.approval_status === 'pending';
   const isRejected = property.approval_status === 'rejected';
 
@@ -480,6 +497,9 @@ export default function PropertyDetail() {
 
         <NeighborhoodScores scores={property.project?.neighborhood} />
 
+        {/* Guideline/market value, connectivity & alerts — admin-set attrs (0100). */}
+        <PropertyInsights attrs={property.attrs as Record<string, unknown>} />
+
         <PriceHistoryPanel propertyId={property.id} />
 
         <EmiCalculator price={property.price} />
@@ -487,6 +507,9 @@ export default function PropertyDetail() {
         <AffordabilityCalculator price={property.price} />
         <RentVsBuyCalculator price={property.price} />
         <RoiCalculator price={property.price} />
+        <TotalCostCalculator price={property.price} />
+        <LoanEligibilityCalculator />
+        <RentalYieldCalculator price={property.price} />
 
         <AiPropertyPanel
           ctx={{
@@ -504,6 +527,14 @@ export default function PropertyDetail() {
         {property.project_id ? <ReviewsPanel projectId={property.project_id} /> : null}
 
         <Button title={t('property.cta.shortlist')} variant="outline" left={<Ionicons name="people" size={16} color={color.ink} />} onPress={() => setShortlist(true)} />
+        {!isPartner ? (
+          <Button
+            title={t('property.cta.myNotes', { defaultValue: 'My private notes' })}
+            variant="outline"
+            left={<Ionicons name="create-outline" size={16} color={color.ink} />}
+            onPress={() => setNotes(true)}
+          />
+        ) : null}
         {isPartner ? (
           <Button title={t('property.cta.cobroke')} variant="outline" left={<Ionicons name="git-network" size={16} color={color.ink} />} onPress={() => setCobroke(true)} />
         ) : null}
@@ -579,6 +610,7 @@ export default function PropertyDetail() {
       <ListingQrSheet visible={qr} onClose={() => setQr(false)} propertyId={property.id} propertyLabel={label} />
       <AddToShortlistSheet visible={shortlist} onClose={() => setShortlist(false)} propertyId={property.id} />
       <CobrokeSheet visible={cobroke} onClose={() => setCobroke(false)} propertyId={property.id} propertyLabel={label} />
+      <NotesSheet visible={notes} onClose={() => setNotes(false)} propertyId={property.id} />
     </Screen>
   );
 }

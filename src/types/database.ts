@@ -896,6 +896,32 @@ export type Database = {
           },
         ]
       }
+      buyer_preferences: {
+        Row: {
+          prefs: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          prefs?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          prefs?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buyer_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       buyer_requirements: {
         Row: {
           budget_max: number | null
@@ -1527,6 +1553,35 @@ export type Database = {
           {
             foreignKeyName: "community_posts_author_id_fkey"
             columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compare_events: {
+        Row: {
+          created_at: string
+          id: string
+          property_ids: string[]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          property_ids: string[]
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          property_ids?: string[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compare_events_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2297,6 +2352,7 @@ export type Database = {
         Row: {
           amount: number | null
           created_at: string
+          docs: Json
           id: string
           lender_id: string | null
           monthly_income: number | null
@@ -2310,6 +2366,7 @@ export type Database = {
         Insert: {
           amount?: number | null
           created_at?: string
+          docs?: Json
           id?: string
           lender_id?: string | null
           monthly_income?: number | null
@@ -2323,6 +2380,7 @@ export type Database = {
         Update: {
           amount?: number | null
           created_at?: string
+          docs?: Json
           id?: string
           lender_id?: string | null
           monthly_income?: number | null
@@ -2744,6 +2802,7 @@ export type Database = {
       profiles: {
         Row: {
           assigned_promoter_id: string | null
+          buyer_type: string
           created_at: string
           designation: string | null
           email: string | null
@@ -2767,6 +2826,7 @@ export type Database = {
         }
         Insert: {
           assigned_promoter_id?: string | null
+          buyer_type?: string
           created_at?: string
           designation?: string | null
           email?: string | null
@@ -2790,6 +2850,7 @@ export type Database = {
         }
         Update: {
           assigned_promoter_id?: string | null
+          buyer_type?: string
           created_at?: string
           designation?: string | null
           email?: string | null
@@ -3058,6 +3119,57 @@ export type Database = {
           {
             foreignKeyName: "property_media_submissions_submitted_by_fkey"
             columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_notes: {
+        Row: {
+          checklist: Json
+          id: string
+          note: string | null
+          photos: Json
+          property_id: string
+          rating: number | null
+          updated_at: string
+          user_id: string
+          voice_url: string | null
+        }
+        Insert: {
+          checklist?: Json
+          id?: string
+          note?: string | null
+          photos?: Json
+          property_id: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string
+          voice_url?: string | null
+        }
+        Update: {
+          checklist?: Json
+          id?: string
+          note?: string | null
+          photos?: Json
+          property_id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string
+          voice_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_notes_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_notes_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -3460,6 +3572,73 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_searches: {
+        Row: {
+          created_at: string
+          filters: Json
+          id: string
+          name: string
+          notify: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          name: string
+          notify?: boolean
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          name?: string
+          notify?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_searches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      search_events: {
+        Row: {
+          created_at: string
+          filters: Json
+          id: string
+          query: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          query?: string | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          query?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shared_ads: {
         Row: {
           agent_name: string | null
@@ -3725,6 +3904,7 @@ export type Database = {
           lead_id: string | null
           notes: string | null
           property_id: string
+          reminded_at: string | null
           scheduled_at: string
           status: string
           updated_at: string
@@ -3742,6 +3922,7 @@ export type Database = {
           lead_id?: string | null
           notes?: string | null
           property_id: string
+          reminded_at?: string | null
           scheduled_at: string
           status?: string
           updated_at?: string
@@ -3759,6 +3940,7 @@ export type Database = {
           lead_id?: string | null
           notes?: string | null
           property_id?: string
+          reminded_at?: string | null
           scheduled_at?: string
           status?: string
           updated_at?: string
@@ -4177,6 +4359,10 @@ export type Database = {
         Returns: undefined
       }
       approve_photo_submission: { Args: { p_id: string }; Returns: undefined }
+      attach_loan_docs: {
+        Args: { p_application: string; p_docs: Json }
+        Returns: undefined
+      }
       auth_hierarchy_path: { Args: never; Returns: unknown }
       auth_is_admin: { Args: never; Returns: boolean }
       auth_role_slug: { Args: never; Returns: string }
@@ -4393,6 +4579,7 @@ export type Database = {
         Returns: undefined
       }
       referral_funnel: { Args: { p_days?: number }; Returns: Json }
+      remind_upcoming_visits: { Args: never; Returns: undefined }
       request_withdrawal: {
         Args: { p_amount: number; p_rail?: string }
         Returns: string

@@ -24,12 +24,89 @@ async function currentUserId(): Promise<string> {
   return data.user.id;
 }
 
+// ── attrs helpers for the client-side advanced filters. attrs keys are
+//    admin-defined, so each filter probes a set of likely key spellings.
+function attrRaw(attrs: Record<string, unknown>, keys: string[]): unknown {
+  const lower = new Map(Object.keys(attrs).map((k) => [k.toLowerCase().replace(/[\s_-]+/g, ''), k]));
+  for (const k of keys) {
+    const hit = lower.get(k.toLowerCase().replace(/[\s_-]+/g, ''));
+    if (hit != null && attrs[hit] != null && attrs[hit] !== '') return attrs[hit];
+  }
+  return undefined;
+}
+function attrNum(attrs: Record<string, unknown>, keys: string[]): number | null {
+  const v = attrRaw(attrs, keys);
+  if (v == null) return null;
+  const n = parseFloat(String(v).replace(/[^\d.]/g, ''));
+  return Number.isFinite(n) ? n : null;
+}
+function attrYes(attrs: Record<string, unknown>, keys: string[]): boolean {
+  const v = attrRaw(attrs, keys);
+  if (v == null) return false;
+  const s = String(v).trim().toLowerCase();
+  return !(s === '' || s === 'no' || s === 'none' || s === 'false' || s === '0');
+}
+function attrStr(attrs: Record<string, unknown>, keys: string[]): string {
+  const v = attrRaw(attrs, keys);
+  return v == null ? '' : String(v).toLowerCase();
+}
+
+/** Advanced attr-backed filters, applied after the fetch (dynamic attrs rule). */
+function applyAttrFilters(rows: PropertyListItem[], f: PropertyFilters): PropertyListItem[] {
+  return rows.filter((p) => {
+    const a = (p.attrs ?? {}) as Record<string, unknown>;
+    if (f.bedroomsMin != null && (attrNum(a, ['bedrooms', 'beds', 'bhk']) ?? 0) < f.bedroomsMin) return false;
+    if (f.bathroomsMin != null && (attrNum(a, ['bathrooms', 'baths']) ?? 0) < f.bathroomsMin) return false;
+    if (f.cornerOnly && !attrYes(a, ['corner', 'corner plot'])) return false;
+    if (f.gatedOnly && !attrYes(a, ['gated', 'gated community'])) return false;
+    if (f.parkingOnly && !attrYes(a, ['parking', 'car parking'])) return false;
+    if (f.waterOnly && !attrYes(a, ['water', 'water availability', 'water supply'])) return false;
+    if (f.loanEligibleOnly && !attrYes(a, ['loan eligible', 'bank approved', 'loan approved'])) return false;
+    if (f.furnishing && !attrStr(a, ['furnishing', 'furnished']).includes(f.furnishing.toLowerCase())) return false;
+    if (f.roadWidthMin != null && (attrNum(a, ['road width', 'road']) ?? 0) < f.roadWidthMin) return false;
+    if (f.possession) {
+      const s = attrStr(a, ['possession', 'possession status', 'construction status']);
+      if (f.possession === 'ready' && !(s.includes('ready') || s.includes('immediate'))) return false;
+      if (f.possession === 'under_construction' && !s.includes('under')) return false;
+    }
+    if (f.saleType) {
+      const s = attrStr(a, ['sale type', 'resale', 'listing type']);
+      if (f.saleType === 'resale' && !s.includes('resale')) return false;
+      if (f.saleType === 'new' && s.includes('resale')) return false;
+    }
+    if (f.listedBy && attrStr(a, ['listed by', 'listing by']) !== '' &&
+        !attrStr(a, ['listed by', 'listing by']).includes(f.listedBy)) return false;
+    const area = attrNum(a, ['area', 'plot size', 'sqft', 'built up area', 'plot area']);
+    if (f.areaMin != null && (area ?? 0) < f.areaMin) return false;
+    if (f.areaMax != null && area != null && area > f.areaMax) return false;
+    return true;
+  });
+}
+
 export async function listProperties(filters: PropertyFilters): Promise<PropertyListItem[]> {
   // Saved-only: resolve wishlisted property ids first, then constrain.
   let savedIds: string[] | null = null;
   if (filters.savedOnly) {
     savedIds = [...(await getWishlistIds())];
     if (savedIds.length === 0) return [];
+  }
+  // Price-reduced: resolve property ids with a recent price cut, then constrain.
+  let reducedIds: string[] | null = null;
+  if (filters.priceReducedOnly) {
+    const since = new Date(Date.now() - 90 * 864e5).toISOString();
+    const { data: ph } = await supabase
+      .from('price_history')
+      .select('property_id, old_price, new_price')
+      .gte('changed_at', since)
+      .limit(1000);
+    reducedIds = [
+      ...new Set(
+        (ph ?? [])
+          .filter((r) => r.old_price != null && Number(r.new_price) < Number(r.old_price))
+          .map((r) => r.property_id as string),
+      ),
+    ];
+    if (reducedIds.length === 0) return [];
   }
 
   let q = supabase.from('properties').select(LIST_SELECT);
@@ -41,10 +118,13 @@ export async function listProperties(filters: PropertyFilters): Promise<Property
   if (filters.priceMax != null) q = q.lte('price', filters.priceMax);
   if (filters.premiumOnly) q = q.eq('is_premium', true);
   if (filters.verifiedOnly) q = q.eq('verified_seller', true);
+  if (filters.verifiedDocsOnly) q = q.eq('verified_documents', true);
+  if (filters.newOnly) q = q.gte('created_at', new Date(Date.now() - 7 * 864e5).toISOString());
   // Vastu facing lives in attrs.Facing (same jsonb pattern as attrs->>featured).
   if (filters.facing) q = q.eq('attrs->>Facing', filters.facing);
   if (filters.search && filters.search.trim()) q = q.ilike('plot_code', `%${filters.search.trim()}%`);
   if (savedIds) q = q.in('id', savedIds);
+  if (reducedIds) q = q.in('id', reducedIds);
 
   // Sort (default: plot code ascending — unchanged behaviour).
   switch (filters.sort) {
@@ -63,7 +143,7 @@ export async function listProperties(filters: PropertyFilters): Promise<Property
 
   const { data, error } = await q;
   if (error) throw error;
-  return (data ?? []) as unknown as PropertyListItem[];
+  return applyAttrFilters((data ?? []) as unknown as PropertyListItem[], filters);
 }
 
 /** Honest scarcity — how many plots are still available in a project. */
@@ -258,7 +338,16 @@ export async function createEnquiry(input: {
  */
 export async function getRecommended(limit = 8): Promise<PropertyListItem[]> {
   const recent = await getRecentlyViewed(20);
-  if (recent.length === 0) return [];
+  // Saved buyer preferences (0100) sharpen the ranking; absent prefs = no-op.
+  let prefs: Record<string, unknown> = {};
+  try {
+    const { data: pr } = await supabase.from('buyer_preferences').select('prefs').maybeSingle();
+    prefs = ((pr as { prefs?: Record<string, unknown> } | null)?.prefs ?? {}) as Record<string, unknown>;
+  } catch {
+    /* preferences are optional */
+  }
+  const hasPrefs = Object.keys(prefs).length > 0;
+  if (recent.length === 0 && !hasPrefs) return [];
   const viewed = new Set(recent.map((r) => r.id));
 
   const typeCount = new Map<string, number>();
@@ -272,6 +361,15 @@ export async function getRecommended(limit = 8): Promise<PropertyListItem[]> {
   const topType = [...typeCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
   const avgPrice = priceSum / recent.length;
 
+  // Preference signals (all optional keys of the buyer_preferences doc).
+  const prefBudgetMin = Number(prefs.budgetMin ?? NaN);
+  const prefBudgetMax = Number(prefs.budgetMax ?? NaN);
+  const prefLocations = String(prefs.locations ?? '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  const prefFacing = typeof prefs.facing === 'string' && prefs.facing !== 'any' ? String(prefs.facing) : null;
+
   const pool = await listProperties({ status: 'available' });
   const scored = pool
     .filter((p) => !viewed.has(p.id))
@@ -280,6 +378,13 @@ export async function getRecommended(limit = 8): Promise<PropertyListItem[]> {
       if (topType && p.type?.slug === topType) score += 3;
       if (avgPrice > 0 && Math.abs(Number(p.price) - avgPrice) <= avgPrice * 0.25) score += 2;
       if (p.project?.location && locations.has(p.project.location.toLowerCase())) score += 1;
+      // Preference-aware boosts (0100) — additive on top of behaviour signals.
+      if (Number.isFinite(prefBudgetMax) && Number(p.price) <= prefBudgetMax &&
+          (!Number.isFinite(prefBudgetMin) || Number(p.price) >= prefBudgetMin)) score += 2;
+      if (prefLocations.length && p.project?.location &&
+          prefLocations.some((l) => p.project!.location!.toLowerCase().includes(l))) score += 2;
+      if (prefFacing && String((p.attrs as Record<string, unknown>)?.Facing ?? '').startsWith(prefFacing)) score += 1;
+      if (prefs.verifiedOnly === true && p.verified_seller) score += 1;
       return { p, score };
     })
     .filter((x) => x.score > 0)

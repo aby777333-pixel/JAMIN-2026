@@ -17,6 +17,7 @@ import { useSelectableRoles } from '@/features/roles/hooks';
 import { switchRole } from '@/features/roles/api';
 import { useAuth } from '@/stores/auth';
 import { errMessage } from '@/lib/errors';
+import { supabase } from '@/lib/supabase';
 
 const ROLE_HINT: Record<string, string> = {
   buyer: 'Browse & buy properties',
@@ -36,6 +37,7 @@ export default function Onboarding() {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState<string>('buyer');
+  const [buyerType, setBuyerType] = useState<string>('individual');
   const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ fullName?: string; phone?: string }>({});
@@ -77,6 +79,18 @@ export default function Onboarding() {
       // Apply the chosen role (only ever a self-selectable, non-admin role).
       if (role && role !== 'buyer') {
         await switchRole(role);
+      }
+      // Buyer type (0100): best-effort — onboarding must never fail on it.
+      if (role === 'buyer' && buyerType !== 'individual') {
+        try {
+          const { data } = await supabase.auth.getUser();
+          const me = data.user?.id;
+          if (me) {
+            await supabase.from('profiles').update({ buyer_type: buyerType }).eq('id', me);
+          }
+        } catch {
+          /* non-fatal */
+        }
       }
       await refreshProfile();
       router.replace('/(tabs)');
@@ -129,6 +143,20 @@ export default function Onboarding() {
               You can switch roles anytime later. Senior management roles are assigned by an admin.
             </Text>
           </View>
+          {role === 'buyer' ? (
+            <Select
+              label={t('onboarding.buyingAs', { defaultValue: 'Buying as' })}
+              value={buyerType}
+              options={[
+                { value: 'individual', label: t('onboarding.buyerType.individual', { defaultValue: 'Individual' }) },
+                { value: 'joint', label: t('onboarding.buyerType.joint', { defaultValue: 'Joint' }) },
+                { value: 'nri', label: t('onboarding.buyerType.nri', { defaultValue: 'NRI' }) },
+                { value: 'investor', label: t('onboarding.buyerType.investor', { defaultValue: 'Investor' }) },
+                { value: 'company', label: t('onboarding.buyerType.company', { defaultValue: 'Company' }) },
+              ]}
+              onChange={setBuyerType}
+            />
+          ) : null}
           <Input
             label={t('onboarding.referralCode')}
             value={referralCode}

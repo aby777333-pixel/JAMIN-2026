@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
@@ -7,10 +7,29 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
 import { useProperties } from '@/features/buyer/hooks';
 import type { PropertyListItem } from '@/features/buyer/types';
-import { emi, formatINR } from '@/lib/money';
+import { emi, formatINR, money } from '@/lib/money';
+import { supabase } from '@/lib/supabase';
 
 const MAX = 3;
 const ROW_H = 'h-14';
+
+/** Admin-entered area lives under a few attrs spellings — first present wins. */
+const AREA_KEYS = ['area', 'Area', 'plot_size', 'Plot size', 'sqft'];
+
+function areaOf(p: PropertyListItem): string | null {
+  for (const k of AREA_KEYS) {
+    const v = p.attrs?.[k];
+    if (v != null && String(v).trim() !== '') return String(v);
+  }
+  return null;
+}
+
+function areaSqft(p: PropertyListItem): number | null {
+  const raw = areaOf(p);
+  if (!raw) return null;
+  const n = parseFloat(raw.replace(/[^\d.]/g, ''));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
 
 /** §4 Buyer App — Compare Properties. Pick up to three plots and line them up side by side. */
 export default function Compare() {
@@ -27,11 +46,49 @@ export default function Compare() {
     );
   }
 
+  // Analytics: log which sets of plots buyers actually line up (compare_events).
+  // Debounced so mid-selection churn doesn't spam; dedupe on the sorted id-set so
+  // the identical combination is never re-logged twice in a row. Fire-and-forget.
+  const lastLoggedKey = useRef('');
+  useEffect(() => {
+    if (picked.length < 2) return;
+    const ids = [...picked];
+    const key = [...ids].sort().join(',');
+    const timer = setTimeout(() => {
+      if (lastLoggedKey.current === key) return;
+      lastLoggedKey.current = key;
+      supabase
+        .from('compare_events')
+        .insert({ property_ids: ids })
+        .then(
+          () => {},
+          () => {},
+        );
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [picked]);
+
   const rows: { label: string; value: (p: PropertyListItem) => string }[] = [
     { label: 'Project', value: (p) => p.project?.name ?? '—' },
     { label: 'Type', value: (p) => p.type?.name ?? '—' },
     { label: 'Price', value: (p) => formatINR(p.price) },
     { label: 'Est. EMI / mo', value: (p) => formatINR(emi(Number(p.price) * 0.8, 9, 240)) },
+    { label: 'Area', value: (p) => areaOf(p) ?? '—' },
+    {
+      label: '₹ / sqft',
+      value: (p) => {
+        const sqft = areaSqft(p);
+        return sqft ? formatINR(money(p.price).dividedBy(sqft)) : '—';
+      },
+    },
+    {
+      label: 'Verified',
+      value: (p) =>
+        [p.verified_seller ? '✓ Seller' : null, p.verified_documents ? '✓ Docs' : null]
+          .filter(Boolean)
+          .join('  ') || '—',
+    },
+    { label: 'RERA', value: (p) => p.project?.rera_status ?? '—' },
   ];
 
   return (

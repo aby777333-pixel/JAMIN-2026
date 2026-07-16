@@ -51,6 +51,26 @@ export interface PropertyFilters {
   /** Vastu facing (matches attrs.Facing, e.g. 'North-East'). */
   facing?: string | null;
   sort?: 'plot' | 'price_asc' | 'price_desc' | 'newest';
+  // ── Advanced filters (0100 round). Column-backed ones run server-side;
+  //    attrs-backed ones are applied client-side after the fetch, because
+  //    attrs keys are admin-defined free text (dynamic rule §13).
+  verifiedDocsOnly?: boolean;
+  newOnly?: boolean;
+  priceReducedOnly?: boolean;
+  bedroomsMin?: number | null;
+  bathroomsMin?: number | null;
+  cornerOnly?: boolean;
+  gatedOnly?: boolean;
+  furnishing?: string | null;
+  parkingOnly?: boolean;
+  waterOnly?: boolean;
+  roadWidthMin?: number | null;
+  possession?: 'ready' | 'under_construction' | null;
+  saleType?: 'new' | 'resale' | null;
+  listedBy?: 'owner' | 'agent' | null;
+  loanEligibleOnly?: boolean;
+  areaMin?: number | null;
+  areaMax?: number | null;
 }
 
 export interface FormField {

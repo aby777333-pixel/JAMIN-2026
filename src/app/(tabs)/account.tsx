@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
@@ -26,6 +27,7 @@ function roleLabel(slug?: string | null) {
  * the Card/Network tabs' entry points. Role gating mirrors the old tabs/links.
  */
 export default function Account() {
+  const { t } = useTranslation();
   const profile = useAuth((s) => s.profile);
   const signOut = useAuth((s) => s.signOut);
   const isRealAdmin = useAuth((s) => s.isRealAdmin);
@@ -203,6 +205,24 @@ export default function Account() {
       ) : (
         <View className="gap-3 pt-1">
           <Text variant="label">Tools</Text>
+          <ListRow
+            icon="grid-outline"
+            label={t('account.buyerHub', { defaultValue: 'My dashboard' })}
+            sub={t('account.buyerHubSub', { defaultValue: 'Your whole property search in one place' })}
+            onPress={() => router.push('/buyer-hub')}
+          />
+          <ListRow
+            icon="options-outline"
+            label={t('account.preferences', { defaultValue: 'My preferences' })}
+            sub={t('account.preferencesSub', { defaultValue: 'Budget, locations and must-haves' })}
+            onPress={() => router.push('/preferences')}
+          />
+          <ListRow
+            icon="bookmark-outline"
+            label={t('account.savedSearches', { defaultValue: 'Saved searches' })}
+            sub={t('account.savedSearchesSub', { defaultValue: 'Re-run and get alerts for your searches' })}
+            onPress={() => router.push('/saved-searches')}
+          />
           <ListRow
             icon="notifications-outline"
             label="Property alerts"

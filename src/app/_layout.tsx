@@ -136,6 +136,9 @@ export default function RootLayout() {
             <Stack.Screen name="offers" />
             <Stack.Screen name="recent" />
             <Stack.Screen name="requirements" />
+            <Stack.Screen name="preferences" />
+            <Stack.Screen name="saved-searches" />
+            <Stack.Screen name="buyer-hub" />
             <Stack.Screen name="role" />
             <Stack.Screen name="sell/index" />
             <Stack.Screen name="sell/new" />
