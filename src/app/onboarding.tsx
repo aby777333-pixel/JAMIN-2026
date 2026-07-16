@@ -1,5 +1,6 @@
+import * as ExpoLinking from 'expo-linking';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, KeyboardAvoidingView, Platform, View } from 'react-native';
 
@@ -38,6 +39,24 @@ export default function Onboarding() {
   const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ fullName?: string; phone?: string }>({});
+
+  // If the app was opened through a promoter's invite link (jamin://…?ref=CODE
+  // or a universal link carrying ?ref=), prefill the referral code so the
+  // buyer is attributed without typing. Never overwrites a code the user typed.
+  const incomingUrl = ExpoLinking.useURL();
+  useEffect(() => {
+    if (!incomingUrl) return;
+    try {
+      const { queryParams } = ExpoLinking.parse(incomingUrl);
+      const raw = queryParams?.ref;
+      const ref = typeof raw === 'string' ? raw : Array.isArray(raw) ? raw[0] : null;
+      if (ref && /^[A-Za-z0-9]{3,16}$/.test(ref)) {
+        setReferralCode((current) => current || ref.toUpperCase());
+      }
+    } catch {
+      /* malformed URL — ignore */
+    }
+  }, [incomingUrl]);
 
   const roleOptions: SelectOption[] = roles.map((r) => ({
     value: r.slug,

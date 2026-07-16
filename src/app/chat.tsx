@@ -12,12 +12,51 @@ import {
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { useFeatureEnabled } from '@/features/catalog/api';
 import { useMessages, useSendMessage, useSupportThread } from '@/features/chat/hooks';
 import { liveChannel, supabase } from '@/lib/supabase';
 import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
 
+/**
+ * Live chat is feature-flagged (app_features key 'live_chat' — currently OFF
+ * per the Buyer module spec). The functionality is fully intact; the Super
+ * Admin re-enables it from web admin → Features with no app update. Gating
+ * wraps the inner screen so the support thread is never created while hidden.
+ */
 export default function Chat() {
+  const { data: enabled, isLoading } = useFeatureEnabled('live_chat');
+
+  if (isLoading) {
+    return (
+      <Screen scroll={false} contentClassName="gap-0">
+        <BackHeader title="Live chat — Support" />
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator color={color.red} />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (!enabled) {
+    return (
+      <Screen scroll={false} contentClassName="gap-0">
+        <BackHeader title="Live chat — Support" />
+        <View className="flex-1 items-center justify-center px-8">
+          <Ionicons name="chatbubbles-outline" size={40} color={color.muted} />
+          <Text variant="title" className="mt-3 text-center">Live chat is not available right now</Text>
+          <Text variant="caption" className="mt-1 text-center">
+            Please reach us from Help &amp; Support — call, WhatsApp or email.
+          </Text>
+        </View>
+      </Screen>
+    );
+  }
+
+  return <ChatInner />;
+}
+
+function ChatInner() {
   const me = useAuth((s) => s.profile)?.id;
   const { data: threadId } = useSupportThread();
   const { data: messages = [], refetch } = useMessages(threadId);

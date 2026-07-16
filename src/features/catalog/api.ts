@@ -30,3 +30,24 @@ export async function getFeatures(): Promise<AppFeature[]> {
 export function useFeatures() {
   return useQuery({ queryKey: ['app_features'], queryFn: getFeatures, staleTime: 5 * 60_000 });
 }
+
+/**
+ * Single feature-flag check against app_features (disabled rows stay readable).
+ * Returns false while the row is missing — a flag-gated surface stays hidden
+ * until the Super Admin explicitly turns it on from web admin → Features.
+ */
+export function useFeatureEnabled(key: string) {
+  return useQuery({
+    queryKey: ['app_feature', key],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('app_features')
+        .select('enabled')
+        .eq('key', key)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as { enabled?: boolean } | null)?.enabled === true;
+    },
+    staleTime: 5 * 60_000,
+  });
+}

@@ -39,6 +39,10 @@ export interface Profile {
   language: string;
   /** Faith/tradition for personalised dates & checklists (0071); null = not chosen. */
   tradition?: string | null;
+  /** How the app was installed (0099): 'direct' store download or promoter 'referral'. */
+  install_source?: 'direct' | 'referral' | null;
+  /** Promoter the buyer is bound to for contact routing (0099); admin-changeable. */
+  assigned_promoter_id?: string | null;
   status: string;
   created_at: string;
 }

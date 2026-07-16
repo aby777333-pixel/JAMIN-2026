@@ -684,6 +684,58 @@ export type Database = {
           },
         ]
       }
+      brochure_downloads: {
+        Row: {
+          created_at: string
+          doc_id: string | null
+          id: string
+          property_id: string | null
+          title: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          doc_id?: string | null
+          id?: string
+          property_id?: string | null
+          title?: string
+          url?: string | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          doc_id?: string | null
+          id?: string
+          property_id?: string | null
+          title?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brochure_downloads_doc_id_fkey"
+            columns: ["doc_id"]
+            isOneToOne: false
+            referencedRelation: "deal_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brochure_downloads_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brochure_downloads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brochure_templates: {
         Row: {
           active: boolean
@@ -1475,6 +1527,58 @@ export type Database = {
           {
             foreignKeyName: "community_posts_author_id_fkey"
             columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_events: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          promoter_id: string | null
+          property_id: string | null
+          target: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          id?: string
+          promoter_id?: string | null
+          property_id?: string | null
+          target: string
+          user_id?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          promoter_id?: string | null
+          property_id?: string | null
+          target?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_events_promoter_id_fkey"
+            columns: ["promoter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_events_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_events_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2639,12 +2743,14 @@ export type Database = {
       }
       profiles: {
         Row: {
+          assigned_promoter_id: string | null
           created_at: string
           designation: string | null
           email: string | null
           full_name: string | null
           hierarchy_path: unknown
           id: string
+          install_source: string
           kyc_status: string
           language: string
           notification_prefs: Json
@@ -2660,12 +2766,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_promoter_id?: string | null
           created_at?: string
           designation?: string | null
           email?: string | null
           full_name?: string | null
           hierarchy_path: unknown
           id: string
+          install_source?: string
           kyc_status?: string
           language?: string
           notification_prefs?: Json
@@ -2681,12 +2789,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_promoter_id?: string | null
           created_at?: string
           designation?: string | null
           email?: string | null
           full_name?: string | null
           hierarchy_path?: unknown
           id?: string
+          install_source?: string
           kyc_status?: string
           language?: string
           notification_prefs?: Json
@@ -2702,6 +2812,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_assigned_promoter_id_fkey"
+            columns: ["assigned_promoter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_parent_id_fkey"
             columns: ["parent_id"]
@@ -4146,6 +4263,15 @@ export type Database = {
           value: number
         }[]
       }
+      get_my_promoter_contact: {
+        Args: never
+        Returns: {
+          full_name: string
+          phone: string
+          photo_url: string
+          promoter_id: string
+        }[]
+      }
       get_public_settings: { Args: never; Returns: Json }
       get_quiz: {
         Args: { p_course: string }
@@ -4168,6 +4294,7 @@ export type Database = {
       }
       is_shortlist_member: { Args: { p_sl: string }; Returns: boolean }
       join_shortlist: { Args: { p_token: string }; Returns: string }
+      lead_actor_suffix: { Args: never; Returns: string }
       lead_daily_digest: { Args: never; Returns: undefined }
       lead_score_band: { Args: { p_score: number }; Returns: string }
       log_admin_action: {
@@ -4371,11 +4498,11 @@ export type Database = {
       team_activity_feed: {
         Args: { p_limit?: number }
         Returns: {
-          kind: string
-          who: string | null
-          summary: string
-          amount: number | null
+          amount: number
           happened_at: string
+          kind: string
+          summary: string
+          who: string
         }[]
       }
       team_member_stats: { Args: { p_member: string }; Returns: Json }

@@ -5,10 +5,19 @@ import { BackHeader } from '@/components/ui/BackHeader';
 import { Card } from '@/components/ui/Card';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { logContactEvent, usePromoterContact } from '@/features/buyer/contact';
 import { useContent } from '@/features/content/hooks';
+import { useAuth } from '@/stores/auth';
 import { color } from '@/theme/tokens';
 
-type Row = { icon: keyof typeof Ionicons.glyphMap; label: string; value: string; url: string };
+type Row = {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+  url: string;
+  /** Optional activity capture fired just before the link opens. */
+  onTap?: () => void;
+};
 
 /** Admin-entered values sometimes arrive wrapped in quotes/spaces — normalise before use. */
 function clean(raw: string): string {
@@ -17,6 +26,10 @@ function clean(raw: string): string {
 
 export default function Support() {
   const { get } = useContent();
+  const profile = useAuth((s) => s.profile);
+  const isReferralBuyer = profile?.role_slug === 'buyer' && profile?.install_source === 'referral';
+  const { data: promoter, isLoading: promoterLoading } = usePromoterContact();
+
   const phone = clean(get('support.phone'));
   const email = clean(get('support.email'));
   const whatsapp = clean(get('support.whatsapp'));
@@ -30,13 +43,60 @@ export default function Support() {
   const termsUrl = clean(get('legal.terms_url'));
   const privacyUrl = clean(get('legal.privacy_url'));
 
-  const contacts: Row[] = [
-    phone ? { icon: 'call', label: 'Call us', value: phone, url: `tel:${phone}` } : null,
-    whatsapp
-      ? { icon: 'logo-whatsapp', label: 'WhatsApp', value: whatsapp, url: `https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}` }
-      : null,
-    email ? { icon: 'mail', label: 'Email', value: email, url: `mailto:${email}` } : null,
-  ].filter(Boolean) as Row[];
+  // Install-source contact routing (Buyer module spec): a referral-installed
+  // buyer contacts ONLY their assigned promoter; everyone else reaches JAMIN.
+  const promoterPhone = clean(promoter?.phone ?? '');
+  const usePromoter = !!(isReferralBuyer && promoter && promoterPhone);
+  const promoterName = promoter?.full_name?.trim() || 'Your promoter';
+
+  const contacts: Row[] = usePromoter
+    ? [
+        {
+          icon: 'call',
+          label: `Call ${promoterName}`,
+          value: promoterPhone,
+          url: `tel:${promoterPhone}`,
+          onTap: () => logContactEvent({ target: 'promoter', channel: 'call', promoterId: promoter?.promoter_id }),
+        },
+        {
+          icon: 'logo-whatsapp',
+          label: 'WhatsApp',
+          value: promoterPhone,
+          url: `https://wa.me/${promoterPhone.replace(/[^0-9]/g, '')}`,
+          onTap: () => logContactEvent({ target: 'promoter', channel: 'whatsapp', promoterId: promoter?.promoter_id }),
+        },
+      ]
+    : isReferralBuyer && promoterLoading
+      ? [] // never flash JAMIN numbers while the promoter is still loading
+      : ([
+          phone
+            ? {
+                icon: 'call' as const,
+                label: 'Call us',
+                value: phone,
+                url: `tel:${phone}`,
+                onTap: () => logContactEvent({ target: 'jamin', channel: 'call' }),
+              }
+            : null,
+          whatsapp
+            ? {
+                icon: 'logo-whatsapp' as const,
+                label: 'WhatsApp',
+                value: whatsapp,
+                url: `https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}`,
+                onTap: () => logContactEvent({ target: 'jamin', channel: 'whatsapp' }),
+              }
+            : null,
+          email
+            ? {
+                icon: 'mail' as const,
+                label: 'Email',
+                value: email,
+                url: `mailto:${email}`,
+                onTap: () => logContactEvent({ target: 'jamin', channel: 'email' }),
+              }
+            : null,
+        ].filter(Boolean) as Row[]);
 
   const legal: Row[] = [
     termsUrl ? { icon: 'document-text', label: 'Terms & Conditions', value: 'View', url: termsUrl } : null,
@@ -68,11 +128,16 @@ export default function Support() {
 
       {contacts.length > 0 ? (
         <View className="gap-2">
-          <Text variant="label">Contact</Text>
+          <Text variant="label">{usePromoter ? 'Your JAMIN promoter' : 'Contact'}</Text>
+          {usePromoter ? (
+            <Text variant="caption">
+              {promoterName} looks after you personally — reach out anytime.
+            </Text>
+          ) : null}
           {contacts.map((r) => (
             <LinkRow key={r.label} {...r} />
           ))}
-          {hours ? <Text variant="caption" className="mt-1">{hours}</Text> : null}
+          {!usePromoter && hours ? <Text variant="caption" className="mt-1">{hours}</Text> : null}
         </View>
       ) : null}
 
@@ -105,14 +170,15 @@ export default function Support() {
   );
 }
 
-function LinkRow({ icon, label, value, url }: Row) {
+function LinkRow({ icon, label, value, url, onTap }: Row) {
   return (
     <Pressable
-      onPress={() =>
+      onPress={() => {
+        onTap?.();
         Linking.openURL(url).catch(() =>
           Alert.alert('Could not open', 'No app available to open this link.'),
-        )
-      }>
+        );
+      }}>
       <Card className="flex-row items-center gap-3">
         <View className="h-10 w-10 items-center justify-center rounded-xl bg-red/10">
           <Ionicons name={icon} size={18} color={color.red} />

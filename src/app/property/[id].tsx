@@ -15,12 +15,14 @@ import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { CommissionPreview } from '@/features/commission/components/CommissionPreview';
 import { AffordabilityCalculator } from '@/features/buyer/components/AffordabilityCalculator';
+import { ContactCard } from '@/features/buyer/components/ContactCard';
 import { EmiCalculator } from '@/features/buyer/components/EmiCalculator';
 import { EnquirySheet } from '@/features/buyer/components/EnquirySheet';
 import { ListingQrSheet } from '@/features/buyer/components/ListingQrSheet';
 import { NearbyAmenities } from '@/features/buyer/components/NearbyAmenities';
 import { NeighborhoodScores } from '@/features/buyer/components/NeighborhoodScores';
 import { PriceHistoryPanel } from '@/features/buyer/components/PriceHistoryPanel';
+import { PropertyDocuments } from '@/features/buyer/components/PropertyDocuments';
 import { PropertyGallery } from '@/features/buyer/components/PropertyGallery';
 import { PlotAppeal } from '@/features/buyer/components/PlotAppeal';
 import { RentVsBuyCalculator } from '@/features/buyer/components/RentVsBuyCalculator';
@@ -39,6 +41,7 @@ import { JourneyTracker } from '@/features/journey/JourneyTracker';
 import { useMyWatchIds, useToggleWatch } from '@/features/watch/hooks';
 import { OfferSheet } from '@/features/offers/OfferSheet';
 import { ReportSheet } from '@/features/offers/ReportSheet';
+import { logBrochureOpen } from '@/features/buyer/contact';
 import {
   useLogPropertyView,
   useMyJourney,
@@ -162,8 +165,10 @@ export default function PropertyDetail() {
 
   const customTitle = pick('title');
   const description = pick('description');
+  // Digital brochure — the admin sets a URL on attrs (brochure / brochure_url).
+  const brochureUrl = pick('brochure', 'brochure_url', 'digital_brochure');
   // Keys with dedicated rendering — excluded from the generic key/value detail list.
-  const RESERVED_KEYS = ['featured', 'title', 'description', 'video_tour', 'video_url', 'video', 'virtual_tour', 'virtual_tour_url', 'tour_360', 'walkthrough', 'tour_3d', 'walkthrough_3d'];
+  const RESERVED_KEYS = ['featured', 'title', 'description', 'video_tour', 'video_url', 'video', 'virtual_tour', 'virtual_tour_url', 'tour_360', 'walkthrough', 'tour_3d', 'walkthrough_3d', 'brochure', 'brochure_url', 'digital_brochure'];
   const attrs = Object.entries(property.attrs ?? {}).filter(([k]) => !RESERVED_KEYS.includes(k));
   const lat = property.coordinates?.lat;
   const lng = property.coordinates?.lng;
@@ -362,6 +367,9 @@ export default function PropertyDetail() {
             <Ionicons name="shield-checkmark" size={16} color={color.gold} />
             <Text variant="caption" className="flex-1 text-ink">{t('property.jaminConnect')}</Text>
           </View>
+          {/* Install-source contact routing: direct buyers reach JAMIN, referral
+              buyers reach ONLY their assigned promoter (Buyer module spec). */}
+          <ContactCard propertyId={property.id} />
           <Button title={t('property.cta.enquire')} onPress={() => setEnquiry(true)} />
           <Button title={t('property.cta.bookVisit')} variant="outline" onPress={() => setVisit(true)} />
           {property.status === 'available' ? (
@@ -394,10 +402,21 @@ export default function PropertyDetail() {
         {/* Faith & practicality — sacred places, Qibla, land checks (renders only with coords). */}
         <SacredPlacesCard lat={lat} lng={lng} attrs={property.attrs} />
 
-        {tours.length > 0 || hasCoords ? (
+        {tours.length > 0 || hasCoords || brochureUrl ? (
           <View className="gap-2">
             <Text variant="label">{t('property.toursLocation')}</Text>
             <View className="flex-row flex-wrap gap-2">
+              {brochureUrl ? (
+                <Pressable
+                  onPress={() => {
+                    logBrochureOpen({ title: 'Digital brochure', url: brochureUrl, propertyId: property.id });
+                    router.push({ pathname: '/webview', params: { url: brochureUrl, title: t('property.tours.brochure', { defaultValue: 'Brochure' }) } });
+                  }}
+                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                  <Ionicons name="book" size={16} color={color.red} />
+                  <Text className="text-[13px] font-semibold text-ink">{t('property.tours.brochure', { defaultValue: 'Brochure' })}</Text>
+                </Pressable>
+              ) : null}
               {tours.map((tr) => (
                 <Pressable
                   key={tr.label}
@@ -419,6 +438,30 @@ export default function PropertyDetail() {
               ) : null}
               {hasCoords ? (
                 <Pressable
+                  onPress={() =>
+                    Linking.openURL(
+                      `https://www.google.com/maps/@?api=1&map_action=map&center=${lat},${lng}&zoom=18&basemap=satellite`,
+                    )
+                  }
+                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                  <Ionicons name="globe" size={16} color={color.red} />
+                  <Text className="text-[13px] font-semibold text-ink">{t('property.tours.satellite', { defaultValue: 'Satellite view' })}</Text>
+                </Pressable>
+              ) : null}
+              {hasCoords ? (
+                <Pressable
+                  onPress={() =>
+                    Linking.openURL(
+                      `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`,
+                    )
+                  }
+                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                  <Ionicons name="walk" size={16} color={color.red} />
+                  <Text className="text-[13px] font-semibold text-ink">{t('property.tours.streetView', { defaultValue: 'Street View' })}</Text>
+                </Pressable>
+              ) : null}
+              {hasCoords ? (
+                <Pressable
                   onPress={() => router.push({ pathname: '/ar', params: { id: property.id } })}
                   className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
                   <Ionicons name="scan" size={16} color={color.red} />
@@ -428,6 +471,10 @@ export default function PropertyDetail() {
             </View>
           </View>
         ) : null}
+
+        {/* Listing documents (patta / EC / title deed / brochure …) — published
+            with the approved listing; opens are captured for the admin. */}
+        <PropertyDocuments propertyId={property.id} />
 
         {hasCoords ? <NearbyAmenities lat={lat as number} lng={lng as number} /> : null}
 
