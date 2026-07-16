@@ -67,6 +67,28 @@ export default function Network() {
               </StatCard>
             </View>
 
+            <Card className="flex-row items-center gap-3">
+              <View className="h-11 w-11 items-center justify-center rounded-full bg-gold/15">
+                <Ionicons name="speedometer" size={20} color={color.goldDeep} />
+              </View>
+              <View className="flex-1">
+                <Text variant="title">Promoter dashboard</Text>
+                <Text variant="caption">Targets, clients & earnings in one view</Text>
+              </View>
+              <Button title="Open" variant="outline" onPress={() => router.push('/promoter-hub')} />
+            </Card>
+
+            <Card className="flex-row items-center gap-3">
+              <View className="h-11 w-11 items-center justify-center rounded-full bg-red/10">
+                <Ionicons name="people-circle" size={20} color={color.red} />
+              </View>
+              <View className="flex-1">
+                <Text variant="title">My clients</Text>
+                <Text variant="caption">Buyers and sellers bound to you</Text>
+              </View>
+              <Button title="Open" variant="outline" onPress={() => router.push('/clients')} />
+            </Card>
+
             <Card className="bg-charcoal gap-2">
               <Text className="font-medium text-[12px] uppercase tracking-[2px] text-gold">
                 Recruit your team

@@ -21,13 +21,17 @@ export interface SiteVisit {
   checkin_at: string | null;
   checkin_distance_m: number | null;
   notes: string | null;
+  /** Agent's post-visit feedback (0102) — written only via rpc record_visit_feedback. */
+  feedback?: string | null;
+  /** Photo URLs attached with the feedback (0102). */
+  visit_photos?: string[] | null;
   property: { plot_code: string; project: { name: string } | null } | null;
   buyer: { full_name: string | null } | null;
   agent: { full_name: string | null } | null;
 }
 
 const VISIT_SELECT =
-  'id, property_id, buyer_id, agent_id, buyer_contact, scheduled_at, status, checkin_at, checkin_distance_m, notes, ' +
+  'id, property_id, buyer_id, agent_id, buyer_contact, scheduled_at, status, checkin_at, checkin_distance_m, notes, feedback, visit_photos, ' +
   'property:properties(plot_code, project:projects(name)), ' +
   'buyer:profiles!site_visits_buyer_id_fkey(full_name), ' +
   'agent:profiles!site_visits_agent_id_fkey(full_name)';

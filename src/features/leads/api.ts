@@ -19,12 +19,17 @@ export interface Lead {
   property: { plot_code: string; project: { name: string } | null } | null;
 }
 
+export const FOLLOW_UP_KINDS = ['call', 'meeting', 'site_visit', 'documentation', 'booking'] as const;
+export type FollowUpKind = (typeof FOLLOW_UP_KINDS)[number];
+
 export interface FollowUp {
   id: string;
   lead_id: string;
   due_at: string;
   note: string | null;
   status: string;
+  /** What the touchpoint is (0102): call | meeting | site_visit | documentation | booking. */
+  kind?: string | null;
 }
 
 export interface LeadEvent {
@@ -72,7 +77,7 @@ export async function updateLeadStatus(id: string, status: LeadStatus) {
 export async function listFollowUps(leadId: string): Promise<FollowUp[]> {
   const { data, error } = await supabase
     .from('follow_ups')
-    .select('id, lead_id, due_at, note, status')
+    .select('id, lead_id, due_at, note, status, kind')
     .eq('lead_id', leadId)
     .order('due_at', { ascending: true });
   if (error) throw error;
@@ -99,12 +104,18 @@ export async function listMyOpenFollowUps(): Promise<AgendaFollowUp[]> {
   return (data ?? []) as unknown as AgendaFollowUp[];
 }
 
-export async function createFollowUp(input: { leadId: string; dueAt: string; note: string }) {
+export async function createFollowUp(input: {
+  leadId: string;
+  dueAt: string;
+  note: string;
+  kind?: string;
+}) {
   const { error } = await supabase.from('follow_ups').insert({
     lead_id: input.leadId,
     due_at: input.dueAt,
     note: input.note,
     status: 'pending',
+    kind: input.kind ?? 'call',
   });
   if (error) throw error;
 }

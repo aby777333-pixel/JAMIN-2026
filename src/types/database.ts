@@ -1982,6 +1982,7 @@ export type Database = {
           created_at: string
           due_at: string
           id: string
+          kind: string
           lead_id: string
           note: string | null
           notified_at: string | null
@@ -1991,6 +1992,7 @@ export type Database = {
           created_at?: string
           due_at: string
           id?: string
+          kind?: string
           lead_id: string
           note?: string | null
           notified_at?: string | null
@@ -2000,6 +2002,7 @@ export type Database = {
           created_at?: string
           due_at?: string
           id?: string
+          kind?: string
           lead_id?: string
           note?: string | null
           notified_at?: string | null
@@ -2442,6 +2445,44 @@ export type Database = {
           },
         ]
       }
+      login_events: {
+        Row: {
+          app_version: string | null
+          created_at: string
+          id: string
+          model: string | null
+          os_version: string | null
+          platform: string | null
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          created_at?: string
+          id?: string
+          model?: string | null
+          os_version?: string | null
+          platform?: string | null
+          user_id?: string
+        }
+        Update: {
+          app_version?: string | null
+          created_at?: string
+          id?: string
+          model?: string | null
+          os_version?: string | null
+          platform?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "login_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketing_assets: {
         Row: {
           active: boolean
@@ -2684,6 +2725,51 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_targets: {
+        Row: {
+          created_at: string
+          id: string
+          month: string
+          set_by: string | null
+          target_amount: number
+          target_sales: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month: string
+          set_by?: string | null
+          target_amount?: number
+          target_sales?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month?: string
+          set_by?: string | null
+          target_amount?: number
+          target_sales?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_targets_set_by_fkey"
+            columns: ["set_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_targets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3105,8 +3191,11 @@ export type Database = {
       }
       property_media_submissions: {
         Row: {
+          captured_at: string | null
           created_at: string
           id: string
+          lat: number | null
+          lng: number | null
           name: string | null
           path: string
           property_id: string
@@ -3117,8 +3206,11 @@ export type Database = {
           url: string
         }
         Insert: {
+          captured_at?: string | null
           created_at?: string
           id?: string
+          lat?: number | null
+          lng?: number | null
           name?: string | null
           path: string
           property_id: string
@@ -3129,8 +3221,11 @@ export type Database = {
           url: string
         }
         Update: {
+          captured_at?: string | null
           created_at?: string
           id?: string
+          lat?: number | null
+          lng?: number | null
           name?: string | null
           path?: string
           property_id?: string
@@ -3939,6 +4034,7 @@ export type Database = {
           checkin_lat: number | null
           checkin_lng: number | null
           created_at: string
+          feedback: string | null
           id: string
           lead_id: string | null
           notes: string | null
@@ -3947,6 +4043,7 @@ export type Database = {
           scheduled_at: string
           status: string
           updated_at: string
+          visit_photos: Json
         }
         Insert: {
           agent_id?: string | null
@@ -3957,6 +4054,7 @@ export type Database = {
           checkin_lat?: number | null
           checkin_lng?: number | null
           created_at?: string
+          feedback?: string | null
           id?: string
           lead_id?: string | null
           notes?: string | null
@@ -3965,6 +4063,7 @@ export type Database = {
           scheduled_at: string
           status?: string
           updated_at?: string
+          visit_photos?: Json
         }
         Update: {
           agent_id?: string | null
@@ -3975,6 +4074,7 @@ export type Database = {
           checkin_lat?: number | null
           checkin_lng?: number | null
           created_at?: string
+          feedback?: string | null
           id?: string
           lead_id?: string | null
           notes?: string | null
@@ -3983,6 +4083,7 @@ export type Database = {
           scheduled_at?: string
           status?: string
           updated_at?: string
+          visit_photos?: Json
         }
         Relationships: [
           {
@@ -4093,6 +4194,60 @@ export type Database = {
           value?: Json
         }
         Relationships: []
+      }
+      team_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          channel: string
+          contact: string
+          created_at: string
+          id: string
+          invited_role: string
+          inviter_id: string
+          name: string | null
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          channel?: string
+          contact: string
+          created_at?: string
+          id?: string
+          invited_role?: string
+          inviter_id?: string
+          name?: string | null
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          channel?: string
+          contact?: string
+          created_at?: string
+          id?: string
+          invited_role?: string
+          inviter_id?: string
+          name?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_invites_accepted_by_fkey"
+            columns: ["accepted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_invites_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       territories: {
         Row: {
@@ -4387,6 +4542,25 @@ export type Database = {
           secret_key: string
         }[]
       }
+      admin_promoter_overview: {
+        Args: never
+        Returns: {
+          assigned_buyers: number
+          assigned_sellers: number
+          direct_recruits: number
+          full_name: string
+          month_credits: number
+          role_slug: string
+          status: string
+          team_size: number
+          total_credits: number
+          user_id: string
+        }[]
+      }
+      admin_set_parent: {
+        Args: { p_new_parent: string; p_user: string }
+        Returns: undefined
+      }
       agent_public_profile: { Args: { p_code: string }; Returns: Json }
       app_audit: {
         Args: {
@@ -4604,6 +4778,39 @@ export type Database = {
           review_count: number
         }[]
       }
+      promoter_clients: {
+        Args: { p_kind?: string }
+        Returns: {
+          client_id: string
+          full_name: string
+          install_source: string
+          joined_at: string
+          kyc_status: string
+          open_leads: number
+          phone: string
+          role_slug: string
+          upcoming_visits: number
+        }[]
+      }
+      promoter_dashboard: {
+        Args: never
+        Returns: {
+          achievement_pct: number
+          active_listings: number
+          commission_earned: number
+          commission_pending: number
+          month_earned: number
+          new_leads: number
+          pending_followups: number
+          sales_closed: number
+          target_amount: number
+          target_sales: number
+          total_buyers: number
+          total_sellers: number
+          upcoming_visits: number
+          wallet_balance: number
+        }[]
+      }
       public_selectable_roles: {
         Args: never
         Returns: {
@@ -4615,6 +4822,10 @@ export type Database = {
       }
       radar_notify: {
         Args: { p_property: string; p_reason: string }
+        Returns: undefined
+      }
+      record_visit_feedback: {
+        Args: { p_feedback?: string; p_photos?: Json; p_visit: string }
         Returns: undefined
       }
       referral_funnel: { Args: { p_days?: number }; Returns: Json }

@@ -1,3 +1,4 @@
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 
@@ -58,5 +59,40 @@ export async function exportCommissionStatement(summary: WalletSummary, agentNam
   const { uri } = await Print.printToFileAsync({ html });
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Commission statement' });
+  }
+}
+
+/** Quote a CSV field when it contains a comma, quote or newline. */
+const csvField = (v: string | number) => {
+  const s = String(v ?? '');
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+
+/**
+ * Excel-friendly CSV of the same ledger the PDF statement uses. Written to the
+ * cache dir and handed to the OS share sheet (Excel, Sheets, mail, drive…).
+ */
+export async function exportCommissionCsv(summary: WalletSummary) {
+  const lines = [['Date', 'Type', 'Direction', 'Amount', 'Status', 'Reference'].join(',')];
+  for (const e of summary.ledger) {
+    lines.push(
+      [
+        new Date(e.created_at).toLocaleDateString('en-IN'),
+        labelFor(e.source_ref),
+        e.direction,
+        e.amount,
+        e.status,
+        e.source_ref,
+      ]
+        .map(csvField)
+        .join(','),
+    );
+  }
+  const uri = `${FileSystem.cacheDirectory ?? ''}jamin-statement.csv`;
+  await FileSystem.writeAsStringAsync(uri, lines.join('\n'), {
+    encoding: FileSystem.EncodingType.UTF8,
+  });
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(uri, { mimeType: 'text/csv', dialogTitle: 'Commission statement (CSV)' });
   }
 }

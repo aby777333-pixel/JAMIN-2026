@@ -14,6 +14,28 @@ import type { Profile } from '@/types/domain';
 const BIOMETRIC_TOKEN_KEY = 'jamin.session.token';
 const BIOMETRIC_FLAG_KEY = 'jamin.biometric';
 
+// Login/device audit (0102): one best-effort row per app launch. Never blocks
+// or fails auth; the dynamic import avoids a require cycle with features/*.
+let loginLogged = false;
+function logLoginEvent(): void {
+  if (loginLogged) return;
+  loginLogged = true;
+  void (async () => {
+    try {
+      const { deviceInfo } = await import('@/features/referral/device');
+      const d = await deviceInfo();
+      await supabase.from('login_events').insert({
+        platform: String(d.os ?? ''),
+        os_version: String(d.osVersion ?? ''),
+        model: [d.brand, d.model].filter(Boolean).join(' ') || null,
+        app_version: d.appVersion ? String(d.appVersion) : null,
+      });
+    } catch {
+      /* audit is best-effort */
+    }
+  })();
+}
+
 interface AuthState {
   session: Session | null;
   profile: Profile | null;
@@ -73,6 +95,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     set({ session });
     if (session) {
       await SecureStore.setItemAsync(BIOMETRIC_TOKEN_KEY, session.access_token).catch(() => {});
+      logLoginEvent();
       await get().refreshProfile();
     } else {
       await SecureStore.deleteItemAsync(BIOMETRIC_TOKEN_KEY).catch(() => {});

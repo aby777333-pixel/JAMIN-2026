@@ -14,7 +14,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
 import { useQueryClient } from '@tanstack/react-query';
 import { callAI } from '@/features/ai/api';
-import { LEAD_STATUSES, listLeadEvents, setLeadScore, type FollowUp, type LeadStatus } from '@/features/leads/api';
+import { FOLLOW_UP_KINDS, LEAD_STATUSES, listLeadEvents, setLeadScore, type FollowUp, type FollowUpKind, type LeadStatus } from '@/features/leads/api';
 import {
   useCreateFollowUp,
   useFollowUps,
@@ -279,8 +279,8 @@ export default function LeadDetail() {
             }
           />
         ))}
-        <AddFollowUp pending={createFollowUp.isPending} onAdd={(dueAt, note) =>
-          createFollowUp.mutateAsync({ dueAt, note }).catch((e) =>
+        <AddFollowUp pending={createFollowUp.isPending} onAdd={(dueAt, note, kind) =>
+          createFollowUp.mutateAsync({ dueAt, note, kind }).catch((e) =>
             Alert.alert('Could not add', errMessage(e)),
           )
         } />
@@ -393,6 +393,9 @@ function FollowUpItem({ item, onToggle }: { item: FollowUp; onToggle: () => void
       </Pressable>
       <View className="flex-1">
         <Text variant="title" className={`text-[14px] ${done ? 'line-through text-muted' : ''}`}>
+          <Text className="font-mono text-[11px] uppercase text-muted">
+            {(item.kind ?? 'call').replace(/_/g, ' ')}{' · '}
+          </Text>
           {item.note ?? 'Follow up'}
         </Text>
         <Text variant="caption">
@@ -403,15 +406,24 @@ function FollowUpItem({ item, onToggle }: { item: FollowUp; onToggle: () => void
   );
 }
 
+const KIND_LABELS: Record<FollowUpKind, string> = {
+  call: 'Call',
+  meeting: 'Meeting',
+  site_visit: 'Site visit',
+  documentation: 'Docs',
+  booking: 'Booking',
+};
+
 function AddFollowUp({
   pending,
   onAdd,
 }: {
   pending: boolean;
-  onAdd: (dueAt: string, note: string) => void;
+  onAdd: (dueAt: string, note: string, kind: FollowUpKind) => void;
 }) {
   const [note, setNote] = useState('');
   const [dayIdx, setDayIdx] = useState(1);
+  const [kind, setKind] = useState<FollowUpKind>('call');
 
   const days = useMemo(() => {
     const out: { label: string; date: Date }[] = [];
@@ -429,7 +441,7 @@ function AddFollowUp({
   function add() {
     const d = new Date(days[dayIdx].date);
     d.setHours(10, 0, 0, 0);
-    onAdd(d.toISOString(), note.trim() || 'Follow up');
+    onAdd(d.toISOString(), note.trim() || 'Follow up', kind);
     setNote('');
   }
 
@@ -439,6 +451,11 @@ function AddFollowUp({
         Schedule a follow-up
       </Text>
       <Input placeholder="Note (e.g. call about pricing)" value={note} onChangeText={setNote} />
+      <View className="flex-row flex-wrap gap-2">
+        {FOLLOW_UP_KINDS.map((k) => (
+          <Chip key={k} label={KIND_LABELS[k]} active={kind === k} onPress={() => setKind(k)} />
+        ))}
+      </View>
       <View className="flex-row flex-wrap gap-2">
         {days.map((d, i) => (
           <Chip key={d.label} label={d.label} active={dayIdx === i} onPress={() => setDayIdx(i)} />

@@ -39,7 +39,7 @@ export function useFollowUps(leadId: string | undefined) {
 export function useCreateFollowUp(leadId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { dueAt: string; note: string }) =>
+    mutationFn: (input: { dueAt: string; note: string; kind?: string }) =>
       api.createFollowUp({ leadId, ...input }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['followups', leadId] }),
   });

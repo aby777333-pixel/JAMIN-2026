@@ -16,7 +16,7 @@ import { Sheet } from '@/features/buyer/components/EnquirySheet';
 import { useMyBookings } from '@/features/payments/hooks';
 import { useRequestWithdrawal, useWalletSummary, useWithdrawals } from '@/features/wallet/hooks';
 import type { LedgerEntry, Withdrawal } from '@/features/wallet/api';
-import { exportCommissionStatement } from '@/features/wallet/statement';
+import { exportCommissionCsv, exportCommissionStatement } from '@/features/wallet/statement';
 import { can } from '@/lib/access';
 import { useAuth } from '@/stores/auth';
 import { formatINR, money } from '@/lib/money';
@@ -87,6 +87,15 @@ function PartnerWallet() {
     }
   }
 
+  async function downloadCsv() {
+    if (!summary) return;
+    try {
+      await exportCommissionCsv(summary);
+    } catch (e) {
+      Alert.alert('Could not export', errMessage(e));
+    }
+  }
+
   const balance = summary?.balance ?? '0';
 
   return (
@@ -127,6 +136,13 @@ function PartnerWallet() {
         subtitle="Commission ledger, statement and payout history">
         {summary && summary.ledger.length > 0 ? (
           <Button title="Download statement (PDF)" variant="outline" onPress={downloadStatement} />
+        ) : null}
+        {summary && summary.ledger.length > 0 ? (
+          <Button
+            title={t('wallet.exportCsv', { defaultValue: 'Excel (CSV)' })}
+            variant="outline"
+            onPress={downloadCsv}
+          />
         ) : null}
 
         {summary && summary.ledger.length > 0 ? (
