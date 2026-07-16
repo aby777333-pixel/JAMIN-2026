@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
@@ -25,14 +26,17 @@ export default function RolePreview() {
   const current = useAuth((s) => s.profile?.role_slug);
   const preview = useAuth((s) => s.previewRole);
   const setPreviewRole = useAuth((s) => s.setPreviewRole);
+  // The tidy list shows the public user types; the toggle reveals EVERY role
+  // in the system (state head, regional manager, builder, surveyor, …) so the
+  // Super Admin can preview absolutely any experience.
+  const [showAll, setShowAll] = useState(false);
 
-  const { data: roles = [], isLoading } = useQuery({
+  const { data: allRoles = [], isLoading } = useQuery({
     queryKey: ['all-roles'],
     queryFn: async () => {
       const { data, error } = await supabase.from('roles').select('id, slug, name, level').order('level');
       if (error) throw error;
-      // Only the five public user types are listed (brief: hide all others).
-      return ((data ?? []) as Role[]).filter((r) => isVisibleRole(r.slug));
+      return (data ?? []) as Role[];
     },
   });
 
@@ -58,6 +62,66 @@ export default function RolePreview() {
     }, 400);
   }
 
+  const roles = showAll ? allRoles : allRoles.filter((r) => isVisibleRole(r.slug));
+  // Agent + Broker share one card (both level 6, same app experience) —
+  // each stays individually previewable via the chips inside it.
+  const agent = roles.find((r) => r.slug === 'agent');
+  const broker = roles.find((r) => r.slug === 'broker');
+  const combineAgentBroker = !!agent && !!broker;
+  const listed = combineAgentBroker ? roles.filter((r) => r.slug !== 'agent' && r.slug !== 'broker') : roles;
+  const agentBrokerActive =
+    (preview ? preview === 'agent' || preview === 'broker' : current === 'agent' || current === 'broker');
+
+  function roleCard(r: Role) {
+    const active = preview ? preview === r.slug : current === r.slug;
+    return (
+      <Pressable key={r.id} onPress={() => pick(r.slug)}>
+        <Card className={`flex-row items-center gap-3 ${active ? 'border-red bg-red/5' : ''}`}>
+          <View className="flex-1">
+            <Text variant="title">{r.name}</Text>
+            <Text variant="caption" className="capitalize">{r.slug.replace(/_/g, ' ')}{r.level != null ? ` · level ${r.level}` : ''}</Text>
+          </View>
+          {active ? (
+            <Text className="text-[12px] font-bold text-red">{preview ? 'PREVIEWING' : 'CURRENT'}</Text>
+          ) : (
+            <Ionicons name="chevron-forward" size={18} color={color.muted} />
+          )}
+        </Card>
+      </Pressable>
+    );
+  }
+
+  function agentBrokerCard() {
+    if (!agent || !broker) return null;
+    return (
+      <Card key="agent-broker" className={agentBrokerActive ? 'gap-2.5 border-red bg-red/5' : 'gap-2.5'}>
+        <View className="flex-row items-center gap-3">
+          <View className="flex-1">
+            <Text variant="title">Agent / Broker</Text>
+            <Text variant="caption">Agent · Broker · level 6 — same experience, pick either</Text>
+          </View>
+          {agentBrokerActive ? (
+            <Text className="text-[12px] font-bold text-red">{preview ? 'PREVIEWING' : 'CURRENT'}</Text>
+          ) : null}
+        </View>
+        <View className="flex-row gap-2">
+          {[agent, broker].map((x) => {
+            const active = preview ? preview === x.slug : current === x.slug;
+            return (
+              <Pressable
+                key={x.slug}
+                onPress={() => pick(x.slug)}
+                className={`flex-row items-center gap-1.5 rounded-full border px-3.5 py-2 ${active ? 'border-red bg-red' : 'border-line bg-surface'}`}>
+                <Ionicons name="eye-outline" size={14} color={active ? '#FFFFFF' : color.ink} />
+                <Text className={`text-[13px] font-semibold ${active ? 'text-white' : 'text-ink'}`}>{x.name}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </Card>
+    );
+  }
+
   return (
     <Screen contentClassName="pb-12 gap-3">
       <BackHeader title="Preview as role" />
@@ -81,24 +145,28 @@ export default function RolePreview() {
       {isLoading ? (
         <ActivityIndicator color={color.red} className="mt-6" />
       ) : (
-        roles.map((r) => {
-          const active = preview ? preview === r.slug : current === r.slug;
-          return (
-            <Pressable key={r.id} onPress={() => pick(r.slug)}>
-              <Card className={`flex-row items-center gap-3 ${active ? 'border-red bg-red/5' : ''}`}>
-                <View className="flex-1">
-                  <Text variant="title">{r.name}</Text>
-                  <Text variant="caption" className="capitalize">{r.slug.replace(/_/g, ' ')}{r.level != null ? ` · level ${r.level}` : ''}</Text>
+        <>
+          {listed.map((r) => {
+            // Slot the combined Agent/Broker card in level order (before the
+            // first role above level 6 — i.e. before Buyer).
+            if (combineAgentBroker && (r.level ?? 0) > 6 && !listed.slice(0, listed.indexOf(r)).some((x) => (x.level ?? 0) > 6)) {
+              return (
+                <View key={`ab-${r.id}`} className="gap-3">
+                  {agentBrokerCard()}
+                  {roleCard(r)}
                 </View>
-                {active ? (
-                  <Text className="text-[12px] font-bold text-red">{preview ? 'PREVIEWING' : 'CURRENT'}</Text>
-                ) : (
-                  <Ionicons name="chevron-forward" size={18} color={color.muted} />
-                )}
-              </Card>
-            </Pressable>
-          );
-        })
+              );
+            }
+            return roleCard(r);
+          })}
+          {/* If no role sits above level 6 in this list, append the combined card. */}
+          {combineAgentBroker && !listed.some((x) => (x.level ?? 0) > 6) ? agentBrokerCard() : null}
+          <Pressable onPress={() => setShowAll((s) => !s)} className="items-center pt-1">
+            <Text className="text-[13px] font-semibold text-muted">
+              {showAll ? 'Show public roles only' : 'Show ALL roles (incl. internal ranks)'}
+            </Text>
+          </Pressable>
+        </>
       )}
     </Screen>
   );
