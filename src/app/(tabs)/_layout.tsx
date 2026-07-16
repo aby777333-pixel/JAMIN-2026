@@ -38,22 +38,28 @@ export default function TabsLayout() {
           paddingBottom: 8 + insets.bottom,
           paddingTop: 6,
         },
-        tabBarLabelStyle: { fontFamily: 'Inter_500Medium', fontSize: 11 },
+        tabBarLabelStyle: { fontFamily: 'Inter_600SemiBold', fontSize: 11 },
       }}>
       {/* Hidden: Home merged into the four tabs; index only redirects. */}
       <Tabs.Screen name="index" options={{ href: null }} />
+      {/* App-store convention: the focused tab shows the FILLED glyph, the
+          rest show outlines — pure styling, identical navigation. */}
       <Tabs.Screen
         name="properties"
         options={{
           title: t('tabs.properties'),
-          tabBarIcon: ({ color: c, size }) => <Ionicons name="business" color={c} size={size} />,
+          tabBarIcon: ({ color: c, size, focused }) => (
+            <Ionicons name={focused ? 'business' : 'business-outline'} color={c} size={size} />
+          ),
         }}
       />
       <Tabs.Screen
         name="wallet"
         options={{
           title: t('tabs.investments'),
-          tabBarIcon: ({ color: c, size }) => <Ionicons name="trending-up" color={c} size={size} />,
+          tabBarIcon: ({ color: c, size, focused }) => (
+            <Ionicons name="trending-up" color={c} size={focused ? size + 1 : size} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -62,8 +68,8 @@ export default function TabsLayout() {
           title: t('tabs.activity'),
           tabBarBadge: unread > 0 ? (unread > 9 ? '9+' : unread) : undefined,
           tabBarBadgeStyle: { backgroundColor: color.red, fontSize: 10 },
-          tabBarIcon: ({ color: c, size }) => (
-            <Ionicons name="notifications-outline" color={c} size={size} />
+          tabBarIcon: ({ color: c, size, focused }) => (
+            <Ionicons name={focused ? 'notifications' : 'notifications-outline'} color={c} size={size} />
           ),
         }}
       />
@@ -71,8 +77,8 @@ export default function TabsLayout() {
         name="account"
         options={{
           title: t('tabs.account'),
-          tabBarIcon: ({ color: c, size }) => (
-            <Ionicons name="person-circle-outline" color={c} size={size} />
+          tabBarIcon: ({ color: c, size, focused }) => (
+            <Ionicons name={focused ? 'person-circle' : 'person-circle-outline'} color={c} size={size} />
           ),
         }}
       />
