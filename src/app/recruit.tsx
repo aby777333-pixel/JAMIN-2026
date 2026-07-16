@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
+import { Disclosure } from '@/components/ui/Disclosure';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
@@ -153,9 +154,16 @@ function Invitations({ referralLink }: { referralLink: string }) {
   }
 
   return (
-    <View className="gap-2">
-      <Text variant="label">{t('recruit.invites.title', { defaultValue: 'Invitations' })}</Text>
-
+    // Collapsed by default — recruiting stays a one-screen share flow; the
+    // invitation ledger opens on demand with its counts on the header.
+    <Disclosure
+      title={t('recruit.invites.title', { defaultValue: 'Invitations' })}
+      subtitle={t('recruit.invites.summary', {
+        defaultValue: '{{sent}} sent · {{accepted}} accepted · {{pending}} pending',
+        sent: invites.length,
+        accepted,
+        pending,
+      })}>
       <View className="flex-row gap-3">
         <Card className="flex-1 items-center py-3">
           <Text className="font-mono-bold text-[20px] text-ink">{invites.length}</Text>
@@ -234,7 +242,7 @@ function Invitations({ referralLink }: { referralLink: string }) {
           ) : null}
         </Card>
       ))}
-    </View>
+    </Disclosure>
   );
 }
 

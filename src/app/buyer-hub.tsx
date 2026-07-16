@@ -5,6 +5,7 @@ import { Pressable, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Card } from '@/components/ui/Card';
+import { Disclosure } from '@/components/ui/Disclosure';
 import { ListRow } from '@/components/ui/ListRow';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
@@ -153,14 +154,12 @@ export default function BuyerHub() {
         />
       ) : null}
 
-      {/* Upcoming site visits. */}
+      {/* Everything secondary sits behind clear dropdowns — counts stay visible
+          on the headers so the dashboard is glanceable without the noise. */}
       {upcoming.length > 0 ? (
-        <>
-          <SectionHead
-            label={t('buyerHub.upcomingVisits', { defaultValue: 'Upcoming site visits' })}
-            linkLabel={viewAll}
-            onPress={() => router.push('/visits')}
-          />
+        <Disclosure
+          title={t('buyerHub.upcomingVisits', { defaultValue: 'Upcoming site visits' })}
+          subtitle={t('buyerHub.upcomingVisitsSub', { defaultValue: '{{count}} scheduled', count: upcoming.length })}>
           {upcoming.map((v) => (
             <Pressable key={v.id} onPress={() => router.push('/visits')}>
               <Card className="flex-row items-center gap-3 py-3">
@@ -185,83 +184,74 @@ export default function BuyerHub() {
               </Card>
             </Pressable>
           ))}
-        </>
+          <SectionLink label={viewAll} onPress={() => router.push('/visits')} />
+        </Disclosure>
       ) : null}
 
-      {/* Brochures downloaded. */}
       {brochures.length > 0 ? (
-        <>
-          <SectionHead
-            label={t('buyerHub.brochures', { defaultValue: 'Brochure downloads' })}
-            linkLabel={viewAll}
-            onPress={() => router.push('/brochures')}
-          />
-          <Card className="gap-2.5">
-            {brochures.map((b) => (
-              <Pressable
-                key={b.id}
-                onPress={() =>
-                  b.property_id ? router.push(`/property/${b.property_id}`) : router.push('/brochures')
-                }
-                className="flex-row items-center gap-2.5">
-                <Ionicons name="document-text-outline" size={16} color={color.muted} />
-                <View className="min-w-0 flex-1">
-                  <Text className="font-medium text-[13px] text-ink" numberOfLines={1}>
-                    {b.title}
-                    {b.property?.plot_code ? ` · ${b.property.plot_code}` : ''}
-                  </Text>
-                </View>
-                <Text variant="caption" className="text-[11px]">
-                  {new Date(b.created_at).toLocaleDateString('en-IN')}
+        <Disclosure
+          title={t('buyerHub.brochures', { defaultValue: 'Brochure downloads' })}
+          subtitle={t('buyerHub.brochuresSub', { defaultValue: '{{count}} recent', count: brochures.length })}>
+          {brochures.map((b) => (
+            <Pressable
+              key={b.id}
+              onPress={() =>
+                b.property_id ? router.push(`/property/${b.property_id}`) : router.push('/brochures')
+              }
+              className="flex-row items-center gap-2.5">
+              <Ionicons name="document-text-outline" size={16} color={color.muted} />
+              <View className="min-w-0 flex-1">
+                <Text className="font-medium text-[13px] text-ink" numberOfLines={1}>
+                  {b.title}
+                  {b.property?.plot_code ? ` · ${b.property.plot_code}` : ''}
                 </Text>
-              </Pressable>
-            ))}
-          </Card>
-        </>
+              </View>
+              <Text variant="caption" className="text-[11px]">
+                {new Date(b.created_at).toLocaleDateString('en-IN')}
+              </Text>
+            </Pressable>
+          ))}
+          <SectionLink label={viewAll} onPress={() => router.push('/brochures')} />
+        </Disclosure>
       ) : null}
 
-      {/* Notifications preview. */}
       {recentNotifications.length > 0 ? (
-        <>
-          <SectionHead
-            label={t('buyerHub.updates', { defaultValue: 'Latest updates' })}
-            linkLabel={viewAll}
-            onPress={() => router.push('/notifications')}
-          />
-          <Card className="gap-2.5">
-            {recentNotifications.map((n) => (
-              <Pressable
-                key={n.id}
-                onPress={() => router.push('/notifications')}
-                className="flex-row items-start gap-2.5">
-                <View
-                  className="mt-1.5 h-2 w-2 rounded-full"
-                  style={{ backgroundColor: n.read_at ? color.line : color.red }}
-                />
-                <View className="min-w-0 flex-1">
-                  <Text className="font-medium text-[13px] text-ink" numberOfLines={1}>
-                    {n.title}
+        <Disclosure
+          title={t('buyerHub.updates', { defaultValue: 'Latest updates' })}
+          subtitle={t('buyerHub.updatesSub', {
+            defaultValue: '{{count}} unread',
+            count: recentNotifications.filter((n) => !n.read_at).length,
+          })}>
+          {recentNotifications.map((n) => (
+            <Pressable
+              key={n.id}
+              onPress={() => router.push('/notifications')}
+              className="flex-row items-start gap-2.5">
+              <View
+                className="mt-1.5 h-2 w-2 rounded-full"
+                style={{ backgroundColor: n.read_at ? color.line : color.red }}
+              />
+              <View className="min-w-0 flex-1">
+                <Text className="font-medium text-[13px] text-ink" numberOfLines={1}>
+                  {n.title}
+                </Text>
+                {n.body ? (
+                  <Text variant="caption" numberOfLines={1}>
+                    {n.body}
                   </Text>
-                  {n.body ? (
-                    <Text variant="caption" numberOfLines={1}>
-                      {n.body}
-                    </Text>
-                  ) : null}
-                </View>
-              </Pressable>
-            ))}
-          </Card>
-        </>
+                ) : null}
+              </View>
+            </Pressable>
+          ))}
+          <SectionLink label={viewAll} onPress={() => router.push('/notifications')} />
+        </Disclosure>
       ) : null}
 
-      {/* Recommended for you. */}
       {recommended.length > 0 ? (
-        <>
-          <SectionHead
-            label={t('buyerHub.recommended', { defaultValue: 'Recommended for you' })}
-            linkLabel={t('buyerHub.browse', { defaultValue: 'Browse' })}
-            onPress={() => router.push('/(tabs)/properties')}
-          />
+        <Disclosure
+          title={t('buyerHub.recommended', { defaultValue: 'Recommended for you' })}
+          subtitle={t('buyerHub.recommendedSub', { defaultValue: 'Picked from your activity & preferences' })}
+          initiallyOpen>
           {recommended.map((item) => (
             <PropertyCard
               key={item.id}
@@ -272,8 +262,21 @@ export default function BuyerHub() {
               }
             />
           ))}
-        </>
+          <SectionLink
+            label={t('buyerHub.browse', { defaultValue: 'Browse all properties' })}
+            onPress={() => router.push('/(tabs)/properties')}
+          />
+        </Disclosure>
       ) : null}
     </Screen>
+  );
+}
+
+/** Small trailing "view all" link used inside collapsed sections. */
+function SectionLink({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} className="items-center pt-1" accessibilityRole="button">
+      <Text className="text-[13px] font-semibold text-red">{label}</Text>
+    </Pressable>
   );
 }
