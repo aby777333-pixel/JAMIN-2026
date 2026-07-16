@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
@@ -20,12 +20,43 @@ interface Role {
   level: number | null;
 }
 
+/**
+ * What each role actually sees — shown on the cards AND the honest answer to
+ * "why does a preview look similar": the 4-tab shell is identical for every
+ * role by design; the differences live INSIDE the screens listed here.
+ */
+const ROLE_NOTES: Record<string, string> = {
+  super_admin:
+    'Everything: Admin portal on Account, all approvals, users & roles, analytics — plus every partner tool.',
+  state_head:
+    'Partner suite + state-wide team analytics: leads, recruit, team, wallet, targets, marketing tools.',
+  regional_manager:
+    'Partner suite + regional team analytics: leads, recruit, team rollups, wallet, marketing tools.',
+  promoter:
+    'Properties quick actions become Leads/Recruit/Dashboard · Investments = commission wallet · Activity = agent digest · Account gains partner tools (clients, team, brochures, referrals, academy).',
+  sub_promoter:
+    'Same partner experience as Promoter, scoped to their own team subtree.',
+  agent:
+    'Leads CRM, recruit, wallet + statements, marketing library, visits scanner, property share tools; property pages show "Share with client" instead of buyer CTAs.',
+  broker:
+    'Same as Agent, plus co-broking; joins via broker application.',
+  seller:
+    'Properties quick actions become List property/My listings/Documents · property pages of their own plots show Manage · listing lifecycle (edit, hide, sold/rented, archive, renew).',
+  builder: 'Seller experience for builders — list projects/builds, documents, lifecycle.',
+  developer: 'Seller experience for developers — list projects, documents, lifecycle.',
+  surveyor: 'Service-role account: browse + profile + support; no sales tools.',
+  legal_consultant: 'Service-role account: browse + profile + support; no sales tools.',
+  buyer:
+    'Quick actions Saved/Compare/Alerts · property pages show Enquire/Book visit/Offer/Reserve + contact routing · Investments = bookings · buyer dashboard, preferences, saved searches, notes.',
+};
+
 /** Super-admin only: preview the app as any role (UI-only, never changes your real role). */
 export default function RolePreview() {
   const isRealAdmin = useAuth((s) => s.isRealAdmin);
   const current = useAuth((s) => s.profile?.role_slug);
   const preview = useAuth((s) => s.previewRole);
   const setPreviewRole = useAuth((s) => s.setPreviewRole);
+  const qc = useQueryClient();
   // The tidy list shows the public user types; the toggle reveals EVERY role
   // in the system (state head, regional manager, builder, surveyor, …) so the
   // Super Admin can preview absolutely any experience.
@@ -58,7 +89,11 @@ export default function RolePreview() {
     // which closed release builds outright.
     router.replace('/(tabs)');
     setTimeout(() => {
-      void setPreviewRole(slug);
+      void setPreviewRole(slug).then(() => {
+        // Role-gated screens cache their queries — refetch everything so the
+        // preview shows that role's content immediately, not stale admin data.
+        void qc.invalidateQueries();
+      });
     }, 400);
   }
 
@@ -76,16 +111,21 @@ export default function RolePreview() {
     const active = preview ? preview === r.slug : current === r.slug;
     return (
       <Pressable key={r.id} onPress={() => pick(r.slug)}>
-        <Card className={`flex-row items-center gap-3 ${active ? 'border-red bg-red/5' : ''}`}>
-          <View className="flex-1">
-            <Text variant="title">{r.name}</Text>
-            <Text variant="caption" className="capitalize">{r.slug.replace(/_/g, ' ')}{r.level != null ? ` · level ${r.level}` : ''}</Text>
+        <Card className={`gap-1.5 ${active ? 'border-red bg-red/5' : ''}`}>
+          <View className="flex-row items-center gap-3">
+            <View className="min-w-0 flex-1">
+              <Text variant="title">{r.name}</Text>
+              <Text variant="caption" className="capitalize">{r.slug.replace(/_/g, ' ')}{r.level != null ? ` · level ${r.level}` : ''}</Text>
+            </View>
+            {active ? (
+              <Text className="text-[12px] font-bold text-red">{preview ? 'PREVIEWING' : 'CURRENT'}</Text>
+            ) : (
+              <Ionicons name="chevron-forward" size={18} color={color.muted} />
+            )}
           </View>
-          {active ? (
-            <Text className="text-[12px] font-bold text-red">{preview ? 'PREVIEWING' : 'CURRENT'}</Text>
-          ) : (
-            <Ionicons name="chevron-forward" size={18} color={color.muted} />
-          )}
+          {ROLE_NOTES[r.slug] ? (
+            <Text variant="caption" className="text-ink">{ROLE_NOTES[r.slug]}</Text>
+          ) : null}
         </Card>
       </Pressable>
     );
@@ -118,6 +158,7 @@ export default function RolePreview() {
             );
           })}
         </View>
+        <Text variant="caption" className="text-ink">{ROLE_NOTES.agent}</Text>
       </Card>
     );
   }

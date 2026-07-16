@@ -1,42 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useUnreadCount } from '@/features/notifications/api';
 import { tap } from '@/lib/haptics';
 import { color } from '@/theme/tokens';
-
-/** Tinted pill behind the focused tab's icon — pure styling, brand palette. */
-function TabIcon({
-  focused,
-  tint,
-  children,
-}: {
-  focused: boolean;
-  tint: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <View
-      style={{
-        paddingHorizontal: 14,
-        paddingVertical: 4,
-        borderRadius: 999,
-        backgroundColor: focused ? tint : 'transparent',
-      }}>
-      {children}
-    </View>
-  );
-}
-
-const TAB_TINTS = {
-  properties: 'rgba(253, 0, 1, 0.10)',   // brand red
-  wallet: 'rgba(251, 188, 21, 0.18)',    // gold
-  activity: 'rgba(253, 0, 1, 0.10)',     // brand red
-  account: 'rgba(200, 145, 30, 0.16)',   // gold-deep
-};
 
 /**
  * Four calm bottom tabs — Properties, Investments, Activity, Account
@@ -75,14 +44,15 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" options={{ href: null }} />
       {/* App-store convention: the focused tab shows the FILLED glyph, the
           rest show outlines — pure styling, identical navigation. */}
+      {/* App-store convention: the focused tab shows the FILLED glyph. A padded
+          pill wrapper was tried here and CLIPPED the icons inside the fixed
+          tab-bar icon box on device — keep icons bare. */}
       <Tabs.Screen
         name="properties"
         options={{
           title: t('tabs.properties'),
           tabBarIcon: ({ color: c, size, focused }) => (
-            <TabIcon focused={focused} tint={TAB_TINTS.properties}>
-              <Ionicons name={focused ? 'business' : 'business-outline'} color={c} size={size} />
-            </TabIcon>
+            <Ionicons name={focused ? 'business' : 'business-outline'} color={c} size={size} />
           ),
         }}
       />
@@ -90,11 +60,7 @@ export default function TabsLayout() {
         name="wallet"
         options={{
           title: t('tabs.investments'),
-          tabBarIcon: ({ color: c, size, focused }) => (
-            <TabIcon focused={focused} tint={TAB_TINTS.wallet}>
-              <Ionicons name="trending-up" color={c} size={focused ? size + 1 : size} />
-            </TabIcon>
-          ),
+          tabBarIcon: ({ color: c, size }) => <Ionicons name="trending-up" color={c} size={size} />,
         }}
       />
       <Tabs.Screen
@@ -104,9 +70,7 @@ export default function TabsLayout() {
           tabBarBadge: unread > 0 ? (unread > 9 ? '9+' : unread) : undefined,
           tabBarBadgeStyle: { backgroundColor: color.red, fontSize: 10 },
           tabBarIcon: ({ color: c, size, focused }) => (
-            <TabIcon focused={focused} tint={TAB_TINTS.activity}>
-              <Ionicons name={focused ? 'notifications' : 'notifications-outline'} color={c} size={size} />
-            </TabIcon>
+            <Ionicons name={focused ? 'notifications' : 'notifications-outline'} color={c} size={size} />
           ),
         }}
       />
@@ -115,9 +79,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.account'),
           tabBarIcon: ({ color: c, size, focused }) => (
-            <TabIcon focused={focused} tint={TAB_TINTS.account}>
-              <Ionicons name={focused ? 'person-circle' : 'person-circle-outline'} color={c} size={size} />
-            </TabIcon>
+            <Ionicons name={focused ? 'person-circle' : 'person-circle-outline'} color={c} size={size} />
           ),
         }}
       />
