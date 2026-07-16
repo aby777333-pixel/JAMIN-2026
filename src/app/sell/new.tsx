@@ -54,10 +54,31 @@ const FALLBACK_DOC_TYPES = [
 ];
 
 /** Canonical option values — stored as-is in attrs (labels may be translated). */
-const LISTING_FOR_OPTIONS = ['Sale', 'Rent'] as const;
+const LISTING_FOR_OPTIONS = [
+  'Sale',
+  'Rent',
+  'Lease',
+  'Auction',
+  'Fractional ownership',
+  'Joint development',
+] as const;
 const PRICE_TYPE_OPTIONS = ['Negotiable', 'Fixed'] as const;
 const AREA_UNIT_OPTIONS = ['Sq.ft', 'Sq.yd', 'Cent', 'Acre', 'Hectare'] as const;
 const FURNISHING_OPTIONS = ['Furnished', 'Semi-furnished', 'Unfurnished'] as const;
+const STAGE_OPTIONS = [
+  'Pre-launch',
+  'New launch',
+  'Under construction',
+  'Ready to move',
+  'Resale',
+] as const;
+const OWNERSHIP_TYPE_OPTIONS = [
+  'Freehold',
+  'Leasehold',
+  'Joint ownership',
+  'Company owned',
+  'Trust property',
+] as const;
 
 export default function NewListing() {
   const { t } = useTranslation();
@@ -77,6 +98,8 @@ export default function NewListing() {
 
   const [projectId, setProjectId] = useState<string | null>(null);
   const [typeId, setTypeId] = useState<string | null>(null);
+  // UI-only category narrowing for the (now 121-strong) property-type picker.
+  const [typeCategory, setTypeCategory] = useState<string | null>(null);
   const [price, setPrice] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -101,6 +124,19 @@ export default function NewListing() {
   const [priceType, setPriceType] = useState<string | null>(null);
   const [areaUnit, setAreaUnit] = useState<string | null>(null);
   const [ageOfProperty, setAgeOfProperty] = useState('');
+  const [stage, setStage] = useState<string | null>(null);
+  const [ownershipType, setOwnershipType] = useState<string | null>(null);
+  const [builtUpArea, setBuiltUpArea] = useState('');
+  const [carpetArea, setCarpetArea] = useState('');
+  const [superBuiltUpArea, setSuperBuiltUpArea] = useState('');
+  const [possessionDate, setPossessionDate] = useState('');
+  // Location details (Disclosure below)
+  const [locState, setLocState] = useState('');
+  const [locDistrict, setLocDistrict] = useState('');
+  const [locCity, setLocCity] = useState('');
+  const [locTaluk, setLocTaluk] = useState('');
+  const [locVillage, setLocVillage] = useState('');
+  const [locLocality, setLocLocality] = useState('');
   // Home details
   const [bedrooms, setBedrooms] = useState('');
   const [bathrooms, setBathrooms] = useState('');
@@ -121,6 +157,24 @@ export default function NewListing() {
   const [publicTransport, setPublicTransport] = useState('');
   const [shoppingCentres, setShoppingCentres] = useState('');
   const [pinCode, setPinCode] = useState('');
+
+  // ── Property-type category grouping (0106). Distinct categories in
+  //    first-seen order; selecting one only narrows the chips below — the
+  //    chosen typeId is never cleared, and its chip stays visible (pinned
+  //    to the front) even when it belongs to another category.
+  const typeCategories: string[] = [];
+  for (const ty of types ?? []) {
+    const c = (ty.category ?? '').trim();
+    if (c && !typeCategories.includes(c)) typeCategories.push(c);
+  }
+  const selectedType = typeId ? (types ?? []).find((ty) => ty.id === typeId) : undefined;
+  const narrowedTypes = typeCategory
+    ? (types ?? []).filter((ty) => (ty.category ?? '').trim() === typeCategory)
+    : (types ?? []);
+  const typeChips =
+    selectedType && !narrowedTypes.some((ty) => ty.id === selectedType.id)
+      ? [selectedType, ...narrowedTypes]
+      : narrowedTypes;
 
   async function pickDocs() {
     const res = await DocumentPicker.getDocumentAsync({ multiple: true, copyToCacheDirectory: true });
@@ -182,6 +236,18 @@ export default function NewListing() {
       if (priceType) extraAttrs['Price type'] = priceType;
       if (areaUnit) extraAttrs['Area unit'] = areaUnit;
       if (ageOfProperty.trim()) extraAttrs['Age of property'] = ageOfProperty.trim();
+      if (stage) extraAttrs['Stage'] = stage;
+      if (ownershipType) extraAttrs['Ownership type'] = ownershipType;
+      if (builtUpArea.trim()) extraAttrs['Built-up area'] = builtUpArea.trim();
+      if (carpetArea.trim()) extraAttrs['Carpet area'] = carpetArea.trim();
+      if (superBuiltUpArea.trim()) extraAttrs['Super built-up area'] = superBuiltUpArea.trim();
+      if (possessionDate.trim()) extraAttrs['Possession date'] = possessionDate.trim();
+      if (locState.trim()) extraAttrs['State'] = locState.trim();
+      if (locDistrict.trim()) extraAttrs['District'] = locDistrict.trim();
+      if (locCity.trim()) extraAttrs['City'] = locCity.trim();
+      if (locTaluk.trim()) extraAttrs['Taluk'] = locTaluk.trim();
+      if (locVillage.trim()) extraAttrs['Village'] = locVillage.trim();
+      if (locLocality.trim()) extraAttrs['Locality'] = locLocality.trim();
       if (bedrooms.trim()) extraAttrs['Bedrooms'] = bedrooms.trim();
       if (bathrooms.trim()) extraAttrs['Bathrooms'] = bathrooms.trim();
       if (floors.trim()) extraAttrs['Floors'] = floors.trim();
@@ -298,10 +364,29 @@ export default function NewListing() {
         {typeLoading ? (
           <ActivityIndicator color={color.red} />
         ) : (
-          <View className="flex-row flex-wrap gap-2">
-            {(types ?? []).map((t) => (
-              <Chip key={t.id} label={t.name} active={typeId === t.id} onPress={() => setTypeId(t.id)} />
-            ))}
+          <View className="gap-2">
+            {typeCategories.length > 0 ? (
+              <View className="flex-row flex-wrap gap-2">
+                <Chip
+                  label={t('sellNew.allCategories', { defaultValue: 'All' })}
+                  active={!typeCategory}
+                  onPress={() => setTypeCategory(null)}
+                />
+                {typeCategories.map((c) => (
+                  <Chip
+                    key={c}
+                    label={c}
+                    active={typeCategory === c}
+                    onPress={() => setTypeCategory(typeCategory === c ? null : c)}
+                  />
+                ))}
+              </View>
+            ) : null}
+            <View className="flex-row flex-wrap gap-2">
+              {typeChips.map((ty) => (
+                <Chip key={ty.id} label={ty.name} active={typeId === ty.id} onPress={() => setTypeId(ty.id)} />
+              ))}
+            </View>
           </View>
         )}
       </View>
@@ -366,6 +451,57 @@ export default function NewListing() {
           keyboardType="numeric"
           inputMode="numeric"
           placeholder="5"
+        />
+        <View className="gap-1.5">
+          <Text variant="label">{t('sellNew.stage', { defaultValue: 'Stage' })}</Text>
+          <View className="flex-row flex-wrap gap-2">
+            {STAGE_OPTIONS.map((v) => (
+              <Chip key={v} label={v} active={stage === v} onPress={() => setStage(stage === v ? null : v)} />
+            ))}
+          </View>
+        </View>
+        <View className="gap-1.5">
+          <Text variant="label">{t('sellNew.ownershipType', { defaultValue: 'Ownership type' })}</Text>
+          <View className="flex-row flex-wrap gap-2">
+            {OWNERSHIP_TYPE_OPTIONS.map((v) => (
+              <Chip
+                key={v}
+                label={v}
+                active={ownershipType === v}
+                onPress={() => setOwnershipType(ownershipType === v ? null : v)}
+              />
+            ))}
+          </View>
+        </View>
+        <Input
+          label={t('sellNew.builtUpArea', { defaultValue: 'Built-up area' })}
+          value={builtUpArea}
+          onChangeText={setBuiltUpArea}
+          keyboardType="numeric"
+          inputMode="numeric"
+          placeholder="1200"
+        />
+        <Input
+          label={t('sellNew.carpetArea', { defaultValue: 'Carpet area' })}
+          value={carpetArea}
+          onChangeText={setCarpetArea}
+          keyboardType="numeric"
+          inputMode="numeric"
+          placeholder="1000"
+        />
+        <Input
+          label={t('sellNew.superBuiltUpArea', { defaultValue: 'Super built-up area' })}
+          value={superBuiltUpArea}
+          onChangeText={setSuperBuiltUpArea}
+          keyboardType="numeric"
+          inputMode="numeric"
+          placeholder="1400"
+        />
+        <Input
+          label={t('sellNew.possessionDate', { defaultValue: 'Possession date' })}
+          value={possessionDate}
+          onChangeText={setPossessionDate}
+          placeholder={t('sellNew.possessionDatePh', { defaultValue: 'e.g. Dec 2026' })}
         />
       </Disclosure>
 
@@ -504,6 +640,47 @@ export default function NewListing() {
           keyboardType="numeric"
           inputMode="numeric"
           placeholder="600001"
+        />
+      </Disclosure>
+
+      <Disclosure
+        title={t('sellNew.locationDetails.title', { defaultValue: 'Location details' })}
+        subtitle={t('sellNew.locationDetails.subtitle', { defaultValue: 'State, district, city, taluk, village, locality' })}>
+        <Input
+          label={t('sellNew.locState', { defaultValue: 'State' })}
+          value={locState}
+          onChangeText={setLocState}
+          placeholder={t('sellNew.locStatePh', { defaultValue: 'e.g. Tamil Nadu' })}
+        />
+        <Input
+          label={t('sellNew.locDistrict', { defaultValue: 'District' })}
+          value={locDistrict}
+          onChangeText={setLocDistrict}
+          placeholder={t('sellNew.locDistrictPh', { defaultValue: 'e.g. Coimbatore' })}
+        />
+        <Input
+          label={t('sellNew.locCity', { defaultValue: 'City' })}
+          value={locCity}
+          onChangeText={setLocCity}
+          placeholder={t('sellNew.locCityPh', { defaultValue: 'e.g. Coimbatore' })}
+        />
+        <Input
+          label={t('sellNew.locTaluk', { defaultValue: 'Taluk' })}
+          value={locTaluk}
+          onChangeText={setLocTaluk}
+          placeholder={t('sellNew.locTalukPh', { defaultValue: 'e.g. Pollachi' })}
+        />
+        <Input
+          label={t('sellNew.locVillage', { defaultValue: 'Village' })}
+          value={locVillage}
+          onChangeText={setLocVillage}
+          placeholder={t('sellNew.locVillagePh', { defaultValue: 'e.g. Zamin Uthukuli' })}
+        />
+        <Input
+          label={t('sellNew.locLocality', { defaultValue: 'Locality' })}
+          value={locLocality}
+          onChangeText={setLocLocality}
+          placeholder={t('sellNew.locLocalityPh', { defaultValue: 'e.g. Race Course' })}
         />
       </Disclosure>
 

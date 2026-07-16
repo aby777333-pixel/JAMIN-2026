@@ -268,14 +268,22 @@ export async function getProjectsWithCounts(): Promise<ProjectSummary[]> {
   }));
 }
 
-export async function getPropertyTypes() {
+export interface PropertyTypeRow {
+  id: string;
+  slug: string;
+  name: string;
+  code_prefix: string;
+  category?: string | null;
+}
+
+export async function getPropertyTypes(): Promise<PropertyTypeRow[]> {
   const { data, error } = await supabase
     .from('property_types')
-    .select('id, slug, name, code_prefix')
+    .select('id, slug, name, code_prefix, category')
     .eq('active', true)
     .order('name');
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as PropertyTypeRow[];
 }
 
 export async function getWishlistIds(): Promise<Set<string>> {

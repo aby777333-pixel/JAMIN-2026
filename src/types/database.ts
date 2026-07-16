@@ -3412,6 +3412,7 @@ export type Database = {
       property_types: {
         Row: {
           active: boolean
+          category: string
           code_prefix: string
           created_at: string
           id: string
@@ -3420,6 +3421,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          category?: string
           code_prefix: string
           created_at?: string
           id?: string
@@ -3428,6 +3430,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          category?: string
           code_prefix?: string
           created_at?: string
           id?: string

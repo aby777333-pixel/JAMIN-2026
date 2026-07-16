@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 
@@ -9,6 +10,8 @@ import type { PropertyFilters } from '../types';
 interface Option {
   id: string;
   name: string;
+  /** Optional property-type category (0106) — used to group the type chips. */
+  category?: string | null;
 }
 
 export function FilterBar({
@@ -27,8 +30,51 @@ export function FilterBar({
 }) {
   const { t } = useTranslation();
   const toggle = (key: keyof PropertyFilters) => () => onChange({ [key]: !filters[key] } as Partial<PropertyFilters>);
+
+  // ── Category grouping (0106): UI-only — narrows which type chips render
+  //    below. The server filter stays propertyTypeId, untouched.
+  const [typeCategory, setTypeCategory] = useState<string | null>(null);
+  const categories: string[] = [];
+  for (const ty of types) {
+    const c = (ty.category ?? '').trim();
+    if (c && !categories.includes(c)) categories.push(c);
+  }
+  const activeType = filters.propertyTypeId
+    ? types.find((ty) => ty.id === filters.propertyTypeId)
+    : undefined;
+  const visibleTypes = typeCategory
+    ? types.filter((ty) => (ty.category ?? '').trim() === typeCategory)
+    : types;
+  // Never let the active type's chip disappear — pin it to the front when the
+  // selected category hides it (selection is NOT cleared automatically).
+  const typeChips =
+    activeType && !visibleTypes.some((ty) => ty.id === activeType.id)
+      ? [activeType, ...visibleTypes]
+      : visibleTypes;
+
   return (
     <View className="gap-2">
+      {categories.length > 0 ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="gap-2 pr-4">
+          <Chip
+            label={t('properties.filters.allCategories', { defaultValue: 'All' })}
+            active={!typeCategory}
+            onPress={() => setTypeCategory(null)}
+          />
+          {categories.map((c) => (
+            <Chip
+              key={c}
+              label={c}
+              active={typeCategory === c}
+              onPress={() => setTypeCategory(typeCategory === c ? null : c)}
+            />
+          ))}
+        </ScrollView>
+      ) : null}
+
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -43,7 +89,7 @@ export function FilterBar({
           active={!filters.propertyTypeId}
           onPress={() => onChange({ propertyTypeId: null })}
         />
-        {types.map((ty) => (
+        {typeChips.map((ty) => (
           <Chip
             key={ty.id}
             label={ty.name}
