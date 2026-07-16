@@ -231,7 +231,7 @@
         <button class="nav-i" data-tab="calldesk">☎️ Call desk</button>
         <button class="nav-i" data-tab="whatsapp">🟢 WhatsApp</button>
         <div class="nav-sec">Submissions &amp; media</div>
-        <button class="nav-i" data-tab="submissions">🖼️ Photo submissions <span id="subDot" class="dot hidden">0</span></button>
+        <button class="nav-i" data-tab="submissions">🎞️ Media submissions <span id="subDot" class="dot hidden">0</span></button>
         <button class="nav-i" data-tab="formsubs">📨 Form submissions <span id="formSubDot" class="dot hidden">0</span></button>
         <button class="nav-i" data-tab="usermedia">🖼️ User media</button>
         <button class="nav-i" data-tab="documents">📁 Documents</button>
@@ -785,8 +785,14 @@
         return out;
       }
       function photoThumb(url) {
+        // Videos get a real playable thumb (muted, metadata only), not a broken <img>.
+        var isVideo = /\.(mp4|mov|webm|m4v|3gp|mkv)(\?|#|$)/i.test(url || '');
+        var thumb = isVideo
+          ? '<video src="' + esc(url) + '" muted preload="metadata" style="height:58px;width:58px;object-fit:cover;border-radius:8px;border:1px solid #e6e7e2;background:#000"></video>' +
+            '<span style="position:absolute;top:20px;left:20px;pointer-events:none;color:#fff;font-size:14px;text-shadow:0 0 4px #000">▶</span>'
+          : '<img src="' + esc(url) + '" style="height:58px;width:58px;object-fit:cover;border-radius:8px;border:1px solid #e6e7e2" />';
         return '<span class="ph" data-url="' + esc(url) + '" style="position:relative;display:inline-block">' +
-          '<img src="' + esc(url) + '" style="height:58px;width:58px;object-fit:cover;border-radius:8px;border:1px solid #e6e7e2" />' +
+          thumb +
           '<a href="' + esc(url) + '" download target="_blank" rel="noopener" title="Download" style="position:absolute;bottom:-6px;left:-6px;background:#1a1a1a;color:#fff;border-radius:999px;width:18px;height:18px;line-height:18px;font-size:11px;text-align:center;text-decoration:none">⤓</a>' +
           '<button type="button" class="ph_rm" title="Remove photo" style="position:absolute;top:-6px;right:-6px;background:#c00;color:#fff;border:none;border-radius:999px;width:18px;height:18px;line-height:16px;font-size:12px;cursor:pointer">×</button></span>';
       }
@@ -798,7 +804,7 @@
       }
       function photoThumbs(media) {
         var arr = Array.isArray(media) ? media : [];
-        if (!arr.length) return '<span class="muted" style="font-size:12px">No photos yet — add some below.</span>';
+        if (!arr.length) return '<span class="muted" style="font-size:12px">No photos or videos yet — add some below.</span>';
         return arr.map(function (m) { return photoThumb(m.url || m); }).join('');
       }
       function mediaPath(url) {
@@ -860,7 +866,7 @@
                 badgeBtn(r, 'is_premium', '★', 'Premium Listing') +
               '</div></td>' +
               '<td style="text-align:center"><button class="btn-o btn-sm pp_feat"' + (isFeat ? ' style="background:var(--gold);border-color:var(--gold)"' : '') + ' title="' + (isFeat ? 'Featured — tap to remove from the home rail' : 'Tap to feature in the app home rail') + '">' + (isFeat ? '★' : '☆') + '</button></td>' +
-              '<td><div class="thumbs" style="align-items:center">' + (imgs.length ? '' : '<span class="pill" style="background:rgba(230,161,13,.16);color:#e6a10d">No photos</span>') + imgs.map(function (m) { var u = m.url || m; return '<a href="' + esc(u) + '" download target="_blank" rel="noopener" title="Open / download"><img src="' + esc(u) + '" /></a>'; }).join('') +
+              '<td><div class="thumbs" style="align-items:center">' + (imgs.length ? '' : '<span class="pill" style="background:rgba(230,161,13,.16);color:#e6a10d">No media</span>') + imgs.map(function (m) { var u = m.url || m; return '<a href="' + esc(u) + '" download target="_blank" rel="noopener" title="Open / download"><img src="' + esc(u) + '" /></a>'; }).join('') +
                 '<label class="btn-o btn-sm" style="display:inline-block" title="Upload photos or videos for this plot — no count limit">⬆ Upload<input type="file" accept="image/*,video/*" class="pp_file hidden" multiple /></label></div></td>' +
               '<td class="row"><button class="btn-o btn-sm pp_det">Details</button><button class="btn btn-sm pp_save">Save</button><button class="btn-d btn-sm pp_del">Delete</button></td>' +
               '</tr>' +
@@ -869,7 +875,7 @@
                   '<div><label>Title / name</label><input class="inp de_title" value="' + esc((r.attrs && r.attrs.title) || '') + '" /></div>' +
                   '<div style="grid-column:1/-1"><label>Description</label><textarea class="inp de_desc" style="height:auto;min-height:72px;padding:10px">' + esc((r.attrs && r.attrs.description) || '') + '</textarea></div>' +
                 '</div>' +
-                '<label style="display:block;margin-top:10px">Photos</label>' +
+                '<label style="display:block;margin-top:10px">Photos &amp; videos</label>' +
                 '<div class="de_photos" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;align-items:center">' + photoThumbs(r.media) + '</div>' +
                 '<label class="btn-o btn-sm" style="display:inline-block;margin-top:6px">+ Add photos / videos<input type="file" accept="image/*,video/*" class="de_file hidden" multiple /></label>' +
                 '<label style="display:block;margin-top:10px">Property documents (seller uploads)</label>' +
@@ -1883,15 +1889,15 @@
       // ─── Photo submissions (partner contributions → approve/reject) ─────
       async function renderSubmissions() {
         var el = $('tabSubmissions');
-        el.innerHTML = '<div class="head"><h2>Photo submissions</h2></div><div class="muted">Loading…</div>';
+        el.innerHTML = '<div class="head"><h2>Media submissions</h2></div><div class="muted">Loading…</div>';
         var q = await sb.from('property_media_submissions')
           .select('id,url,path,status,created_at, property:properties(plot_code), submitter:profiles!submitted_by(full_name)')
           .eq('status', 'pending').order('created_at');
         if (q.error) { el.innerHTML = '<div class="head"><h2>Photo submissions</h2></div><div class="muted">' + esc(q.error.message) + '</div>'; return; }
         var rows = q.data || [];
-        el.innerHTML = '<div class="head"><h2>Photo submissions — pending</h2></div>' +
-          '<div class="muted" style="margin-bottom:10px">Photos &amp; videos submitted by partners and sellers (including new-listing media). Approving adds them to the property (live in the app); rejecting discards them.</div>' +
-          (rows.length ? '<table><thead><tr><th>Photo</th><th>Property</th><th>Submitted by</th><th>When</th><th>Actions</th></tr></thead><tbody>' +
+        el.innerHTML = '<div class="head"><h2>Media submissions — pending</h2></div>' +
+          '<div class="muted" style="margin-bottom:10px">Photos &amp; videos submitted by partners and sellers (including new-listing media). Approving adds them to the property (live in the app); rejecting discards them. Admin uploads skip this queue — use Properties → ⬆ Upload.</div>' +
+          (rows.length ? '<table><thead><tr><th>Media</th><th>Property</th><th>Submitted by</th><th>When</th><th>Actions</th></tr></thead><tbody>' +
           rows.map(function (s) {
             // Sellers can attach videos too (sell/new) — render a playable thumb, not a broken <img>.
             var isVideo = /\.(mp4|mov|webm|m4v|3gp|mkv)(\?|$)/i.test(s.url || '');
