@@ -139,6 +139,7 @@ export default function RootLayout() {
             <Stack.Screen name="preferences" />
             <Stack.Screen name="saved-searches" />
             <Stack.Screen name="buyer-hub" />
+            <Stack.Screen name="calculators" />
             <Stack.Screen name="promoter-hub" />
             <Stack.Screen name="clients" />
             <Stack.Screen name="role" />

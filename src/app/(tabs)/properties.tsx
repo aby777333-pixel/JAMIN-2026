@@ -22,8 +22,10 @@ import {
 } from '@/features/buyer/hooks';
 import { logSearchEvent } from '@/features/buyer/enhancements';
 import type { PropertyFilters } from '@/features/buyer/types';
+import { can } from '@/lib/access';
 import { supabase } from '@/lib/supabase';
 import type { Json } from '@/types/database';
+import { useAuth } from '@/stores/auth';
 import { useSearchStore } from '@/stores/search';
 import { color } from '@/theme/tokens';
 
@@ -149,7 +151,8 @@ export default function Properties() {
           <View className="gap-3 pb-1 pt-2">
             {/* First-launch tour — lived on the old Home; Properties is the landing now. */}
             <WelcomeTour />
-            <Text variant="h1">{t('tabs.properties')}</Text>
+            <GreetingHeader />
+            <QuickActions />
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -246,6 +249,68 @@ export default function Properties() {
           )
         }
       />
+    </View>
+  );
+}
+
+/** Personal greeting above the page title — toolkit-style warmth, no logic. */
+function GreetingHeader() {
+  const { t } = useTranslation();
+  const name = useAuth((s) => s.profile?.full_name);
+  const first = (name ?? '').trim().split(/\s+/)[0];
+  return (
+    <View className="gap-0.5">
+      {first ? (
+        <Text variant="caption">
+          {t('properties.greeting', { defaultValue: 'Welcome back, {{name}} 👋', name: first })}
+        </Text>
+      ) : null}
+      <Text variant="h1">{t('tabs.properties')}</Text>
+    </View>
+  );
+}
+
+/** Three tinted role-aware shortcuts (toolkit-style quick actions). */
+function QuickActions() {
+  const { t } = useTranslation();
+  const profile = useAuth((s) => s.profile);
+  const role = profile?.role_slug ?? 'buyer';
+  const isSeller = role === 'seller' || role === 'builder' || role === 'developer';
+  const isPartner = !isSeller && can(profile, 'sell');
+
+  const actions: { icon: keyof typeof Ionicons.glyphMap; label: string; to: string; tint: string; fg: string }[] =
+    isPartner
+      ? [
+          { icon: 'flash', label: t('properties.qa.leads', { defaultValue: 'Leads' }), to: '/leads', tint: 'bg-red/10', fg: color.red },
+          { icon: 'person-add', label: t('properties.qa.recruit', { defaultValue: 'Recruit' }), to: '/recruit', tint: 'bg-gold/15', fg: color.goldDeep },
+          { icon: 'speedometer', label: t('properties.qa.dashboard', { defaultValue: 'Dashboard' }), to: '/promoter-hub', tint: 'bg-charcoal/10', fg: color.charcoal },
+        ]
+      : isSeller
+        ? [
+            { icon: 'add-circle', label: t('properties.qa.list', { defaultValue: 'List property' }), to: '/sell/new', tint: 'bg-red/10', fg: color.red },
+            { icon: 'home', label: t('properties.qa.myListings', { defaultValue: 'My listings' }), to: '/sell', tint: 'bg-gold/15', fg: color.goldDeep },
+            { icon: 'folder-open', label: t('properties.qa.documents', { defaultValue: 'Documents' }), to: '/documents', tint: 'bg-charcoal/10', fg: color.charcoal },
+          ]
+        : [
+            { icon: 'heart', label: t('properties.qa.saved', { defaultValue: 'Saved' }), to: '/recent', tint: 'bg-red/10', fg: color.red },
+            { icon: 'git-compare', label: t('properties.qa.compare', { defaultValue: 'Compare' }), to: '/compare', tint: 'bg-gold/15', fg: color.goldDeep },
+            { icon: 'notifications', label: t('properties.qa.alerts', { defaultValue: 'Alerts' }), to: '/requirements', tint: 'bg-charcoal/10', fg: color.charcoal },
+          ];
+
+  return (
+    <View className="flex-row gap-3">
+      {actions.map((a) => (
+        <Pressable
+          key={a.label}
+          onPress={() => router.push(a.to as never)}
+          accessibilityRole="button"
+          className={`flex-1 items-center gap-1.5 rounded-2xl border border-line px-2 py-3 ${a.tint}`}>
+          <Ionicons name={a.icon} size={20} color={a.fg} />
+          <Text className="text-center text-[11px] font-semibold text-ink" numberOfLines={1}>
+            {a.label}
+          </Text>
+        </Pressable>
+      ))}
     </View>
   );
 }

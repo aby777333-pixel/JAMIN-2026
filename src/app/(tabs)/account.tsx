@@ -259,6 +259,12 @@ export default function Account() {
       <View className="gap-3 pt-1">
         <Text variant="label">More</Text>
         <ListRow
+          icon="calculator-outline"
+          label="Calculators"
+          sub="EMI, eligibility, stamp duty, ROI & more"
+          onPress={() => router.push('/calculators')}
+        />
+        <ListRow
           icon="chatbubbles-outline"
           label="Community"
           sub="Updates and discussions"
