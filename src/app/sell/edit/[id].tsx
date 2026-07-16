@@ -1,3 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import * as DocumentPicker from 'expo-document-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,11 +10,15 @@ import { BackHeader } from '@/components/ui/BackHeader';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Chip } from '@/components/ui/Chip';
+import { Disclosure } from '@/components/ui/Disclosure';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { addDocument, listDocumentTypes } from '@/features/documents/api';
 import { useMyListing, useUpdateListing } from '@/features/seller/hooks';
 import { errMessage } from '@/lib/errors';
+import { supabase } from '@/lib/supabase';
 import { color } from '@/theme/tokens';
 
 interface AttrRow {
@@ -172,6 +179,16 @@ export default function EditListing() {
             </Card>
           ) : null}
 
+          {/* Land documents can be added AFTER listing too — same typed vault
+              flow as the listing form; buyers see them once the plot is approved. */}
+          <Disclosure
+            title={t('sell.edit.documents', { defaultValue: 'Property documents' })}
+            subtitle={t('sell.edit.documentsSub', {
+              defaultValue: 'Patta, EC, title deed… add or review anytime',
+            })}>
+            <ListingDocuments propertyId={data.id} />
+          </Disclosure>
+
           <Button
             title={t('sell.edit.save', { defaultValue: 'Save changes' })}
             loading={update.isPending}
@@ -185,5 +202,107 @@ export default function EditListing() {
         </>
       )}
     </Screen>
+  );
+}
+
+const FALLBACK_DOC_TYPES = ['Patta', 'Chitta / Adangal', 'EC (Encumbrance)', 'Title deed', 'Tax receipt', 'Layout approval', 'Other'];
+
+/** Typed document upload + list for an existing listing (mirrors sell/new). */
+function ListingDocuments({ propertyId }: { propertyId: string }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const [docType, setDocType] = useState(FALLBACK_DOC_TYPES[0]);
+  const [uploading, setUploading] = useState(false);
+
+  const { data: dbTypes } = useQuery({
+    queryKey: ['document_types'],
+    queryFn: listDocumentTypes,
+    staleTime: 5 * 60_000,
+  });
+  const typeNames = dbTypes && dbTypes.length > 0 ? dbTypes.map((d) => d.name) : FALLBACK_DOC_TYPES;
+
+  const { data: docs = [] } = useQuery({
+    queryKey: ['property_documents', propertyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('deal_documents')
+        .select('id, title, kind, created_at')
+        .eq('property_id', propertyId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as { id: string; title: string; kind: string; created_at: string }[];
+    },
+  });
+
+  async function onAdd() {
+    const res = await DocumentPicker.getDocumentAsync({ multiple: true, copyToCacheDirectory: true });
+    if (res.canceled || !res.assets?.length) return;
+    setUploading(true);
+    let ok = 0;
+    for (const a of res.assets) {
+      try {
+        await addDocument({
+          title: `${docType} — ${a.name}`,
+          kind: docType.toLowerCase(),
+          uri: a.uri,
+          name: a.name,
+          mimeType: a.mimeType,
+          propertyId,
+        });
+        ok += 1;
+      } catch {
+        /* count failures via the summary alert below */
+      }
+    }
+    setUploading(false);
+    void qc.invalidateQueries({ queryKey: ['property_documents', propertyId] });
+    Alert.alert(
+      t('sell.edit.docsAddedTitle', { defaultValue: 'Documents' }),
+      ok === res.assets.length
+        ? t('sell.edit.docsAdded', { defaultValue: '{{count}} document(s) attached to this listing.', count: ok })
+        : t('sell.edit.docsPartial', {
+            defaultValue: '{{ok}} of {{total}} uploaded — try the rest again.',
+            ok,
+            total: res.assets.length,
+          }),
+    );
+  }
+
+  return (
+    <View className="gap-3">
+      <View className="flex-row flex-wrap gap-2">
+        {typeNames.map((k) => (
+          <Chip key={k} label={k} active={docType === k} onPress={() => setDocType(k)} />
+        ))}
+      </View>
+      <Button
+        title={
+          uploading
+            ? t('sell.edit.docsUploading', { defaultValue: 'Uploading…' })
+            : t('sell.edit.docsAdd', { defaultValue: '📄 Add {{type}} document', type: docType })
+        }
+        variant="outline"
+        loading={uploading}
+        onPress={onAdd}
+      />
+      {docs.map((d) => (
+        <View key={d.id} className="flex-row items-center gap-2.5">
+          <Ionicons name="document-text" size={16} color={color.muted} />
+          <View className="min-w-0 flex-1">
+            <Text className="font-medium text-[13px] text-ink" numberOfLines={1}>
+              {d.title}
+            </Text>
+          </View>
+          <Text variant="caption" className="text-[11px]">
+            {new Date(d.created_at).toLocaleDateString('en-IN')}
+          </Text>
+        </View>
+      ))}
+      {docs.length === 0 ? (
+        <Text variant="caption">
+          {t('sell.edit.docsEmpty', { defaultValue: 'No documents attached to this listing yet.' })}
+        </Text>
+      ) : null}
+    </View>
   );
 }
