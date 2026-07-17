@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { WelcomeSplash } from '@/components/WelcomeSplash';
 import { useUnreadCount } from '@/features/notifications/api';
 import { tap } from '@/lib/haptics';
 import { color } from '@/theme/tokens';
@@ -22,7 +23,11 @@ export default function TabsLayout() {
   const { data: unread = 0 } = useUnreadCount();
 
   return (
-    <Tabs
+    <>
+      {/* Post-sign-in welcome overlay — renders above the tabs, never
+          replaces them, so navigation and auth flow are untouched. */}
+      <WelcomeSplash />
+      <Tabs
       screenListeners={{ tabPress: () => tap() }}
       screenOptions={{
         headerShown: false,
@@ -86,6 +91,7 @@ export default function TabsLayout() {
       {/* Hidden but routable: reached from Account (My card / My team). */}
       <Tabs.Screen name="card" options={{ href: null }} />
       <Tabs.Screen name="network" options={{ href: null }} />
-    </Tabs>
+      </Tabs>
+    </>
   );
 }

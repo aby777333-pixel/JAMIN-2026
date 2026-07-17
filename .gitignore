@@ -51,3 +51,4 @@ example
 
 # Owner-supplied image originals (160MB) - only the compressed copies in assets/images/plots ship
 assets/images/plot images/
+assets/images/bgimages.zip

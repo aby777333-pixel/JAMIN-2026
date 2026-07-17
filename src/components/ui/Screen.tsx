@@ -2,12 +2,14 @@ import { type ReactNode } from 'react';
 import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { RouteBackdrop } from '@/components/brand/RouteBackdrop';
 import { AccentCycleProvider } from '@/components/ui/Card';
 import { cn } from '@/lib/cn';
 
-/** Default = calm paper, no decoration (simplification brief). Screens that
-    want a hero image still pass their own `backdrop` (e.g. the login screen). */
-const DEFAULT_BACKDROP = null;
+/** Default = the route's section artwork at low opacity over paper (owner
+    brief: backgrounds throughout the app). Screens that want a hero image
+    still pass their own `backdrop` (e.g. login); `backdrop={null}` opts out. */
+const DEFAULT_BACKDROP = <RouteBackdrop />;
 
 /**
  * Page wrapper: paper background, safe-area aware, keeps content inside the
