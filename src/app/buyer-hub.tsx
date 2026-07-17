@@ -24,7 +24,7 @@ import {
 } from '@/features/buyer/hooks';
 import { useNotifications } from '@/features/notifications/api';
 import { useMyVisits } from '@/features/visits/hooks';
-import { color } from '@/theme/tokens';
+import { category, color } from '@/theme/tokens';
 
 const inr = (v: number) => `₹${Number(v).toLocaleString('en-IN')}`;
 
@@ -117,6 +117,7 @@ export default function BuyerHub() {
       </Text>
       <ListRow
         icon="heart"
+        accent={category.buy}
         label={t('buyerHub.savedProps', { defaultValue: 'Saved properties' })}
         sub={
           savedCount > 0
@@ -127,12 +128,14 @@ export default function BuyerHub() {
       />
       <ListRow
         icon="albums-outline"
+        accent={category.buy}
         label={t('buyerHub.shortlists', { defaultValue: 'Shortlists' })}
         sub={t('buyerHub.shortlistsSub', { defaultValue: 'Group plots and share with family' })}
         onPress={() => router.push('/shortlists')}
       />
       <ListRow
         icon="bookmark-outline"
+        accent={category.buy}
         label={t('buyerHub.savedSearches', { defaultValue: 'Saved searches' })}
         sub={t('buyerHub.savedSearchesCount', { defaultValue: '{{count}} saved', count: searches.length })}
         onPress={() => router.push('/saved-searches')}
@@ -140,6 +143,7 @@ export default function BuyerHub() {
       {compares.length > 0 ? (
         <ListRow
           icon="git-compare"
+          accent={category.buy}
           label={t('buyerHub.comparisons', { defaultValue: 'Recent comparisons' })}
           sub={t('buyerHub.comparisonsCount', { defaultValue: '{{count}} comparisons made', count: compares.length })}
           onPress={() => router.push('/compare')}
@@ -148,6 +152,7 @@ export default function BuyerHub() {
       {notesCount > 0 ? (
         <ListRow
           icon="create-outline"
+          accent={category.docs}
           label={t('buyerHub.notes', { defaultValue: 'My notes' })}
           sub={t('buyerHub.notesCount', { defaultValue: 'Notes on {{count}} properties', count: notesCount })}
           onPress={() => router.push('/recent')}

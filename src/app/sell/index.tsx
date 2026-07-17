@@ -11,6 +11,7 @@ import { MoneyText } from '@/components/ui/MoneyText';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { ContactCard } from '@/features/buyer/components/ContactCard';
+import { SellJourney } from '@/features/seller/components/SellJourney';
 import type { ListingPatch, SellerListingStat } from '@/features/seller/api';
 import { useMyListingStats, useUpdateListing } from '@/features/seller/hooks';
 import { errMessage } from '@/lib/errors';
@@ -127,6 +128,9 @@ export default function MyListings() {
   return (
     <Screen contentClassName="pb-12 gap-4">
       <BackHeader title="My listings" />
+
+      {/* The production lifecycle, made visible: submit → review → live. */}
+      <SellJourney />
 
       {listings.length > 0 ? (
         <Card className="gap-2">

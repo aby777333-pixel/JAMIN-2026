@@ -43,6 +43,24 @@ export function accentFor(i: number) {
   return accents[i % accents.length];
 }
 
+/**
+ * Semantic palette indices — one distinct hue per functional category so the
+ * same kind of tool is the same colour on every screen (owner brief:
+ * "each functional category should have its own distinct color").
+ */
+export const category = {
+  sell: 0, //      coral — listing, ads, my posts
+  comms: 1, //     orange — chats, community, support
+  docs: 2, //      amber — documents, brochures, forms
+  buy: 3, //       green — search, saved, compare, preferences
+  ai: 4, //        teal — AI studio, valuation, insights
+  finance: 5, //   blue — calculators, wallet, payments
+  team: 6, //      violet — team, recruit, performance, admin
+  marketing: 7, // pink — posters, rewards, referrals, sharing
+} as const;
+
+export type CategoryKey = keyof typeof category;
+
 /** Typeface keys registered via expo-font in the root layout. */
 export const font = {
   regular: 'Inter_400Regular',

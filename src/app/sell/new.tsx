@@ -17,6 +17,7 @@ import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { useProjects, usePropertyTypes } from '@/features/buyer/hooks';
 import { addDocument, listDocumentTypes } from '@/features/documents/api';
+import { SellJourney } from '@/features/seller/components/SellJourney';
 import { useCreateListing } from '@/features/seller/hooks';
 import { submitPropertyPhotos } from '@/features/submissions/api';
 import { FACINGS } from '@/features/astro/vastu';
@@ -340,6 +341,7 @@ export default function NewListing() {
     <Screen contentClassName="pb-12 gap-4" keyboardAvoiding>
       <BackHeader title="List a property" />
 
+      <SellJourney />
       <Text variant="caption">
         Submit a plot for review. An admin verifies it before it goes live — you’ll see its status under My listings.
         Add photos and videos below, or later from the listing page.

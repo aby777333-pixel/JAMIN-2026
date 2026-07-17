@@ -4,10 +4,10 @@ import { View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
 import { Card } from '@/components/ui/Card';
-import { ListRow } from '@/components/ui/ListRow';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { TileGrid, ToolTile } from '@/components/ui/ToolTile';
 import {
   useMonthlyEarnings,
   usePromoterDashboard,
@@ -15,7 +15,7 @@ import {
 } from '@/features/team/promoter';
 import { can } from '@/lib/access';
 import { useAuth } from '@/stores/auth';
-import { color } from '@/theme/tokens';
+import { category, color } from '@/theme/tokens';
 
 const PARTNER_SLUGS = ['promoter', 'sub_promoter', 'agent', 'broker'];
 
@@ -186,48 +186,50 @@ export default function PromoterHub() {
       <Text variant="label" className="pt-1">
         {t('promoterHub.quickLinks', { defaultValue: 'Workspaces' })}
       </Text>
-      <ListRow
-        icon="people"
-        label={t('promoterHub.myClients', { defaultValue: 'My clients' })}
-        sub={t('promoterHub.myClientsSub', { defaultValue: 'Buyers and sellers bound to you' })}
-        onPress={() => router.push('/clients')}
-      />
-      <ListRow
-        icon="filter"
-        label={t('promoterHub.leads', { defaultValue: 'Leads' })}
-        sub={t('promoterHub.leadsSub', { defaultValue: 'Pipeline, follow-ups and scoring' })}
-        onPress={() => router.push('/leads')}
-      />
-      <ListRow
-        icon="person-add"
-        label={t('promoterHub.recruit', { defaultValue: 'Recruit team' })}
-        sub={t('promoterHub.recruitSub', { defaultValue: 'Invite partners and track invitations' })}
-        onPress={() => router.push('/recruit')}
-      />
-      <ListRow
-        icon="wallet"
-        label={t('promoterHub.wallet', { defaultValue: 'Wallet' })}
-        sub={t('promoterHub.walletSub', { defaultValue: 'Balance, ledger and withdrawals' })}
-        onPress={() => router.push('/(tabs)/wallet')}
-      />
-      <ListRow
-        icon="document-text"
-        label={t('promoterHub.marketing', { defaultValue: 'Marketing library' })}
-        sub={t('promoterHub.marketingSub', { defaultValue: 'Brochures, flyers and posters' })}
-        onPress={() => router.push('/brochures')}
-      />
-      <ListRow
-        icon="school"
-        label={t('promoterHub.academy', { defaultValue: 'Academy' })}
-        sub={t('promoterHub.academySub', { defaultValue: 'Training and certification' })}
-        onPress={() => router.push('/academy')}
-      />
-      <ListRow
-        icon="funnel"
-        label={t('promoterHub.referrals', { defaultValue: 'Referral engine' })}
-        sub={t('promoterHub.referralsSub', { defaultValue: 'Funnel, campaigns & fraud signals' })}
-        onPress={() => router.push('/referrals')}
-      />
+      <TileGrid>
+        <ToolTile
+          icon="people"
+          label={t('promoterHub.myClients', { defaultValue: 'My clients' })}
+          accent={category.team}
+          onPress={() => router.push('/clients')}
+        />
+        <ToolTile
+          icon="filter"
+          label={t('promoterHub.leads', { defaultValue: 'Leads' })}
+          accent={category.sell}
+          onPress={() => router.push('/leads')}
+        />
+        <ToolTile
+          icon="person-add"
+          label={t('promoterHub.recruit', { defaultValue: 'Recruit team' })}
+          accent={category.team}
+          onPress={() => router.push('/recruit')}
+        />
+        <ToolTile
+          icon="wallet"
+          label={t('promoterHub.wallet', { defaultValue: 'Wallet' })}
+          accent={category.finance}
+          onPress={() => router.push('/(tabs)/wallet')}
+        />
+        <ToolTile
+          icon="document-text"
+          label={t('promoterHub.marketing', { defaultValue: 'Marketing' })}
+          accent={category.docs}
+          onPress={() => router.push('/brochures')}
+        />
+        <ToolTile
+          icon="school"
+          label={t('promoterHub.academy', { defaultValue: 'Academy' })}
+          accent={category.ai}
+          onPress={() => router.push('/academy')}
+        />
+        <ToolTile
+          icon="funnel"
+          label={t('promoterHub.referrals', { defaultValue: 'Referrals' })}
+          accent={category.marketing}
+          onPress={() => router.push('/referrals')}
+        />
+      </TileGrid>
     </Screen>
   );
 }

@@ -7,7 +7,7 @@ import { StatCard } from '@/components/ui/StatCard';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
 import { useAdminStats } from '@/features/admin/hooks';
-import { color } from '@/theme/tokens';
+import { accentFor, category, color } from '@/theme/tokens';
 
 export default function AdminDashboard() {
   const { data: s } = useAdminStats();
@@ -43,12 +43,12 @@ export default function AdminDashboard() {
         Manage
       </Text>
       <View className="gap-3">
-        <Tile icon="construct" title="Form Builder" sub="Edit any form — unlimited fields" onPress={() => router.push('/admin/forms')} />
-        <Tile icon="file-tray-full" title="Submissions" sub="Applications & enquiries to review" onPress={() => router.push('/admin/submissions')} />
-        <Tile icon="people-circle" title="Users & roles" sub="Promote, verify KYC" onPress={() => router.push('/admin/users')} />
-        <Tile icon="checkmark-circle" title="Approvals" sub="Payouts & close sales" onPress={() => router.push('/admin/approvals')} />
-        <Tile icon="cash" title="Commission rules" sub="Toggle & inspect" onPress={() => router.push('/admin/rules')} />
-        <Tile icon="bar-chart" title="Analytics" sub="Performance & audit log" onPress={() => router.push('/admin/analytics')} />
+        <Tile icon="construct" title="Form Builder" sub="Edit any form — unlimited fields" accent={category.docs} onPress={() => router.push('/admin/forms')} />
+        <Tile icon="file-tray-full" title="Submissions" sub="Applications & enquiries to review" accent={category.comms} onPress={() => router.push('/admin/submissions')} />
+        <Tile icon="people-circle" title="Users & roles" sub="Promote, verify KYC" accent={category.team} onPress={() => router.push('/admin/users')} />
+        <Tile icon="checkmark-circle" title="Approvals" sub="Payouts & close sales" accent={category.buy} onPress={() => router.push('/admin/approvals')} />
+        <Tile icon="cash" title="Commission rules" sub="Toggle & inspect" accent={category.finance} onPress={() => router.push('/admin/rules')} />
+        <Tile icon="bar-chart" title="Analytics" sub="Performance & audit log" accent={category.marketing} onPress={() => router.push('/admin/analytics')} />
       </View>
     </Screen>
   );
@@ -58,19 +58,24 @@ function Tile({
   icon,
   title,
   sub,
+  accent,
   onPress,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
   sub: string;
+  accent: number;
   onPress: () => void;
 }) {
+  const a = accentFor(accent);
   return (
     <Pressable
       onPress={onPress}
       className="flex-row items-center gap-3 rounded-2xl border border-line bg-surface p-4">
-      <View className="h-11 w-11 items-center justify-center rounded-xl bg-red/10">
-        <Ionicons name={icon} size={22} color={color.red} />
+      <View
+        className="h-11 w-11 items-center justify-center rounded-xl"
+        style={{ backgroundColor: a.soft }}>
+        <Ionicons name={icon} size={22} color={a.main} />
       </View>
       <View className="flex-1">
         <Text variant="title">{title}</Text>

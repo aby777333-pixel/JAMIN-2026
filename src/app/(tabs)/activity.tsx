@@ -12,6 +12,7 @@ import { useAgentDigest } from '@/features/leads/hooks';
 import { useMarkRead, useNotifications } from '@/features/notifications/api';
 import { can } from '@/lib/access';
 import { useAuth } from '@/stores/auth';
+import { category } from '@/theme/tokens';
 
 /**
  * Activity — one job: "what's new and what needs me". Announcements (from the
@@ -69,6 +70,7 @@ export default function Activity() {
       {!isPartner ? (
         <ListRow
           icon="grid-outline"
+          accent={category.buy}
           label={t('activity.buyerHub', { defaultValue: 'My dashboard' })}
           sub={t('activity.buyerHubSub', { defaultValue: 'Everything about your search in one place' })}
           onPress={() => router.push('/buyer-hub')}
@@ -76,12 +78,14 @@ export default function Activity() {
       ) : null}
       <ListRow
         icon="calendar"
+        accent={category.comms}
         label={canSell ? 'My agenda' : 'My site visits'}
         sub={canSell ? 'Visits and follow-ups in one view' : 'Bookings and check-in'}
         onPress={() => router.push(canSell ? '/agenda' : '/visits')}
       />
       <ListRow
         icon="pricetag"
+        accent={category.finance}
         label="My enquiries & offers"
         sub="Every conversation goes through JAMIN"
         onPress={() => router.push('/offers')}
@@ -89,6 +93,7 @@ export default function Activity() {
       {canSell ? (
         <ListRow
           icon="people"
+          accent={category.sell}
           label="Leads"
           sub="Your pipeline, follow-ups and status"
           onPress={() => router.push('/leads')}

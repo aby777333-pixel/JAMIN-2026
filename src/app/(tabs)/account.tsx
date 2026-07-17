@@ -10,10 +10,11 @@ import { ListRow } from '@/components/ui/ListRow';
 import { Screen } from '@/components/ui/Screen';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Text } from '@/components/ui/Text';
+import { TileGrid, ToolTile } from '@/components/ui/ToolTile';
 import { shareReferral } from '@/features/share/referral';
 import { can } from '@/lib/access';
 import { useAuth } from '@/stores/auth';
-import { color } from '@/theme/tokens';
+import { category, color } from '@/theme/tokens';
 
 function roleLabel(slug?: string | null) {
   if (!slug) return 'Member';
@@ -83,6 +84,7 @@ export default function Account() {
           icon="id-card"
           label="Complete your KYC"
           sub="Required before bookings are confirmed"
+          accent={category.docs}
           onPress={() => router.push('/kyc')}
           right={<StatusPill status={profile.kyc_status} />}
         />
@@ -119,185 +121,194 @@ export default function Account() {
         icon="qr-code"
         label="My business card"
         sub="Share your card, QR and invite link"
+        accent={category.marketing}
         onPress={() => router.push('/(tabs)/card')}
       />
 
+      {/* Tools — the same colorized square-tile language as the calculators
+          hub; every tile keeps its old route, only the presentation changed. */}
       {isPartner ? (
         <View className="gap-3 pt-1">
           <Text variant="label">Tools</Text>
-          {canTeam ? (
-            <ListRow
-              icon="people"
-              label="My team"
-              sub="Downline, performance and referrals"
-              onPress={() => router.push('/(tabs)/network')}
-            />
-          ) : null}
-          {canRecruit ? (
-            <ListRow
-              icon="person-add"
-              label="Recruit partners"
-              sub="Invite and grow your network"
-              onPress={() => router.push('/recruit')}
-            />
-          ) : null}
-          {canAnalytics ? (
-            <ListRow
-              icon="bar-chart"
-              label="Team performance"
-              sub="Sales and revenue rollups"
-              onPress={() => router.push('/performance')}
-            />
-          ) : null}
-          {canSell ? (
-            <>
-              <ListRow
-                icon="camera"
-                label="Create ad (photo & video)"
-                sub="Live geo-verified ads with your card"
-                onPress={() => router.push('/tools/ad-creator')}
+          <TileGrid>
+            {canTeam ? (
+              <ToolTile
+                icon="people"
+                label={t('account.tiles.team', { defaultValue: 'My team' })}
+                accent={category.team}
+                onPress={() => router.push('/(tabs)/network')}
               />
-              <ListRow
-                icon="albums"
-                label="My posts & videos"
-                sub="View your uploaded ads, photos and videos"
-                onPress={() => router.push('/my-posts')}
+            ) : null}
+            {canRecruit ? (
+              <ToolTile
+                icon="person-add"
+                label={t('account.tiles.recruit', { defaultValue: 'Recruit' })}
+                accent={category.team}
+                onPress={() => router.push('/recruit')}
               />
-              <ListRow
-                icon="image"
-                label="Poster & banner maker"
-                sub="Turn any photo or video into a branded banner"
-                onPress={() => router.push('/tools/poster')}
+            ) : null}
+            {canAnalytics ? (
+              <ToolTile
+                icon="bar-chart"
+                label={t('account.tiles.performance', { defaultValue: 'Performance' })}
+                accent={category.team}
+                onPress={() => router.push('/performance')}
               />
-              <ListRow
-                icon="document-text"
-                label="Brochures & flyers"
-                sub="Personalised marketing material"
-                onPress={() => router.push('/brochures')}
-              />
-              <ListRow
-                icon="sparkles"
-                label="AI Studio"
-                sub="Listing copy, images and staging"
-                onPress={() => router.push('/tools/ai-studio')}
-              />
-              <ListRow
-                icon="chatbubbles"
-                label="Ad chats"
-                sub="Conversations from your shared ads"
-                onPress={() => router.push('/ad-chats')}
-              />
-              <ListRow
-                icon="trophy"
-                label="Rewards"
-                sub="Badges, bonuses and the leaderboard"
-                onPress={() => router.push('/rewards')}
-              />
-              <ListRow
-                icon="clipboard"
-                label="Applications & forms"
-                sub="Submit and track applications"
-                onPress={() => router.push('/forms')}
-              />
-            </>
-          ) : null}
+            ) : null}
+            {canSell ? (
+              <>
+                <ToolTile
+                  icon="camera"
+                  label={t('account.tiles.createAd', { defaultValue: 'Create ad' })}
+                  accent={category.sell}
+                  onPress={() => router.push('/tools/ad-creator')}
+                />
+                <ToolTile
+                  icon="albums"
+                  label={t('account.tiles.myPosts', { defaultValue: 'Posts & videos' })}
+                  accent={category.sell}
+                  onPress={() => router.push('/my-posts')}
+                />
+                <ToolTile
+                  icon="image"
+                  label={t('account.tiles.poster', { defaultValue: 'Posters & banners' })}
+                  accent={category.marketing}
+                  onPress={() => router.push('/tools/poster')}
+                />
+                <ToolTile
+                  icon="document-text"
+                  label={t('account.tiles.brochures', { defaultValue: 'Brochures' })}
+                  accent={category.docs}
+                  onPress={() => router.push('/brochures')}
+                />
+                <ToolTile
+                  icon="sparkles"
+                  label={t('account.tiles.aiStudio', { defaultValue: 'AI Studio' })}
+                  accent={category.ai}
+                  onPress={() => router.push('/tools/ai-studio')}
+                />
+                <ToolTile
+                  icon="chatbubbles"
+                  label={t('account.tiles.adChats', { defaultValue: 'Ad chats' })}
+                  accent={category.comms}
+                  onPress={() => router.push('/ad-chats')}
+                />
+                <ToolTile
+                  icon="trophy"
+                  label={t('account.tiles.rewards', { defaultValue: 'Rewards' })}
+                  accent={category.marketing}
+                  onPress={() => router.push('/rewards')}
+                />
+                <ToolTile
+                  icon="clipboard"
+                  label={t('account.tiles.forms', { defaultValue: 'Applications' })}
+                  accent={category.docs}
+                  onPress={() => router.push('/forms')}
+                />
+              </>
+            ) : null}
+          </TileGrid>
         </View>
       ) : (
         <View className="gap-3 pt-1">
           <Text variant="label">Tools</Text>
-          <ListRow
-            icon="grid-outline"
-            label={t('account.buyerHub', { defaultValue: 'My dashboard' })}
-            sub={t('account.buyerHubSub', { defaultValue: 'Your whole property search in one place' })}
-            onPress={() => router.push('/buyer-hub')}
-          />
-          <ListRow
-            icon="options-outline"
-            label={t('account.preferences', { defaultValue: 'My preferences' })}
-            sub={t('account.preferencesSub', { defaultValue: 'Budget, locations and must-haves' })}
-            onPress={() => router.push('/preferences')}
-          />
-          <ListRow
-            icon="bookmark-outline"
-            label={t('account.savedSearches', { defaultValue: 'Saved searches' })}
-            sub={t('account.savedSearchesSub', { defaultValue: 'Re-run and get alerts for your searches' })}
-            onPress={() => router.push('/saved-searches')}
-          />
-          <ListRow
-            icon="notifications-outline"
-            label="Property alerts"
-            sub="Tell us what you're looking for"
-            onPress={() => router.push('/requirements')}
-          />
-          <ListRow
-            icon="git-compare"
-            label="Compare properties"
-            sub="Side-by-side comparison"
-            onPress={() => router.push('/compare')}
-          />
-          <ListRow
-            icon="time"
-            label="Recently viewed"
-            sub="Pick up where you left off"
-            onPress={() => router.push('/recent')}
-          />
-          <ListRow
-            icon="calculator"
-            label="Land valuation"
-            sub="Indicative value from live listings"
-            onPress={() => router.push('/tools/valuation')}
-          />
-          <ListRow
-            icon="briefcase"
-            label="Become a partner"
-            sub="Earn by promoting JAMIN properties"
-            onPress={() => router.push('/become-partner')}
-          />
+          <TileGrid>
+            <ToolTile
+              icon="grid-outline"
+              label={t('account.buyerHub', { defaultValue: 'My dashboard' })}
+              accent={category.buy}
+              onPress={() => router.push('/buyer-hub')}
+            />
+            <ToolTile
+              icon="options-outline"
+              label={t('account.preferences', { defaultValue: 'Preferences' })}
+              accent={category.buy}
+              onPress={() => router.push('/preferences')}
+            />
+            <ToolTile
+              icon="bookmark-outline"
+              label={t('account.savedSearches', { defaultValue: 'Saved searches' })}
+              accent={category.buy}
+              onPress={() => router.push('/saved-searches')}
+            />
+            <ToolTile
+              icon="notifications-outline"
+              label={t('account.tiles.alerts', { defaultValue: 'Property alerts' })}
+              accent={category.comms}
+              onPress={() => router.push('/requirements')}
+            />
+            <ToolTile
+              icon="git-compare"
+              label={t('account.tiles.compare', { defaultValue: 'Compare' })}
+              accent={category.buy}
+              onPress={() => router.push('/compare')}
+            />
+            <ToolTile
+              icon="time"
+              label={t('account.tiles.recent', { defaultValue: 'Recently viewed' })}
+              accent={category.buy}
+              onPress={() => router.push('/recent')}
+            />
+            <ToolTile
+              icon="calculator"
+              label={t('account.tiles.valuation', { defaultValue: 'Valuation' })}
+              accent={category.ai}
+              onPress={() => router.push('/tools/valuation')}
+            />
+            <ToolTile
+              icon="briefcase"
+              label={t('account.tiles.becomePartner', { defaultValue: 'Become partner' })}
+              accent={category.team}
+              onPress={() => router.push('/become-partner')}
+            />
+          </TileGrid>
         </View>
       )}
 
       <View className="gap-3 pt-1">
         <Text variant="label">More</Text>
-        <ListRow
-          icon="calculator-outline"
-          label="Calculators"
-          sub="EMI, eligibility, stamp duty, ROI & more"
-          onPress={() => router.push('/calculators')}
-        />
-        <ListRow
-          icon="chatbubbles-outline"
-          label="Community"
-          sub="Updates and discussions"
-          onPress={() => router.push('/community')}
-        />
-        <ListRow
-          icon="help-buoy"
-          label="Help & support"
-          sub="Contact JAMIN — we respond fast"
-          onPress={() => router.push('/support')}
-        />
-        <ListRow
-          icon="settings-outline"
-          label="Settings"
-          sub="Profile, language, security and more"
-          onPress={() => router.push('/settings')}
-        />
-        {profile?.role_is_admin ? (
-          <ListRow
-            icon="shield-checkmark"
-            label="Admin portal"
-            sub="Approvals, users, forms and analytics"
-            onPress={() => router.push('/admin')}
+        <TileGrid>
+          <ToolTile
+            icon="calculator-outline"
+            label={t('account.tiles.calculators', { defaultValue: 'Calculators' })}
+            accent={category.finance}
+            onPress={() => router.push('/calculators')}
           />
-        ) : null}
-        {isRealAdmin ? (
-          <ListRow
-            icon="eye"
-            label="Preview as role"
-            sub="See the app exactly as each user type"
-            onPress={() => router.push('/role-preview')}
+          <ToolTile
+            icon="chatbubbles-outline"
+            label={t('account.tiles.community', { defaultValue: 'Community' })}
+            accent={category.comms}
+            onPress={() => router.push('/community')}
           />
-        ) : null}
+          <ToolTile
+            icon="help-buoy"
+            label={t('account.tiles.help', { defaultValue: 'Help & support' })}
+            accent={category.comms}
+            onPress={() => router.push('/support')}
+          />
+          <ToolTile
+            icon="settings-outline"
+            label={t('account.tiles.settings', { defaultValue: 'Settings' })}
+            accent={category.team}
+            onPress={() => router.push('/settings')}
+          />
+          {profile?.role_is_admin ? (
+            <ToolTile
+              icon="shield-checkmark"
+              label={t('account.tiles.admin', { defaultValue: 'Admin portal' })}
+              accent={category.team}
+              onPress={() => router.push('/admin')}
+            />
+          ) : null}
+          {isRealAdmin ? (
+            <ToolTile
+              icon="eye"
+              label={t('account.tiles.rolePreview', { defaultValue: 'Preview role' })}
+              accent={category.team}
+              onPress={() => router.push('/role-preview')}
+            />
+          ) : null}
+        </TileGrid>
       </View>
 
       <Pressable

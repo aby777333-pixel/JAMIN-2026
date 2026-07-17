@@ -1,13 +1,12 @@
-import { Ionicons } from '@expo/vector-icons';
+import { type Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, View } from 'react-native';
 
 import { BackHeader } from '@/components/ui/BackHeader';
-import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
+import { TileGrid, ToolTile } from '@/components/ui/ToolTile';
 import { AffordabilityCalculator } from '@/features/buyer/components/AffordabilityCalculator';
 import { EmiCalculator } from '@/features/buyer/components/EmiCalculator';
 import { LoanEligibilityCalculator } from '@/features/buyer/components/LoanEligibilityCalculator';
@@ -16,7 +15,6 @@ import { RentVsBuyCalculator } from '@/features/buyer/components/RentVsBuyCalcul
 import { RoiCalculator } from '@/features/buyer/components/RoiCalculator';
 import { StampDutyCalculator } from '@/features/buyer/components/StampDutyCalculator';
 import { TotalCostCalculator } from '@/features/buyer/components/TotalCostCalculator';
-import { color } from '@/theme/tokens';
 
 type CalcKey = 'emi' | 'eligibility' | 'affordability' | 'stamp' | 'total' | 'rentbuy' | 'roi' | 'yield';
 
@@ -60,27 +58,18 @@ export default function Calculators() {
         inputMode="numeric"
       />
 
-      <View className="flex-row flex-wrap justify-between">
-        {TILES.map((tile) => {
-          const active = selected === tile.key;
-          return (
-            <Pressable key={tile.key} onPress={() => setSelected(tile.key)} className="mb-3 w-[23%]">
-              <Card
-                className={`items-center gap-1.5 px-1 py-3 ${active ? 'border-red bg-red/5' : ''}`}>
-                <View
-                  className={`h-10 w-10 items-center justify-center rounded-xl ${active ? 'bg-red' : 'bg-red/10'}`}>
-                  <Ionicons name={tile.icon} size={19} color={active ? '#FFFFFF' : color.red} />
-                </View>
-                <Text
-                  className={`text-center text-[10px] font-semibold ${active ? 'text-red' : 'text-ink'}`}
-                  numberOfLines={2}>
-                  {t(`calculators.tiles.${tile.key}`, { defaultValue: tile.label })}
-                </Text>
-              </Card>
-            </Pressable>
-          );
-        })}
-      </View>
+      <TileGrid>
+        {TILES.map((tile, i) => (
+          <ToolTile
+            key={tile.key}
+            icon={tile.icon}
+            label={t(`calculators.tiles.${tile.key}`, { defaultValue: tile.label })}
+            accent={i}
+            active={selected === tile.key}
+            onPress={() => setSelected(tile.key)}
+          />
+        ))}
+      </TileGrid>
 
       {selected === 'emi' ? <EmiCalculator price={price} /> : null}
       {selected === 'eligibility' ? <LoanEligibilityCalculator /> : null}
