@@ -19,7 +19,7 @@ import { addDocument, listDocumentTypes } from '@/features/documents/api';
 import { useMyListing, useUpdateListing } from '@/features/seller/hooks';
 import { errMessage } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
-import { color } from '@/theme/tokens';
+import { category, color } from '@/theme/tokens';
 
 interface AttrRow {
   key: string;
@@ -182,6 +182,8 @@ export default function EditListing() {
           {/* Land documents can be added AFTER listing too — same typed vault
               flow as the listing form; buyers see them once the plot is approved. */}
           <Disclosure
+            icon="document-text"
+            accent={category.docs}
             title={t('sell.edit.documents', { defaultValue: 'Property documents' })}
             subtitle={t('sell.edit.documentsSub', {
               defaultValue: 'Patta, EC, title deed… add or review anytime',

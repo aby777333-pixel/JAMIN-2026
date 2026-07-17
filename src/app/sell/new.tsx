@@ -21,7 +21,7 @@ import { SellJourney } from '@/features/seller/components/SellJourney';
 import { useCreateListing } from '@/features/seller/hooks';
 import { submitPropertyPhotos } from '@/features/submissions/api';
 import { FACINGS } from '@/features/astro/vastu';
-import { color } from '@/theme/tokens';
+import { category, color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
 
@@ -420,6 +420,8 @@ export default function NewListing() {
       </View>
 
       <Disclosure
+        icon="pricetags"
+        accent={category.sell}
         title={t('sellNew.listingDetails.title', { defaultValue: 'Listing details' })}
         subtitle={t('sellNew.listingDetails.subtitle', { defaultValue: 'Sale or rent, price type, area unit, age' })}>
         <View className="gap-1.5">
@@ -508,6 +510,8 @@ export default function NewListing() {
       </Disclosure>
 
       <Disclosure
+        icon="home"
+        accent={category.buy}
         title={t('sellNew.homeDetails.title', { defaultValue: 'Home details' })}
         subtitle={t('sellNew.homeDetails.subtitle', { defaultValue: 'Bedrooms, bathrooms, furnishing, parking' })}>
         <View className="flex-row gap-3">
@@ -563,6 +567,8 @@ export default function NewListing() {
       </Disclosure>
 
       <Disclosure
+        icon="water"
+        accent={category.ai}
         title={t('sellNew.landUtilities.title', { defaultValue: 'Land & utilities' })}
         subtitle={t('sellNew.landUtilities.subtitle', { defaultValue: 'Dimensions, road, water, power, drainage' })}>
         <View className="flex-row gap-3">
@@ -609,6 +615,8 @@ export default function NewListing() {
       </Disclosure>
 
       <Disclosure
+        icon="school"
+        accent={category.comms}
         title={t('sellNew.neighbourhood.title', { defaultValue: 'Neighbourhood' })}
         subtitle={t('sellNew.neighbourhood.subtitle', { defaultValue: 'Schools, hospitals, transport, PIN code' })}>
         <Input
@@ -646,6 +654,8 @@ export default function NewListing() {
       </Disclosure>
 
       <Disclosure
+        icon="location"
+        accent={category.finance}
         title={t('sellNew.locationDetails.title', { defaultValue: 'Location details' })}
         subtitle={t('sellNew.locationDetails.subtitle', { defaultValue: 'State, district, city, taluk, village, locality' })}>
         <Input

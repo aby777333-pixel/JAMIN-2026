@@ -17,7 +17,7 @@ import { Text } from '@/components/ui/Text';
 import { updateMyProfile } from '@/features/auth/api';
 import { can } from '@/lib/access';
 import { useAuth } from '@/stores/auth';
-import { color } from '@/theme/tokens';
+import { category, color } from '@/theme/tokens';
 import { supabase } from '@/lib/supabase';
 import { uploadImageToBucket } from '@/lib/upload';
 import { errMessage } from '@/lib/errors';
@@ -317,6 +317,8 @@ function ProfessionalProfileSection() {
 
   return (
     <Disclosure
+      icon="ribbon"
+      accent={category.team}
       title={t('profile.proTitle', { defaultValue: 'Professional profile' })}
       subtitle={t('profile.proSubtitle', {
         defaultValue: 'Agency, RERA, service areas — shown to your clients',

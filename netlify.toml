@@ -23,6 +23,14 @@
   to = "/admin.html"
   status = 200
 
+# Shared property links (/p/<id>) → serverless function that injects the
+# property's og:image (primary photo, JAMIN logo fallback) for WhatsApp /
+# Telegram / social previews, then serves the landing page.
+[[redirects]]
+  from = "/p/*"
+  to = "/.netlify/functions/property"
+  status = 200
+
 # Referral share links (/r/<code>) → click-tracking landing.
 [[redirects]]
   from = "/r/*"

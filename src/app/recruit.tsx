@@ -26,7 +26,7 @@ import {
 } from '@/features/team/promoter';
 import { errMessage } from '@/lib/errors';
 import { useAuth } from '@/stores/auth';
-import { BRAND, color } from '@/theme/tokens';
+import { category, BRAND, color } from '@/theme/tokens';
 
 /**
  * Recruitment workspace (§6 — Recruit Agents / Promoters). Your referral code binds
@@ -157,6 +157,8 @@ function Invitations({ referralLink }: { referralLink: string }) {
     // Collapsed by default — recruiting stays a one-screen share flow; the
     // invitation ledger opens on demand with its counts on the header.
     <Disclosure
+      icon="mail-open"
+      accent={category.team}
       title={t('recruit.invites.title', { defaultValue: 'Invitations' })}
       subtitle={t('recruit.invites.summary', {
         defaultValue: '{{sent}} sent · {{accepted}} accepted · {{pending}} pending',

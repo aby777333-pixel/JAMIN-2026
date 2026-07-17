@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { Disclosure } from '@/components/ui/Disclosure';
+import { category } from '@/theme/tokens';
 import { Input } from '@/components/ui/Input';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Screen } from '@/components/ui/Screen';
@@ -132,6 +133,8 @@ function PartnerWallet() {
       />
 
       <Disclosure
+        icon="receipt"
+        accent={category.finance}
         title="Transactions"
         subtitle="Commission ledger, statement and payout history">
         {summary && summary.ledger.length > 0 ? (

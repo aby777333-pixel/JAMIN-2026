@@ -709,50 +709,167 @@
       // ─── Properties ─────────────────────────────────────────────────────
       // Reserved attrs keys (have dedicated fields / behaviour) — excluded from "custom fields".
       var PROP_RESERVED = ['video_tour', 'virtual_tour', 'walkthrough', 'title', 'description', 'featured'];
-      // Land-area units used across India (incl. South-Indian: cents, grounds, ankanam, guntha).
-      var AREA_UNITS = ['sq ft', 'sq yards (gaj)', 'sq meters', 'acres', 'cents', 'grounds', 'ankanam', 'guntha', 'bigha', 'kanal', 'marla', 'katha', 'hectare'];
       var FACINGS = ['East', 'West', 'North', 'South', 'North-East', 'North-West', 'South-East', 'South-West'];
-      // Guided spec fields → each saved as a human-labelled attrs entry (key = label), so the
-      // app renders it automatically and it stays editable as a custom field afterwards.
-      var PROP_SPECS = [
-        { key: 'Built-up area', ph: 'e.g. 1800 sq ft' },
-        { key: 'Carpet area', ph: 'e.g. 1500 sq ft' },
-        { key: 'Dimensions', ph: 'e.g. 30 × 40 ft' },
-        { key: 'Bedrooms', ph: 'e.g. 3 BHK' },
-        { key: 'Bathrooms', ph: 'e.g. 2' },
-        { key: 'Floors', ph: 'e.g. G+2' },
-        { key: 'Road width', ph: 'e.g. 40 ft' },
-        { key: 'Approval', ph: 'e.g. DTCP / RERA / CMDA' },
-        { key: 'Full address', ph: 'Door/plot no, street, area, city, PIN' },
-        { key: 'Land category / zoning', ph: 'e.g. Residential / Commercial / Agricultural' },
-        { key: 'Ownership / document status', ph: 'e.g. Clear title / Patta / Khata-A' },
+      var YN = ['Yes', 'No'];
+      // Master Indian real-estate field catalogue (owner spec). Every field is
+      // saved as a human-labelled attrs entry (key = label) so the app renders
+      // it automatically and it stays fully editable afterwards. Grouped by
+      // section; open the groups relevant to the property's type and fill only
+      // what applies — empty fields are simply not saved.
+      var PROP_GROUPS = [
+        { title: 'General', fields: [
+          { key: 'Property category', ph: 'Residential / Commercial / Agricultural…' },
+          { key: 'Builder / Developer', ph: 'e.g. JAMIN Developers' },
+          { key: 'Listing status', opts: ['Active', 'Upcoming', 'Pre-launch', 'Sold out'] },
+          { key: 'RERA registration number', ph: 'e.g. TN/29/Building/…' },
+          { key: 'Possession status', opts: ['Ready to move', 'Under construction', 'New launch', 'Resale'] },
+          { key: 'Possession date', ph: 'e.g. Dec 2026' },
+          { key: 'Age of property', ph: 'e.g. 4 years' },
+          { key: 'Construction quality', ph: 'e.g. Premium / A-grade' },
+        ]},
+        { title: 'Location', fields: [
+          { key: 'State', ph: 'e.g. Tamil Nadu' },
+          { key: 'District', ph: 'e.g. Coimbatore' },
+          { key: 'City', ph: 'e.g. Coimbatore' },
+          { key: 'Taluk', ph: 'e.g. Pollachi' },
+          { key: 'Village', ph: 'e.g. Zamin Uthukuli' },
+          { key: 'Locality', ph: 'e.g. Race Course' },
+          { key: 'Landmark', ph: 'e.g. near Ukkadam bus stand' },
+          { key: 'Survey number', ph: 'e.g. 123/4B' },
+          { key: 'Subdivision number', ph: 'e.g. 4B2' },
+          { key: 'PIN code', ph: 'e.g. 641001' },
+          { key: 'Google Maps link', ph: 'https://maps.app.goo.gl/…' },
+          { key: 'Full address', ph: 'Door/plot no, street, area, city, PIN' },
+        ]},
+        { title: 'Land details', fields: [
+          { key: 'Plot area', ph: 'e.g. 2400 sq ft / 5.5 cents' },
+          { key: 'Total land area', ph: 'e.g. 2 acres' },
+          { key: 'Built-up area', ph: 'e.g. 1800 sq ft' },
+          { key: 'Carpet area', ph: 'e.g. 1500 sq ft' },
+          { key: 'Super built-up area', ph: 'e.g. 2100 sq ft' },
+          { key: 'Dimensions', ph: 'e.g. 30 × 40 ft' },
+          { key: 'Road width', ph: 'e.g. 40 ft' },
+          { key: 'Facing', opts: FACINGS },
+          { key: 'Corner plot', opts: YN },
+          { key: 'Number of frontages', ph: 'e.g. 2' },
+          { key: 'Land category / zoning', ph: 'e.g. Residential / Commercial / Agricultural' },
+          { key: 'Land classification', ph: 'e.g. Natham / Patta land / Poramboke' },
+          { key: 'Soil type', ph: 'e.g. Red soil / Black cotton' },
+          { key: 'Boundary details', ph: 'e.g. compound wall on 3 sides' },
+        ]},
+        { title: 'Apartment / building', fields: [
+          { key: 'Bedrooms', ph: 'e.g. 3 BHK' },
+          { key: 'Bathrooms', ph: 'e.g. 2' },
+          { key: 'Balconies', ph: 'e.g. 2' },
+          { key: 'Floor number', ph: 'e.g. 5th of 12' },
+          { key: 'Total floors', ph: 'e.g. G+12' },
+          { key: 'Lift', opts: YN },
+          { key: 'Parking', ph: 'e.g. 1 covered + 1 open' },
+          { key: 'Furnished status', opts: ['Furnished', 'Semi-furnished', 'Unfurnished'] },
+          { key: 'Amenities', ph: 'e.g. gym, pool, play area, security' },
+        ]},
+        { title: 'Agricultural', fields: [
+          { key: 'Irrigation', ph: 'e.g. drip / canal / rain-fed' },
+          { key: 'Water source', ph: 'e.g. borewell + canal' },
+          { key: 'Electricity connection', opts: YN },
+          { key: 'Crop type', ph: 'e.g. coconut, paddy, mango' },
+          { key: 'Fencing', opts: YN },
+          { key: 'Farm house', opts: YN },
+          { key: 'Borewell', opts: YN },
+          { key: 'Open well', opts: YN },
+          { key: 'Soil fertility', ph: 'e.g. high — river-fed alluvial' },
+        ]},
+        { title: 'Commercial / industrial', fields: [
+          { key: 'Shop area', ph: 'e.g. 450 sq ft' },
+          { key: 'Office area', ph: 'e.g. 1200 sq ft' },
+          { key: 'Warehouse area', ph: 'e.g. 8000 sq ft' },
+          { key: 'Industrial approval', ph: 'e.g. SIPCOT / DTCP industrial' },
+          { key: 'Loading access', opts: YN },
+          { key: 'Ceiling height', ph: 'e.g. 18 ft' },
+        ]},
+        { title: 'Legal', fields: [
+          { key: 'Ownership type', opts: ['Freehold', 'Leasehold', 'Joint ownership', 'Company owned', 'Trust property'] },
+          { key: 'Ownership / document status', ph: 'e.g. Clear title / Patta / Khata-A' },
+          { key: 'Title deed', ph: 'e.g. available / registered 2019' },
+          { key: 'Encumbrance certificate', ph: 'e.g. EC up to 2026 — nil encumbrance' },
+          { key: 'Patta', ph: 'e.g. available, in owner name' },
+          { key: 'Chitta', ph: 'e.g. available' },
+          { key: 'Adangal', ph: 'e.g. available (agricultural)' },
+          { key: 'Tax receipts', ph: 'e.g. paid up to 2026-27' },
+          { key: 'Mutation', ph: 'e.g. completed' },
+          { key: 'Approved layout', ph: 'e.g. DTCP LP No. 123/2020' },
+          { key: 'Approval', ph: 'e.g. DTCP / RERA / CMDA' },
+          { key: 'Bank approval', ph: 'e.g. SBI, HDFC approved' },
+          { key: 'Legal verification status', opts: ['Verified', 'Pending', 'Not verified'] },
+        ]},
+        { title: 'Financial', fields: [
+          { key: 'Price negotiable', opts: ['Negotiable', 'Fixed price'] },
+          { key: 'Price per sq ft', ph: 'e.g. ₹4,500' },
+          { key: 'Maintenance charges', ph: 'e.g. ₹2.5/sq ft monthly' },
+          { key: 'Registration charges', ph: 'e.g. 7% stamp + 4% reg' },
+          { key: 'GST', ph: 'e.g. 5% (under construction)' },
+          { key: 'Brokerage', ph: 'e.g. 1% / nil' },
+        ]},
+        { title: 'Media & tours', fields: [
+          { key: 'Drone video URL', ph: 'https://…' },
+          { key: 'Floor plan URL', ph: 'https://…' },
+          { key: 'Brochure URL', ph: 'https://…' },
+          { key: '360° image URL', ph: 'https://…' },
+        ]},
+        { title: 'Contact', fields: [
+          { key: 'Owner name', ph: 'shown to admin/partners as configured' },
+          { key: 'Owner phone', ph: '+91…' },
+          { key: 'Broker name', ph: '' },
+          { key: 'Broker phone', ph: '+91…' },
+          { key: 'Promoter name', ph: '' },
+          { key: 'Promoter phone', ph: '+91…' },
+          { key: 'JAMIN representative', ph: 'assigned rep name' },
+        ]},
+        { title: 'Marketing & SEO', fields: [
+          { key: 'Trending', opts: YN },
+          { key: 'Meta title', ph: 'search/share title override' },
+          { key: 'Meta description', ph: 'short share/search description' },
+          { key: 'Keywords', ph: 'comma-separated' },
+          { key: 'Social sharing image URL', ph: 'https://… (og:image override)' },
+        ]},
       ];
-      function specInputsHTML() {
-        var areaUnits = AREA_UNITS.map(function (u) { return '<option value="' + esc(u) + '">' + esc(u) + '</option>'; }).join('');
-        var facings = '<option value="">—</option>' + FACINGS.map(function (f) { return '<option value="' + esc(f) + '">' + esc(f) + '</option>'; }).join('');
-        var texts = PROP_SPECS.map(function (s) {
-          return '<div><label>' + esc(s.key) + '</label><input class="inp ns_spec" data-key="' + esc(s.key) + '" placeholder="' + esc(s.ph || '') + '" /></div>';
-        }).join('');
-        return '<div style="grid-column:1/-1"><label>Plot area</label><div class="row">' +
-            '<input id="ns_area" class="inp" inputmode="decimal" style="max-width:160px" placeholder="e.g. 2400" />' +
-            '<select id="ns_area_unit" class="inp" style="max-width:180px">' + areaUnits + '</select>' +
-          '</div></div>' +
-          '<div><label>Facing</label><select id="ns_facing" class="inp">' + facings + '</select></div>' +
-          '<div><label>Corner plot</label><select id="ns_corner" class="inp"><option value="">—</option><option>Yes</option><option>No</option></select></div>' +
-          '<div><label>Price negotiable</label><select id="ns_nego" class="inp"><option value="">—</option><option>Negotiable</option><option>Fixed price</option></select></div>' +
-          texts;
+      // Every catalogued label — group inputs own these keys, custom rows the rest.
+      var GROUP_FIELD_KEYS = {};
+      PROP_GROUPS.forEach(function (g) { g.fields.forEach(function (f) { GROUP_FIELD_KEYS[f.key] = true; }); });
+      // Grouped field editor. cls = input marker class (ns_spec for the add
+      // form, de_spec for the per-property editor); attrs prefill existing
+      // values. Groups with any filled value open expanded.
+      function groupInputsHTML(cls, attrs) {
+        var a = attrs && typeof attrs === 'object' ? attrs : {};
+        return '<div style="grid-column:1/-1">' + PROP_GROUPS.map(function (g) {
+          var filled = g.fields.some(function (f) { return a[f.key] != null && a[f.key] !== ''; });
+          var inner = g.fields.map(function (f) {
+            var val = a[f.key] != null ? String(a[f.key]) : '';
+            if (f.opts) {
+              var os = '<option value="">—</option>' + f.opts.map(function (o) {
+                return '<option value="' + esc(o) + '"' + (o === val ? ' selected' : '') + '>' + esc(o) + '</option>';
+              }).join('');
+              // Keep unexpected stored values visible/selectable rather than dropping them.
+              if (val && f.opts.indexOf(val) === -1) os += '<option value="' + esc(val) + '" selected>' + esc(val) + '</option>';
+              return '<div><label>' + esc(f.key) + '</label><select class="inp ' + cls + '" data-key="' + esc(f.key) + '">' + os + '</select></div>';
+            }
+            return '<div><label>' + esc(f.key) + '</label><input class="inp ' + cls + '" data-key="' + esc(f.key) + '" placeholder="' + esc(f.ph || '') + '" value="' + esc(val) + '" /></div>';
+          }).join('');
+          return '<details' + (filled ? ' open' : '') + ' style="border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:8px">' +
+            '<summary style="cursor:pointer;font-weight:600;font-size:13px">' + esc(g.title) + (filled ? ' <span class="muted" style="font-weight:400">— has data</span>' : '') + '</summary>' +
+            '<div class="grid2" style="margin-top:8px">' + inner + '</div></details>';
+        }).join('') + '</div>';
       }
-      function collectSpecs() {
+      // Read every marked group input under `scope` → {label: value} (non-empty only).
+      function collectSpecsFrom(scope, cls) {
         var out = {};
-        var area = $('ns_area') ? $('ns_area').value.trim() : '';
-        if (area) out['Plot area'] = area + (($('ns_area_unit') && $('ns_area_unit').value) ? ' ' + $('ns_area_unit').value : '');
-        var facing = $('ns_facing') ? $('ns_facing').value : ''; if (facing) out['Facing'] = facing;
-        var corner = $('ns_corner') ? $('ns_corner').value : ''; if (corner) out['Corner plot'] = corner;
-        var nego = $('ns_nego') ? $('ns_nego').value : ''; if (nego) out['Price negotiable'] = nego;
-        document.querySelectorAll('#tabProperties .ns_spec').forEach(function (i) {
-          var v = i.value.trim(); if (v) out[i.dataset.key] = v;
+        (scope || document).querySelectorAll('.' + cls).forEach(function (i) {
+          var v = (i.value || '').trim(); if (v) out[i.dataset.key] = v;
         });
         return out;
+      }
+      function collectSpecs() {
+        return collectSpecsFrom(document.getElementById('tabProperties'), 'ns_spec');
       }
       function cfRow(k, v) {
         return '<div class="row cf-row" style="margin-top:6px">' +
@@ -762,7 +879,9 @@
       }
       function customRowsFor(attrs) {
         if (!attrs || typeof attrs !== 'object') return '';
-        return Object.keys(attrs).filter(function (k) { return PROP_RESERVED.indexOf(k) === -1; })
+        // Catalogued labels render inside their group editor — only truly
+        // ad-hoc keys stay as custom rows (no duplicate inputs for one key).
+        return Object.keys(attrs).filter(function (k) { return PROP_RESERVED.indexOf(k) === -1 && !GROUP_FIELD_KEYS[k]; })
           .map(function (k) { return cfRow(k, attrs[k]); }).join('');
       }
       function wireAddField(btn, container) {
@@ -846,8 +965,8 @@
           '<div><label>Price (₹)</label><input id="np_price" class="inp" inputmode="numeric" placeholder="1500000" /></div>' +
           '<div><label>Title / name (optional)</label><input id="np_title" class="inp" placeholder="e.g. Premium Corner Plot" /></div>' +
           '<div style="grid-column:1/-1"><label>Description (optional)</label><textarea id="np_desc" class="inp" style="height:auto;min-height:72px;padding:10px" placeholder="Describe this property — highlights, surroundings, connectivity…"></textarea></div>' +
-          '<div style="grid-column:1/-1;border-top:1px solid var(--line);margin-top:4px;padding-top:10px"><b style="font-size:13px">Property specifications (optional)</b><div class="muted" style="font-size:12px">Shown as details on the listing. Use Plot area for the headline size; add anything else as a custom field below.</div></div>' +
-          specInputsHTML() +
+          '<div style="grid-column:1/-1;border-top:1px solid var(--line);margin-top:4px;padding-top:10px"><b style="font-size:13px">Property details (optional — full Indian real-estate catalogue)</b><div class="muted" style="font-size:12px">Open the sections that apply to this property type (land, apartment, agricultural, commercial, legal, financial…) and fill what you know. Everything you enter shows on the listing; empty fields are skipped.</div></div>' +
+          groupInputsHTML('ns_spec', null) +
           '<div><label>Latitude (optional)</label><input id="np_lat" class="inp" inputmode="decimal" placeholder="12.9716" /></div>' +
           '<div><label>Longitude (optional)</label><input id="np_lng" class="inp" inputmode="decimal" placeholder="77.5946" /></div>' +
           '<div><label>Video tour URL (optional)</label><input id="np_video" class="inp" placeholder="https://youtu.be/…" /></div>' +
@@ -894,6 +1013,8 @@
                 '<label class="btn-o btn-sm" style="display:inline-block;margin-top:6px">+ Add photos / videos<input type="file" accept="image/*,video/*" class="de_file hidden" multiple /></label>' +
                 '<label style="display:block;margin-top:10px">Property documents (seller uploads)</label>' +
                 '<div class="de_docs muted" style="font-size:12px;line-height:1.7">Loading…</div>' +
+                '<label style="display:block;margin-top:10px">Full property details (Indian real-estate catalogue)</label>' +
+                '<div class="grid2" style="margin-top:2px">' + groupInputsHTML('de_spec', r.attrs) + '</div>' +
                 '<label style="display:block;margin-top:10px">Custom fields</label><div class="de_custom">' + customRowsFor(r.attrs) + '</div>' +
                 '<button type="button" class="btn-o btn-sm de_addfield" style="margin-top:6px">+ Add field</button> ' +
                 '<button type="button" class="btn btn-sm de_save" style="margin-top:6px">Save details</button> <span class="muted de_msg"></span>' +
@@ -1075,7 +1196,8 @@
             };
             detRow.querySelector('.de_save').onclick = async function () {
               var msg = detRow.querySelector('.de_msg'); msg.textContent = 'Saving…';
-              var attrs = collectCustom(custom);
+              // Catalogue fields first, ad-hoc custom rows win on a key clash.
+              var attrs = Object.assign({}, collectSpecsFrom(detRow, 'de_spec'), collectCustom(custom));
               // preserve behaviour/tour keys already on the record
               ['video_tour', 'virtual_tour', 'walkthrough', 'featured'].forEach(function (k) {
                 if (rec.attrs && rec.attrs[k] != null) attrs[k] = rec.attrs[k];

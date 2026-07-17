@@ -7,6 +7,7 @@ import { Animated, Dimensions, Modal, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { create } from 'zustand';
 
+import { Logo } from '@/components/brand/Logo';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { TileGrid, ToolTile } from '@/components/ui/ToolTile';
@@ -98,7 +99,7 @@ export function WelcomeSplash() {
     ? new Date(session.user.last_sign_in_at).getTime()
     : createdAt;
   const isNew = createdAt > 0 && lastSignIn - createdAt < NEW_USER_WINDOW_MS;
-  const heroHeight = Math.min(Dimensions.get('window').height * 0.38, 360);
+  const heroHeight = Math.min(Dimensions.get('window').height * 0.33, 320);
 
   function close() {
     markSeen(uid);
@@ -113,10 +114,15 @@ export function WelcomeSplash() {
   return (
     <Modal visible transparent statusBarTranslucent animationType="fade" onRequestClose={close}>
       <Animated.View className="flex-1 bg-paper" style={{ opacity: fade }}>
-        {/* Hero — the namaste artwork on its own warm canvas. */}
+        {/* Hero — the namaste artwork on its own canvas, breathing room above
+            (owner feedback: sit the illustration slightly lower). */}
         <View
           className="items-center justify-end"
-          style={{ height: heroHeight + insets.top, paddingTop: insets.top, backgroundColor: '#FFFFFF' }}>
+          style={{
+            height: heroHeight + insets.top + 24,
+            paddingTop: insets.top + 24,
+            backgroundColor: '#FFFFFF',
+          }}>
           <Image source={HERO} style={{ width: '100%', height: heroHeight }} contentFit="contain" />
         </View>
 
@@ -132,6 +138,10 @@ export function WelcomeSplash() {
             shadowOffset: { width: 0, height: -4 },
             elevation: 8,
           }}>
+          {/* Brand mark between the illustration and the greeting. */}
+          <View className="items-center pb-3">
+            <Logo width={150} />
+          </View>
           <Text className="text-center font-medium text-[11px] uppercase tracking-[3px] text-gold-deep">
             {t('welcome.namaste', { defaultValue: 'Namaste' })} 🙏
           </Text>
@@ -140,7 +150,7 @@ export function WelcomeSplash() {
               ? t('welcome.new', { defaultValue: 'Welcome to JAMIN' })
               : t('welcome.back', { defaultValue: 'Welcome Back, {{name}}', name: firstName })}
           </Text>
-          <Text variant="caption" className="pb-4 pt-1 text-center">
+          <Text variant="caption" className="pb-5 pt-1 text-center">
             {TAGLINE}
           </Text>
 

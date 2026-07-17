@@ -123,7 +123,7 @@ export function RouteBackdrop() {
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <Image
         source={artFor(path)}
-        style={{ flex: 1, opacity: 0.13 }}
+        style={{ flex: 1, opacity: 0.2 }}
         contentFit="cover"
         transition={200}
       />

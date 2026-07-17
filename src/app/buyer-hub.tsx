@@ -163,6 +163,8 @@ export default function BuyerHub() {
           on the headers so the dashboard is glanceable without the noise. */}
       {upcoming.length > 0 ? (
         <Disclosure
+          icon="calendar"
+          accent={category.comms}
           title={t('buyerHub.upcomingVisits', { defaultValue: 'Upcoming site visits' })}
           subtitle={t('buyerHub.upcomingVisitsSub', { defaultValue: '{{count}} scheduled', count: upcoming.length })}>
           {upcoming.map((v) => (
@@ -195,6 +197,8 @@ export default function BuyerHub() {
 
       {brochures.length > 0 ? (
         <Disclosure
+          icon="document-text"
+          accent={category.docs}
           title={t('buyerHub.brochures', { defaultValue: 'Brochure downloads' })}
           subtitle={t('buyerHub.brochuresSub', { defaultValue: '{{count}} recent', count: brochures.length })}>
           {brochures.map((b) => (
@@ -222,6 +226,8 @@ export default function BuyerHub() {
 
       {recentNotifications.length > 0 ? (
         <Disclosure
+          icon="notifications"
+          accent={category.comms}
           title={t('buyerHub.updates', { defaultValue: 'Latest updates' })}
           subtitle={t('buyerHub.updatesSub', {
             defaultValue: '{{count}} unread',
@@ -254,6 +260,8 @@ export default function BuyerHub() {
 
       {recommended.length > 0 ? (
         <Disclosure
+          icon="sparkles"
+          accent={category.buy}
           title={t('buyerHub.recommended', { defaultValue: 'Recommended for you' })}
           subtitle={t('buyerHub.recommendedSub', { defaultValue: 'Picked from your activity & preferences' })}
           initiallyOpen>

@@ -59,7 +59,7 @@ import {
 import { useSubmitPhotos } from '@/features/submissions/hooks';
 import { SITE_URL } from '@/lib/site';
 import { useAuth } from '@/stores/auth';
-import { color } from '@/theme/tokens';
+import { category, color } from '@/theme/tokens';
 import { errMessage } from '@/lib/errors';
 
 export default function PropertyDetail() {
@@ -413,6 +413,8 @@ export default function PropertyDetail() {
 
       {/* Everything secondary sits behind one clear disclosure (brief §2). */}
       <Disclosure
+        icon="information-circle"
+        accent={category.buy}
         title={t('property.moreInfo', { defaultValue: 'More information' })}
         subtitle={t('property.moreInfoSub', { defaultValue: 'Insights, tours, nearby places & calculators' })}>
         {!isPending && !isRejected ? <PlotAppeal property={property} /> : null}
@@ -555,6 +557,8 @@ export default function PropertyDetail() {
 
       {isPartner ? (
         <Disclosure
+          icon="briefcase"
+          accent={category.team}
           title={t('property.partnerTools', { defaultValue: 'Partner tools' })}
           subtitle={t('property.partnerToolsSub', { defaultValue: 'Commission, flyers & photo submissions' })}>
           <CommissionPreview
