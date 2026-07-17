@@ -131,7 +131,9 @@ export function WelcomeSplash() {
           className="flex-1 rounded-t-3xl bg-surface px-5 pt-6"
           style={{
             transform: [{ translateY: rise }],
-            marginTop: -24,
+            // Sits BELOW the illustration (owner: namaste must be fully
+            // visible — no sheet overlap over the praying hands).
+            marginTop: 8,
             shadowColor: '#202020',
             shadowOpacity: 0.08,
             shadowRadius: 12,

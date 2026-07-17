@@ -10,6 +10,7 @@ import { BackHeader } from '@/components/ui/BackHeader';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Disclosure } from '@/components/ui/Disclosure';
+import { TileTabs } from '@/components/ui/TileTabs';
 import { MoneyText } from '@/components/ui/MoneyText';
 import { Screen } from '@/components/ui/Screen';
 import { Text } from '@/components/ui/Text';
@@ -417,129 +418,192 @@ export default function PropertyDetail() {
         accent={category.buy}
         title={t('property.moreInfo', { defaultValue: 'More information' })}
         subtitle={t('property.moreInfoSub', { defaultValue: 'Insights, tours, nearby places & calculators' })}>
-        {!isPending && !isRejected ? <PlotAppeal property={property} /> : null}
-
-        <FortunePanel
-          property={{
-            id: property.id,
-            plotCode: property.plot_code,
-            price: property.price,
-            project: property.project?.name,
-            location: property.project?.location,
-          }}
+        {/* Square-tab hub (owner brief): each info section is a colorized tile;
+            tapping one reveals it below — the calculators-hub interaction.
+            Content JSX is unchanged, only regrouped; unselected sections stay
+            unmounted so their data fetching remains deferred. */}
+        <TileTabs
+          sections={[
+            {
+              key: 'highlights',
+              icon: 'heart',
+              accent: category.sell,
+              label: t('property.tabs.highlights', { defaultValue: 'Highlights' }),
+              content: (
+                <>
+                  {!isPending && !isRejected ? <PlotAppeal property={property} /> : null}
+                  <FortunePanel
+                    property={{
+                      id: property.id,
+                      plotCode: property.plot_code,
+                      price: property.price,
+                      project: property.project?.name,
+                      location: property.project?.location,
+                    }}
+                  />
+                  <InvestValueCard property={{ id: property.id, price: property.price, attrs: property.attrs }} />
+                </>
+              ),
+            },
+            ...(hasCoords
+              ? [
+                  {
+                    key: 'sacred',
+                    icon: 'flower' as const,
+                    accent: category.marketing,
+                    label: t('property.tabs.sacred', { defaultValue: 'Family & Vastu' }),
+                    // Faith & practicality — sacred places, Qibla, land checks.
+                    content: <SacredPlacesCard lat={lat} lng={lng} attrs={property.attrs} />,
+                  },
+                ]
+              : []),
+            ...(tours.length > 0 || hasCoords || brochureUrl
+              ? [
+                  {
+                    key: 'tours',
+                    icon: 'navigate' as const,
+                    accent: category.finance,
+                    label: t('property.tabs.tours', { defaultValue: 'Tours & nearby' }),
+                    content: (
+                      <>
+                        <View className="gap-2">
+                          <Text variant="label">{t('property.toursLocation')}</Text>
+                          <View className="flex-row flex-wrap gap-2">
+                            {brochureUrl ? (
+                              <Pressable
+                                onPress={() => {
+                                  logBrochureOpen({ title: 'Digital brochure', url: brochureUrl, propertyId: property.id });
+                                  router.push({ pathname: '/webview', params: { url: brochureUrl, title: t('property.tours.brochure', { defaultValue: 'Brochure' }) } });
+                                }}
+                                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                                <Ionicons name="book" size={16} color={color.red} />
+                                <Text className="text-[13px] font-semibold text-ink">{t('property.tours.brochure', { defaultValue: 'Brochure' })}</Text>
+                              </Pressable>
+                            ) : null}
+                            {tours.map((tr) => (
+                              <Pressable
+                                key={tr.label}
+                                onPress={() => router.push({ pathname: '/webview', params: { url: tr.url, title: tr.label } })}
+                                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                                <Ionicons name={tr.icon} size={16} color={color.red} />
+                                <Text className="text-[13px] font-semibold text-ink">{tr.label}</Text>
+                              </Pressable>
+                            ))}
+                            {hasCoords ? (
+                              <Pressable
+                                onPress={() =>
+                                  Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`)
+                                }
+                                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                                <Ionicons name="navigate" size={16} color={color.red} />
+                                <Text className="text-[13px] font-semibold text-ink">{t('property.tours.nearby')}</Text>
+                              </Pressable>
+                            ) : null}
+                            {hasCoords ? (
+                              <Pressable
+                                onPress={() =>
+                                  Linking.openURL(
+                                    `https://www.google.com/maps/@?api=1&map_action=map&center=${lat},${lng}&zoom=18&basemap=satellite`,
+                                  )
+                                }
+                                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                                <Ionicons name="globe" size={16} color={color.red} />
+                                <Text className="text-[13px] font-semibold text-ink">{t('property.tours.satellite', { defaultValue: 'Satellite view' })}</Text>
+                              </Pressable>
+                            ) : null}
+                            {hasCoords ? (
+                              <Pressable
+                                onPress={() =>
+                                  Linking.openURL(
+                                    `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`,
+                                  )
+                                }
+                                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                                <Ionicons name="walk" size={16} color={color.red} />
+                                <Text className="text-[13px] font-semibold text-ink">{t('property.tours.streetView', { defaultValue: 'Street View' })}</Text>
+                              </Pressable>
+                            ) : null}
+                            {hasCoords ? (
+                              <Pressable
+                                onPress={() => router.push({ pathname: '/ar', params: { id: property.id } })}
+                                className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
+                                <Ionicons name="scan" size={16} color={color.red} />
+                                <Text className="text-[13px] font-semibold text-ink">{t('property.tours.ar')}</Text>
+                              </Pressable>
+                            ) : null}
+                          </View>
+                        </View>
+                        {hasCoords ? <NearbyAmenities lat={lat as number} lng={lng as number} /> : null}
+                        <NeighborhoodScores scores={property.project?.neighborhood} />
+                      </>
+                    ),
+                  },
+                ]
+              : []),
+            {
+              key: 'docs',
+              icon: 'document-text',
+              accent: category.docs,
+              label: t('property.tabs.documents', { defaultValue: 'Documents' }),
+              // Listing documents (patta / EC / title deed …) — published with
+              // the approved listing; opens are captured for the admin.
+              content: <PropertyDocuments propertyId={property.id} />,
+            },
+            {
+              key: 'insights',
+              icon: 'trending-up',
+              accent: category.ai,
+              label: t('property.tabs.insights', { defaultValue: 'Insights & price' }),
+              content: (
+                <>
+                  {/* Guideline/market value, connectivity & alerts — admin-set attrs (0100). */}
+                  <PropertyInsights attrs={property.attrs as Record<string, unknown>} />
+                  <PriceHistoryPanel propertyId={property.id} />
+                </>
+              ),
+            },
+            {
+              key: 'calculators',
+              icon: 'calculator',
+              accent: category.finance,
+              label: t('property.tabs.calculators', { defaultValue: 'Calculators' }),
+              content: (
+                <>
+                  <EmiCalculator price={property.price} />
+                  <StampDutyCalculator price={property.price} />
+                  <AffordabilityCalculator price={property.price} />
+                  <RentVsBuyCalculator price={property.price} />
+                  <RoiCalculator price={property.price} />
+                  <TotalCostCalculator price={property.price} />
+                  <LoanEligibilityCalculator />
+                  <RentalYieldCalculator price={property.price} />
+                </>
+              ),
+            },
+            {
+              key: 'ai',
+              icon: 'sparkles',
+              accent: category.ai,
+              label: t('property.tabs.ai', { defaultValue: 'AI & reviews' }),
+              content: (
+                <>
+                  <AiPropertyPanel
+                    ctx={{
+                      title: customTitle,
+                      project: property.project?.name,
+                      location: property.project?.location,
+                      price: property.price,
+                      type: property.type?.name,
+                    }}
+                    description={description}
+                  />
+                  <JourneyTracker propertyId={property.id} />
+                  {property.project_id ? <ReviewsPanel projectId={property.project_id} /> : null}
+                </>
+              ),
+            },
+          ]}
         />
-
-        <InvestValueCard property={{ id: property.id, price: property.price, attrs: property.attrs }} />
-
-        {/* Faith & practicality — sacred places, Qibla, land checks (renders only with coords). */}
-        <SacredPlacesCard lat={lat} lng={lng} attrs={property.attrs} />
-
-        {tours.length > 0 || hasCoords || brochureUrl ? (
-          <View className="gap-2">
-            <Text variant="label">{t('property.toursLocation')}</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {brochureUrl ? (
-                <Pressable
-                  onPress={() => {
-                    logBrochureOpen({ title: 'Digital brochure', url: brochureUrl, propertyId: property.id });
-                    router.push({ pathname: '/webview', params: { url: brochureUrl, title: t('property.tours.brochure', { defaultValue: 'Brochure' }) } });
-                  }}
-                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
-                  <Ionicons name="book" size={16} color={color.red} />
-                  <Text className="text-[13px] font-semibold text-ink">{t('property.tours.brochure', { defaultValue: 'Brochure' })}</Text>
-                </Pressable>
-              ) : null}
-              {tours.map((tr) => (
-                <Pressable
-                  key={tr.label}
-                  onPress={() => router.push({ pathname: '/webview', params: { url: tr.url, title: tr.label } })}
-                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
-                  <Ionicons name={tr.icon} size={16} color={color.red} />
-                  <Text className="text-[13px] font-semibold text-ink">{tr.label}</Text>
-                </Pressable>
-              ))}
-              {hasCoords ? (
-                <Pressable
-                  onPress={() =>
-                    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`)
-                  }
-                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
-                  <Ionicons name="navigate" size={16} color={color.red} />
-                  <Text className="text-[13px] font-semibold text-ink">{t('property.tours.nearby')}</Text>
-                </Pressable>
-              ) : null}
-              {hasCoords ? (
-                <Pressable
-                  onPress={() =>
-                    Linking.openURL(
-                      `https://www.google.com/maps/@?api=1&map_action=map&center=${lat},${lng}&zoom=18&basemap=satellite`,
-                    )
-                  }
-                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
-                  <Ionicons name="globe" size={16} color={color.red} />
-                  <Text className="text-[13px] font-semibold text-ink">{t('property.tours.satellite', { defaultValue: 'Satellite view' })}</Text>
-                </Pressable>
-              ) : null}
-              {hasCoords ? (
-                <Pressable
-                  onPress={() =>
-                    Linking.openURL(
-                      `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`,
-                    )
-                  }
-                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
-                  <Ionicons name="walk" size={16} color={color.red} />
-                  <Text className="text-[13px] font-semibold text-ink">{t('property.tours.streetView', { defaultValue: 'Street View' })}</Text>
-                </Pressable>
-              ) : null}
-              {hasCoords ? (
-                <Pressable
-                  onPress={() => router.push({ pathname: '/ar', params: { id: property.id } })}
-                  className="flex-row items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-2.5">
-                  <Ionicons name="scan" size={16} color={color.red} />
-                  <Text className="text-[13px] font-semibold text-ink">{t('property.tours.ar')}</Text>
-                </Pressable>
-              ) : null}
-            </View>
-          </View>
-        ) : null}
-
-        {/* Listing documents (patta / EC / title deed / brochure …) — published
-            with the approved listing; opens are captured for the admin. */}
-        <PropertyDocuments propertyId={property.id} />
-
-        {hasCoords ? <NearbyAmenities lat={lat as number} lng={lng as number} /> : null}
-
-        <NeighborhoodScores scores={property.project?.neighborhood} />
-
-        {/* Guideline/market value, connectivity & alerts — admin-set attrs (0100). */}
-        <PropertyInsights attrs={property.attrs as Record<string, unknown>} />
-
-        <PriceHistoryPanel propertyId={property.id} />
-
-        <EmiCalculator price={property.price} />
-        <StampDutyCalculator price={property.price} />
-        <AffordabilityCalculator price={property.price} />
-        <RentVsBuyCalculator price={property.price} />
-        <RoiCalculator price={property.price} />
-        <TotalCostCalculator price={property.price} />
-        <LoanEligibilityCalculator />
-        <RentalYieldCalculator price={property.price} />
-
-        <AiPropertyPanel
-          ctx={{
-            title: customTitle,
-            project: property.project?.name,
-            location: property.project?.location,
-            price: property.price,
-            type: property.type?.name,
-          }}
-          description={description}
-        />
-
-        <JourneyTracker propertyId={property.id} />
-
-        {property.project_id ? <ReviewsPanel projectId={property.project_id} /> : null}
 
         <Button title={t('property.cta.shortlist')} variant="outline" left={<Ionicons name="people" size={16} color={color.ink} />} onPress={() => setShortlist(true)} />
         {!isPartner ? (
