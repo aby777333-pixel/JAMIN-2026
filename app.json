@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "JAMIN Properties",
+    "name": "Jamin Bazaar",
     "slug": "jamin-mobile",
     "version": "1.0.0",
-    "description": "JAMIN Properties — a complete real-estate sales ecosystem: discover properties, calculate EMI & ROI, book visits, and (for partners) build a team, earn commissions, generate branded marketing, and track everything. Signature for Fortune.",
+    "description": "Jamin Bazaar — a complete real-estate sales ecosystem: discover properties, calculate EMI & ROI, book visits, and (for partners) build a team, earn commissions, generate branded marketing, and track everything. Signature for Fortune.",
     "primaryColor": "#FD0001",
     "runtimeVersion": {
       "policy": "appVersion"
@@ -67,22 +67,22 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "JAMIN uses the camera to capture live, geo-verified property photos and videos for your ads and brochures.",
-          "microphonePermission": "JAMIN uses the microphone to record sound in your property video ads.",
+          "cameraPermission": "Jamin Bazaar uses the camera to capture live, geo-verified property photos and videos for your ads and brochures.",
+          "microphonePermission": "Jamin Bazaar uses the microphone to record sound in your property video ads.",
           "recordAudioAndroid": true
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "JAMIN tags property photos and site visits with your location for verification."
+          "locationWhenInUsePermission": "Jamin Bazaar tags property photos and site visits with your location for verification."
         }
       ],
       [
         "expo-media-library",
         {
-          "photosPermission": "JAMIN saves generated ads, brochures and your business card to your photo library.",
-          "savePhotosPermission": "JAMIN saves generated ads, brochures and your business card to your photo library."
+          "photosPermission": "Jamin Bazaar saves generated ads, brochures and your business card to your photo library.",
+          "savePhotosPermission": "Jamin Bazaar saves generated ads, brochures and your business card to your photo library."
         }
       ],
       "expo-notifications",
@@ -90,7 +90,7 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "JAMIN uses the microphone for AI voice conversations in Indian languages."
+          "microphonePermission": "Jamin Bazaar uses the microphone for AI voice conversations in Indian languages."
         }
       ]
     ],

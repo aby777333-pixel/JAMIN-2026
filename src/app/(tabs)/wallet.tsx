@@ -179,6 +179,8 @@ function labelFor(ref: string): string {
   if (ref.startsWith('sale:')) return 'Sale commission';
   if (ref.startsWith('withdrawal:')) return 'Withdrawal';
   if (ref.startsWith('bonus:')) return 'Bonus';
+  if (ref.startsWith('bazaar:')) return 'Sales income';
+  if (ref.startsWith('bazaar-adjust:')) return 'Adjustment';
   // Internal references stay internal (brief §2) — show a plain label instead.
   return 'Adjustment';
 }

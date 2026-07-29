@@ -73,7 +73,7 @@ export async function shareToChannel(channel: Channel, text: string, url: string
         return await Linking.openURL(`sms:?body=${enc}`);
       case 'email':
         return await Linking.openURL(
-          `mailto:?subject=${encodeURIComponent('JAMIN Properties')}&body=${enc}`,
+          `mailto:?subject=${encodeURIComponent('Jamin Bazaar')}&body=${enc}`,
         );
       case 'copy':
         await Clipboard.setStringAsync(full);

@@ -49,7 +49,7 @@ export default function BrochurePreview() {
   }
 
   const accent = tpl.config.accent ?? color.red;
-  const code = profile?.referral_code ?? 'JAMIN';
+  const code = profile?.referral_code ?? 'Jamin Bazaar';
   const url = referralUrl(code);
   const w = Dimensions.get('window').width - 40;
   const h = w * (4 / 3);
@@ -70,7 +70,7 @@ export default function BrochurePreview() {
     const uri = await render();
     if (uri) {
       await logArtifactShare({ artifact: 'brochure', referralCode: code, channel: 'image' });
-      await shareImageFile(uri, `${tpl!.config.headline ?? 'JAMIN Properties'} — ${url}`);
+      await shareImageFile(uri, `${tpl!.config.headline ?? 'Jamin Bazaar'} — ${url}`);
     }
     setBusy(false);
   }
@@ -183,7 +183,7 @@ export default function BrochurePreview() {
               {verified ? <Ionicons name="checkmark-circle" size={12} color={color.success} /> : null}
             </View>
             <AgentStamp
-              name={profile?.full_name ?? 'JAMIN Partner'}
+              name={profile?.full_name ?? 'Jamin Bazaar Partner'}
               phone={profile?.phone}
               referralCode={code}
               photoUrl={profile?.photo_url}
@@ -204,7 +204,7 @@ export default function BrochurePreview() {
       <View className="gap-2">
         <Text variant="label">Share your link to a channel</Text>
         <ShareChannels
-          text={`${tpl.config.headline ?? 'Discover JAMIN Properties'} —`}
+          text={`${tpl.config.headline ?? 'Discover Jamin Bazaar'} —`}
           url={url}
           onShare={(ch) => logArtifactShare({ artifact: 'brochure', referralCode: code, channel: ch })}
         />

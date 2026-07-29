@@ -55,7 +55,7 @@ export function installCrashGuard(): void {
       // Swallow the fatal: an alert beats the app vanishing mid-task.
       const msg = error instanceof Error ? error.message : String(error);
       try {
-        Alert.alert('Something went wrong', `${msg}\n\nThe error was reported to JAMIN — you can keep using the app.`);
+        Alert.alert('Something went wrong', `${msg}\n\nThe error was reported to Jamin Bazaar — you can keep using the app.`);
       } catch {
         /* ignore */
       }

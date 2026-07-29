@@ -199,7 +199,7 @@ export const useAuth = create<AuthState>((set, get) => ({
   unlock: async () => {
     try {
       const r = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Unlock JAMIN Properties',
+        promptMessage: 'Unlock Jamin Bazaar',
         fallbackLabel: 'Use passcode',
       });
       if (r.success) set({ locked: false });

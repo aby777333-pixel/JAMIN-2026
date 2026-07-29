@@ -47,7 +47,7 @@ export default function BlessingScheduler() {
       .join('\n');
     try {
       await Share.share({
-        message: `Blessing-day suggestions for our new home 🏡\n${lines}\n\nvia JAMIN Properties · Signature for Fortune`,
+        message: `Blessing-day suggestions for our new home 🏡\n${lines}\n\nvia Jamin Bazaar · Signature for Fortune`,
       });
     } catch {
       /* dismissed */

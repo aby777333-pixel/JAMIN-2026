@@ -168,7 +168,7 @@ export default function PosterMaker() {
       const uri = await render();
       if (!uri) return;
       if (Platform.OS === 'web') {
-        await shareImageFile(uri, title || 'JAMIN Properties');
+        await shareImageFile(uri, title || 'Jamin Bazaar');
         return;
       }
       const perm = await MediaLibrary.requestPermissionsAsync();
@@ -176,7 +176,7 @@ export default function PosterMaker() {
         await MediaLibrary.saveToLibraryAsync(uri);
         Alert.alert('Saved', 'Poster saved to your gallery.');
       } else {
-        await shareImageFile(uri, title || 'JAMIN Properties');
+        await shareImageFile(uri, title || 'Jamin Bazaar');
       }
     } catch (e) {
       Alert.alert('Could not save', errMessage(e));
@@ -209,7 +209,7 @@ export default function PosterMaker() {
           const caption =
             `${title || 'Property for sale'}${price.trim() ? ` · ${formatINR(money(price))}` : ''}` +
             `${location.trim() ? ` · ${location.trim()}` : ''}\n` +
-            'JAMIN Properties · Signature for Fortune\n' +
+            'Jamin Bazaar · Signature for Fortune\n' +
             'View photo, location & contact 👇\n' +
             url;
           // Share the LINK to the interactive ad page (link preview shows the real
@@ -220,13 +220,13 @@ export default function PosterMaker() {
           /* fall through to image share */
         }
       }
-      await shareImageFile(uri, title || 'JAMIN Properties');
+      await shareImageFile(uri, title || 'Jamin Bazaar');
     } finally {
       setBusy(false);
     }
   }
 
-  /** Server-render a branded video: overlay the JAMIN strip onto the clip via Cloudinary. */
+  /** Server-render a branded video: overlay the Jamin Bazaar strip onto the clip via Cloudinary. */
   async function onBrandVideo() {
     if (!media || media.kind !== 'video' || !media.sourceUri) return;
     setBranding(true);
@@ -265,7 +265,7 @@ export default function PosterMaker() {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(dl.uri, { mimeType: 'video/mp4', UTI: 'public.movie' });
       } else {
-        await Share.share({ url: res.url, message: 'JAMIN Properties · Signature for Fortune' });
+        await Share.share({ url: res.url, message: 'Jamin Bazaar · Signature for Fortune' });
       }
     } catch (e) {
       Alert.alert('Could not create branded video', errMessage(e));
@@ -342,7 +342,7 @@ export default function PosterMaker() {
           <View className="flex-1 justify-between">
             <View className="flex-row items-start justify-between p-3">
               <View className="rounded-lg bg-red px-2 py-1">
-                <Text className="font-bold text-[10px] uppercase tracking-[1px] text-white">JAMIN Properties</Text>
+                <Text className="font-bold text-[10px] uppercase tracking-[1px] text-white">Jamin Bazaar</Text>
               </View>
               {media.kind === 'video' ? (
                 <View className="flex-row items-center gap-1 rounded-lg bg-black/55 px-2 py-1">
@@ -386,9 +386,9 @@ export default function PosterMaker() {
               ) : null}
               <View className="mt-3">
                 <AgentStamp
-                  name={profile?.full_name ?? 'JAMIN Partner'}
+                  name={profile?.full_name ?? 'Jamin Bazaar Partner'}
                   phone={profile?.phone}
-                  referralCode={profile?.referral_code ?? 'JAMIN'}
+                  referralCode={profile?.referral_code ?? 'Jamin Bazaar'}
                   qrSize={54}
                 />
               </View>
@@ -448,17 +448,17 @@ export default function PosterMaker() {
           style={{ position: 'absolute', left: -10000, top: 0, width: 1080 }}>
           <View className="flex-row items-center gap-4 bg-black/70 px-8 py-6">
             <View className="rounded-xl bg-red px-4 py-3">
-              <Text className="font-black text-[30px] text-white">JAMIN</Text>
+              <Text className="font-black text-[30px] text-white">Jamin Bazaar</Text>
             </View>
             <View className="flex-1">
               <Text className="font-bold text-[30px] text-white" numberOfLines={1}>
-                {profile?.full_name ?? 'JAMIN Partner'}
+                {profile?.full_name ?? 'Jamin Bazaar Partner'}
               </Text>
               {profile?.phone ? <Text className="text-[24px] text-white/90">{profile.phone}</Text> : null}
               <Text className="text-[18px] text-gold">Signature for Fortune</Text>
             </View>
             <View className="rounded-2xl bg-white p-3">
-              <QRCode value={referralUrl(profile?.referral_code ?? 'JAMIN')} size={110} />
+              <QRCode value={referralUrl(profile?.referral_code ?? 'Jamin Bazaar')} size={110} />
             </View>
           </View>
         </View>

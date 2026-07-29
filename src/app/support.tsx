@@ -45,7 +45,7 @@ export default function Support() {
   const privacyUrl = clean(get('legal.privacy_url'));
 
   // Install-source contact routing (Buyer module spec): a referral-installed
-  // buyer contacts ONLY their assigned promoter; everyone else reaches JAMIN.
+  // buyer contacts ONLY their assigned promoter; everyone else reaches Jamin Bazaar.
   const promoterPhone = clean(promoter?.phone ?? '');
   const usePromoter = !!(isReferralBuyer && promoter && promoterPhone);
   const promoterName = promoter?.full_name?.trim() || 'Your promoter';
@@ -68,7 +68,7 @@ export default function Support() {
         },
       ]
     : isReferralBuyer && promoterLoading
-      ? [] // never flash JAMIN numbers while the promoter is still loading
+      ? [] // never flash Jamin Bazaar numbers while the promoter is still loading
       : ([
           phone
             ? {
@@ -129,7 +129,7 @@ export default function Support() {
 
       {contacts.length > 0 ? (
         <View className="gap-2">
-          <Text variant="label">{usePromoter ? 'Your JAMIN promoter' : 'Contact'}</Text>
+          <Text variant="label">{usePromoter ? 'Your Jamin Bazaar promoter' : 'Contact'}</Text>
           {usePromoter ? (
             <Text variant="caption">
               {promoterName} looks after you personally — reach out anytime.

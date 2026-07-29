@@ -17,7 +17,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'Why can’t I see the seller’s phone number?',
-    a: 'For your safety, all communication happens through JAMIN — in-app chat and calls. This protects both buyers and sellers from spam and fraud.',
+    a: 'For your safety, all communication happens through Jamin Bazaar — in-app chat and calls. This protects both buyers and sellers from spam and fraud.',
   },
   {
     q: 'How does Property Radar work?',

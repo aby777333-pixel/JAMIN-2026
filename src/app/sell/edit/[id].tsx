@@ -198,7 +198,7 @@ export default function EditListing() {
           />
           <Text variant="caption" className="text-center">
             {t('sell.edit.verificationNote', {
-              defaultValue: 'Verification status and badges can only be changed by JAMIN.',
+              defaultValue: 'Verification status and badges can only be changed by Jamin Bazaar.',
             })}
           </Text>
         </>

@@ -6,7 +6,7 @@ import { useAuth } from '@/stores/auth';
 /**
  * Buyer contact routing (Buyer module spec): a buyer who came in through a
  * promoter's referral link talks ONLY to that promoter; a direct-install buyer
- * talks to JAMIN. The promoter's contact is exposed through a SECURITY DEFINER
+ * talks to Jamin Bazaar. The promoter's contact is exposed through a SECURITY DEFINER
  * RPC scoped to the caller's own assigned promoter — profiles RLS stays closed.
  */
 export interface PromoterContact {

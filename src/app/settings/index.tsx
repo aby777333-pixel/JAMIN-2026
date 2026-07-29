@@ -44,7 +44,7 @@ export default function Settings() {
     if (!profile?.referral_code) return;
     const url = `${SITE_URL}/a/${profile.referral_code}`;
     try {
-      await Share.share({ message: `View my verified property listings on JAMIN Properties:\n${url}`, url });
+      await Share.share({ message: `View my verified property listings on Jamin Bazaar:\n${url}`, url });
     } catch {
       /* dismissed */
     }
@@ -53,7 +53,7 @@ export default function Settings() {
   async function shareApp() {
     try {
       await Share.share({
-        message: `Discover verified land & plots on JAMIN Properties. ${SITE_URL}`,
+        message: `Discover verified land & plots on Jamin Bazaar. ${SITE_URL}`,
         url: SITE_URL,
       });
     } catch {
@@ -117,14 +117,14 @@ export default function Settings() {
           </View>
           <View className="flex-1">
             <Text variant="title">Tell a friend</Text>
-            <Text variant="caption">Share JAMIN Properties with others</Text>
+            <Text variant="caption">Share Jamin Bazaar with others</Text>
           </View>
           <Ionicons name="share-social" size={18} color={color.muted} />
         </Card>
       </Pressable>
 
       <Text variant="caption" className="mt-2 text-center">
-        JAMIN Properties · v{version}
+        Jamin Bazaar · v{version}
       </Text>
     </Screen>
   );

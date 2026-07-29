@@ -30,7 +30,7 @@ const STAGES: { key: 'shared' | 'clicked' | 'registered' | 'verified' | 'assigne
  */
 export default function ReferralsScreen() {
   const profile = useAuth((s) => s.profile);
-  const code = profile?.referral_code ?? 'JAMIN';
+  const code = profile?.referral_code ?? 'Jamin Bazaar';
   const { data: funnel, isLoading } = useReferralFunnel(30);
   const { data: campaigns = [] } = useCampaigns();
   const create = useCreateCampaign();
@@ -133,7 +133,7 @@ function CampaignRow({ campaign, code }: { campaign: Campaign; code: string }) {
       </View>
       <Text variant="caption" className="font-mono">{url}</Text>
       <ShareChannels
-        text={`Join me on JAMIN Properties — ${campaign.name}`}
+        text={`Join me on Jamin Bazaar — ${campaign.name}`}
         url={url}
         onShare={(ch) =>
           logArtifactShare({

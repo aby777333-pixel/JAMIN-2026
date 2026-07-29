@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "JAMIN PROPERTIES",
+    "name": "JAMIN BAZAAR",
     "tagline": "Signature for Fortune"
   },
   "common": {
@@ -12,7 +12,7 @@
     "save": "Save"
   },
   "auth": {
-    "welcome": "Welcome to JAMIN",
+    "welcome": "Welcome to Jamin Bazaar",
     "subtitle": "Sign in to your property network",
     "email": "Email address",
     "emailPlaceholder": "you@example.com",
@@ -177,7 +177,7 @@
       "reserve": "Reserve this plot"
     },
     "report": "Report a problem with this listing",
-    "jaminConnect": "All calls, visits & negotiations happen safely through JAMIN — never share direct contact details.",
+    "jaminConnect": "All calls, visits & negotiations happen safely through Jamin Bazaar — never share direct contact details.",
     "journey": {
       "title": "Your journey",
       "visit": "Visit",
@@ -192,9 +192,9 @@
   },
   "community": {
     "title": "Community",
-    "policy": "Be kind & stay safe: contact happens only through JAMIN. Phone numbers in posts are hidden automatically.",
+    "policy": "Be kind & stay safe: contact happens only through Jamin Bazaar. Phone numbers in posts are hidden automatically.",
     "joinTitle": "Join the community",
-    "joinBody": "Add your name and phone number to post, comment and like. Your number is never shown publicly — only JAMIN can see it.",
+    "joinBody": "Add your name and phone number to post, comment and like. Your number is never shown publicly — only Jamin Bazaar can see it.",
     "joinName": "Your name",
     "joinPhone": "Phone number",
     "joinCta": "Join & start posting",
@@ -207,7 +207,7 @@
     "emptyPost": "Write something or attach a photo/video first.",
     "postFailed": "Could not post",
     "emptyTitle": "No posts yet",
-    "emptyBody": "Be the first — share a thought, a photo or a video with the JAMIN community.",
+    "emptyBody": "Be the first — share a thought, a photo or a video with the Jamin Bazaar community.",
     "translatedLabel": "Translated",
     "translate": "Translate",
     "original": "Original",
@@ -220,9 +220,9 @@
     "deleteConfirm": "Delete"
   },
   "staffApply": {
-    "title": "Join the JAMIN team",
-    "heroTitle": "Apply for a JAMIN role",
-    "heroBody": "Pick the role you want, tell us about yourself, and the JAMIN team will review your application. You'll get a notification once it's decided.",
+    "title": "Join the Jamin Bazaar team",
+    "heroTitle": "Apply for a Jamin Bazaar role",
+    "heroBody": "Pick the role you want, tell us about yourself, and the Jamin Bazaar team will review your application. You'll get a notification once it's decided.",
     "myApps": "My applications",
     "status": {
       "pending": "Pending review",
@@ -230,7 +230,7 @@
       "rejected": "Not approved"
     },
     "pendingTitle": "Application under review",
-    "pendingBody": "Your application is with the JAMIN team. You can apply again once it's decided.",
+    "pendingBody": "Your application is with the Jamin Bazaar team. You can apply again once it's decided.",
     "chooseRole": "Choose a role",
     "levelLabel": "Rank level {{level}}",
     "name": "Your name",
@@ -241,7 +241,7 @@
     "pickRole": "Please choose the role you want to apply for.",
     "needContact": "Please add your name and a valid phone number.",
     "sentTitle": "Application sent 🎉",
-    "sentBody": "The JAMIN team will review it and you'll hear back with a notification."
+    "sentBody": "The Jamin Bazaar team will review it and you'll hear back with a notification."
   },
   "tools": {
     "aiStudio": {
@@ -561,13 +561,13 @@
     },
     "sarvamChat": {
       "title": "Jamindar AI Chat",
-      "greeting": "Namaste! 🙏 I'm your JAMIN property assistant. Ask me anything about buying, selling, localities, home loans, Vastu or paperwork — in your own language.",
+      "greeting": "Namaste! 🙏 I'm your Jamin Bazaar property assistant. Ask me anything about buying, selling, localities, home loans, Vastu or paperwork — in your own language.",
       "placeholder": "Type your message…",
       "unavailable": "Chat isn't available right now."
     },
     "voice": {
       "title": "AI Voice Call",
-      "intro": "Speak with the JAMIN assistant in your own language. Tap the mic, ask your question, and hear the answer out loud — powered by Jamindar AI.",
+      "intro": "Speak with the Jamin Bazaar assistant in your own language. Tap the mic, ask your question, and hear the answer out loud — powered by Jamindar AI.",
       "chooseLang": "भाषा चुनें / Choose language",
       "start": "Start Voice Call",
       "powered": "Powered by Jamindar AI · Built in India for India",
@@ -600,7 +600,7 @@
     "numNeedDigit": "Add at least one digit to calculate the Mulank.",
     "mulankLabel": "Mulank {{n}} · {{ruler}}",
     "muhuratHeading": "AUSPICIOUS TIMING (MUHURAT)",
-    "disclaimer": "Shared as cultural guidance only. Please consult a qualified Vastu expert or family priest for important decisions — JAMIN Properties makes no religious or financial guarantee.",
+    "disclaimer": "Shared as cultural guidance only. Please consult a qualified Vastu expert or family priest for important decisions — Jamin Bazaar makes no religious or financial guarantee.",
     "ratings": {
       "auspicious": "auspicious",
       "neutral": "neutral",

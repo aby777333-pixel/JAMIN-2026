@@ -120,7 +120,7 @@ export function BankTransferSheet({
       onSubmitted?.();
       Alert.alert(
         'Proof submitted ✓',
-        'Thank you! The JAMIN team verifies transfers within 24 hours — you will get a notification once done.',
+        'Thank you! The Jamin Bazaar team verifies transfers within 24 hours — you will get a notification once done.',
       );
     } catch (e) {
       Alert.alert('Could not submit', errMessage(e));
@@ -140,7 +140,7 @@ export function BankTransferSheet({
 
         <View className="rounded-2xl bg-charcoal p-4">
           <Text className="mb-1 font-bold text-[11px] uppercase tracking-[2px] text-gold">
-            JAMIN bank account — tap a row to copy
+            Jamin Bazaar bank account — tap a row to copy
           </Text>
           <BankRow label="Beneficiary" value={bank?.beneficiary} />
           <BankRow label="Account no." value={bank?.account} />
@@ -178,7 +178,7 @@ export function BankTransferSheet({
 
         <Button title="Submit for verification" loading={busy} onPress={submit} />
         <Text variant="caption" className="text-center text-muted">
-          🔒 Verified by the JAMIN team · you'll be notified in-app
+          🔒 Verified by the Jamin Bazaar team · you'll be notified in-app
         </Text>
       </ScrollView>
     </Sheet>

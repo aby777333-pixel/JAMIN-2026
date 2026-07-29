@@ -9,7 +9,7 @@ import { accentFor, category, color } from '@/theme/tokens';
 /**
  * "How selling works" strip — purely informational. Shows the production
  * lifecycle every listing already follows (submissions API + admin approval):
- * submit with media → JAMIN review (pending) → live on the marketplace for
+ * submit with media → Jamin Bazaar review (pending) → live on the marketplace for
  * buyers and the whole referral network. No logic, just orientation.
  */
 export function SellJourney() {
@@ -24,7 +24,7 @@ export function SellJourney() {
     {
       icon: 'shield-checkmark' as const,
       accent: category.docs,
-      title: t('sell.journey.review', { defaultValue: 'JAMIN review' }),
+      title: t('sell.journey.review', { defaultValue: 'Jamin Bazaar review' }),
       caption: t('sell.journey.reviewSub', { defaultValue: 'Pending until approved' }),
     },
     {

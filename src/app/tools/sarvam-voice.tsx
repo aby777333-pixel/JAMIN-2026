@@ -50,7 +50,7 @@ const VOICE_LANGS = [
 type CallState = 'setup' | 'ready' | 'listening' | 'thinking' | 'speaking';
 
 /**
- * AI Voice Call — talk to the JAMIN assistant in your own Indian language,
+ * AI Voice Call — talk to the Jamin Bazaar assistant in your own Indian language,
  * powered by Sarvam (STT saarika → chat sarvam-30b → TTS bulbul). Turn-based:
  * tap the mic, speak (up to ~30s), and the assistant replies out loud.
  * Inert with a friendly note until the Sarvam key is configured server-side.

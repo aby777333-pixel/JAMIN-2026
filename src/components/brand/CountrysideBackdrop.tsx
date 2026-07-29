@@ -5,7 +5,7 @@ import { color } from '@/theme/tokens';
 
 /**
  * Cartoon countryside hero (blue sky, clouds, rolling green farmland, cottages,
- * a cypress and a dirt road) — on brand for JAMIN ("land"). Anchored to the top
+ * a cypress and a dirt road) — on brand for Jamin Bazaar ("land"). Anchored to the top
  * of a screen and faded into the paper background so content stays readable.
  * Pure SVG (no binary asset, no extra deps). Decorative + non-interactive.
  */

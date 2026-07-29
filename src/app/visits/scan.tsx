@@ -119,7 +119,7 @@ export default function ScanVisitPass() {
       {state.kind === 'scanning' ? (
         <View style={[styles.hud, { bottom: insets.bottom + 24 }]} pointerEvents="none">
           <Text variant="caption" className="text-center text-white">
-            Point the camera at the visitor's JAMIN pass QR
+            Point the camera at the visitor's Jamin Bazaar pass QR
           </Text>
         </View>
       ) : null}

@@ -65,7 +65,7 @@ export function NotificationsBridge() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const n = payload.new as any;
             Notifications.scheduleNotificationAsync({
-              content: { title: n.title ?? 'JAMIN', body: n.body ?? '' },
+              content: { title: n.title ?? 'Jamin Bazaar', body: n.body ?? '' },
               trigger: null,
             }).catch(() => {});
           },

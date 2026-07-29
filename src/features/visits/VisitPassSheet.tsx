@@ -36,7 +36,7 @@ export function VisitPassSheet({
       <View className="items-center gap-3 pb-4">
         <View className="w-full items-center gap-1 rounded-2xl bg-charcoal p-5">
           <Text className="font-bold text-[11px] uppercase tracking-[2px] text-gold">
-            JAMIN Properties
+            Jamin Bazaar
           </Text>
           <Text variant="title" className="text-center text-white">
             {label}
@@ -52,7 +52,7 @@ export function VisitPassSheet({
           ) : null}
           {visit.agent?.full_name ? (
             <Text variant="caption" className="text-white/75">
-              JAMIN agent: {visit.agent.full_name}
+              Jamin Bazaar agent: {visit.agent.full_name}
             </Text>
           ) : null}
           <View className="mt-3 rounded-2xl bg-white p-3">
@@ -64,13 +64,13 @@ export function VisitPassSheet({
             />
           </View>
           <Text className="mt-2 text-center text-[11px] text-white/60">
-            Show this pass on site — your JAMIN agent scans it to check you in.
+            Show this pass on site — your Jamin Bazaar agent scans it to check you in.
           </Text>
         </View>
         <View className="flex-row items-center gap-1.5">
           <Ionicons name="shield-checkmark" size={13} color={color.success} />
           <Text variant="caption" className="text-muted">
-            Free site visit · No obligation · Arranged safely through JAMIN
+            Free site visit · No obligation · Arranged safely through Jamin Bazaar
           </Text>
         </View>
       </View>

@@ -93,7 +93,7 @@ export default function Loans() {
   return (
     <Screen contentClassName="pb-12 gap-4" keyboardAvoiding>
       <BackHeader title="Home loans" />
-      <Text variant="caption">Compare lenders and request a pre-approval — contact stays via JAMIN.</Text>
+      <Text variant="caption">Compare lenders and request a pre-approval — contact stays via Jamin Bazaar.</Text>
 
       <Text variant="label">Lenders</Text>
       {isLoading ? (

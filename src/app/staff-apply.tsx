@@ -35,7 +35,7 @@ const STATUS_TINT: Record<MyApplication['status'], string> = {
 };
 
 /**
- * Apply for a JAMIN role — anyone can apply through the app for any non-admin
+ * Apply for a Jamin Bazaar role — anyone can apply through the app for any non-admin
  * role (incl. staff ranks like State Head / Promoter that are NOT one-tap
  * self-selectable). The admin reviews applications in the Staff tab of the web
  * portal and grants the role; the applicant gets an in-app notification.

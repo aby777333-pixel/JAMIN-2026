@@ -194,7 +194,7 @@ export default function AdCreator() {
     if (uri) {
       // Web has no media library; fall back to the share/download sheet so the user can still save.
       if (Platform.OS === 'web') {
-        await shareImageFile(uri, 'Live from site — JAMIN Properties');
+        await shareImageFile(uri, 'Live from site — Jamin Bazaar');
       } else {
         try {
           const perm = await MediaLibrary.requestPermissionsAsync();
@@ -203,10 +203,10 @@ export default function AdCreator() {
             Alert.alert('Saved', 'Ad saved to your gallery.');
           } else {
             // Permission denied — share instead so saving is never a dead end.
-            await shareImageFile(uri, 'Live from site — JAMIN Properties');
+            await shareImageFile(uri, 'Live from site — Jamin Bazaar');
           }
         } catch {
-          await shareImageFile(uri, 'Live from site — JAMIN Properties');
+          await shareImageFile(uri, 'Live from site — Jamin Bazaar');
         }
       }
     }
@@ -241,7 +241,7 @@ export default function AdCreator() {
           });
           const caption =
             `🏡 Real property — captured live${capture?.place ? ` · ${capture.place}` : ''}\n` +
-            'JAMIN Properties · Signature for Fortune\n' +
+            'Jamin Bazaar · Signature for Fortune\n' +
             'View photo, location & contact 👇\n' +
             url;
           // Share the LINK to the interactive ad page (the link preview shows the
@@ -252,7 +252,7 @@ export default function AdCreator() {
           // fall through to image share on any publish/upload failure
         }
       }
-      await shareImageFile(uri, 'Live from site — JAMIN Properties');
+      await shareImageFile(uri, 'Live from site — Jamin Bazaar');
     } finally {
       setBusy(false);
     }
@@ -377,7 +377,7 @@ export default function AdCreator() {
           <View className="flex-1 justify-between">
             <View className="flex-row items-start justify-between p-3">
               <View className="rounded-lg bg-red px-2 py-1">
-                <Text className="font-bold text-[10px] uppercase tracking-[1px] text-white">JAMIN Properties</Text>
+                <Text className="font-bold text-[10px] uppercase tracking-[1px] text-white">Jamin Bazaar</Text>
               </View>
               <View className="flex-row items-center gap-1.5">
                 {capture.kind === 'video' ? (
@@ -407,9 +407,9 @@ export default function AdCreator() {
               </Text>
               <View className="mt-3">
                 <AgentStamp
-                  name={profile?.full_name ?? 'JAMIN Partner'}
+                  name={profile?.full_name ?? 'Jamin Bazaar Partner'}
                   phone={profile?.phone}
-                  referralCode={profile?.referral_code ?? 'JAMIN'}
+                  referralCode={profile?.referral_code ?? 'Jamin Bazaar'}
                   qrSize={54}
                 />
               </View>

@@ -53,13 +53,13 @@ const POST_LANGS = SARVAM_LANGUAGES.filter((l) =>
 );
 
 /**
- * Contact stays JAMIN-mediated everywhere: phone numbers and emails typed into
+ * Contact stays Jamin Bazaar-mediated everywhere: phone numbers and emails typed into
  * community posts are masked for readers (admins see originals in the portal).
  */
 function maskContacts(text: string): string {
   return text
-    .replace(/\+?\d[\d\s().-]{8,}\d/g, '🔒 via JAMIN')
-    .replace(/\S+@\S+\.\S+/g, '🔒 via JAMIN');
+    .replace(/\+?\d[\d\s().-]{8,}\d/g, '🔒 via Jamin Bazaar')
+    .replace(/\S+@\S+\.\S+/g, '🔒 via Jamin Bazaar');
 }
 
 function timeAgo(iso: string): string {
@@ -245,7 +245,7 @@ export default function Community() {
     <Screen contentClassName="pb-10 gap-4" keyboardAvoiding>
       <BackHeader title={t('community.title')} />
 
-      {/* JAMIN-mediated contact policy — always visible; tap ↻ to refresh the feed */}
+      {/* Jamin Bazaar-mediated contact policy — always visible; tap ↻ to refresh the feed */}
       <View className="flex-row items-center gap-2 rounded-2xl border border-gold/40 bg-gold/10 px-3 py-2.5">
         <Ionicons name="shield-checkmark" size={16} color={color.gold} />
         <Text variant="caption" className="flex-1 text-ink">

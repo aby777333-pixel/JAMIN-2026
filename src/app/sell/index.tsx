@@ -151,7 +151,7 @@ export default function MyListings() {
       />
 
       {/* Seller contact routing (Seller module spec): direct installs reach
-          JAMIN; promoter-referral installs reach ONLY their promoter. */}
+          Jamin Bazaar; promoter-referral installs reach ONLY their promoter. */}
       <ContactCard />
 
       {isLoading ? (

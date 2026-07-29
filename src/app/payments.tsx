@@ -30,7 +30,7 @@ interface MyTransfer {
 
 /**
  * Bookings & payments. Payment method for now = BANK TRANSFER ONLY (no online
- * gateway yet): buyers transfer to the JAMIN account (details from the dynamic
+ * gateway yet): buyers transfer to the Jamin Bazaar account (details from the dynamic
  * system_config 'bank_details') and upload a proof; the admin verifies it in
  * the Payments tab, which marks the booking Paid via the normal payments row.
  * The gateway code path (features/payments/api) is kept intact for later.
@@ -82,7 +82,7 @@ export default function Payments() {
             </View>
             <Text variant="caption">
               {bank?.bank ? `${bank.bank}${bank.branch ? ` · ${bank.branch}` : ''} · A/c ${bank.account ?? ''}` : 'Bank details load here'}
-              {'\n'}Transfer from any bank app, then upload your proof — the JAMIN team verifies within 24 hours.
+              {'\n'}Transfer from any bank app, then upload your proof — the Jamin Bazaar team verifies within 24 hours.
             </Text>
             <Button
               title="Upload payment proof"

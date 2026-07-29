@@ -19,7 +19,7 @@ export default function Academy() {
   return (
     <Screen contentClassName="pb-10 gap-3">
       <BackHeader title="Training Academy" />
-      <Text variant="caption">Learn the JAMIN way — finish a course and pass the quiz to earn a certificate.</Text>
+      <Text variant="caption">Learn the Jamin Bazaar way — finish a course and pass the quiz to earn a certificate.</Text>
 
       {isLoading ? (
         <ActivityIndicator color={color.red} className="mt-6" />

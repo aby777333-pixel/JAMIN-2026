@@ -186,18 +186,18 @@ export default function PropertyStudio() {
     if (local) {
       try {
         if (Platform.OS === 'web') {
-          await shareImageFile(local, 'JAMIN Properties');
+          await shareImageFile(local, 'Jamin Bazaar');
         } else {
           const perm = await MediaLibrary.requestPermissionsAsync();
           if (perm.granted) {
             await MediaLibrary.saveToLibraryAsync(local);
             Alert.alert(t('tools.studio.saved'), t('tools.studio.savedBody'));
           } else {
-            await shareImageFile(local, 'JAMIN Properties');
+            await shareImageFile(local, 'Jamin Bazaar');
           }
         }
       } catch {
-        await shareImageFile(local, 'JAMIN Properties');
+        await shareImageFile(local, 'Jamin Bazaar');
       }
     }
     setBusy(false);
@@ -206,7 +206,7 @@ export default function PropertyStudio() {
   async function onShare() {
     setBusy(true);
     const local = await toLocal();
-    if (local) await shareImageFile(local, 'Reimagined with JAMIN Properties');
+    if (local) await shareImageFile(local, 'Reimagined with Jamin Bazaar');
     setBusy(false);
   }
 

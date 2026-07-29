@@ -49,7 +49,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
       </RNText>
       <RNText style={{ fontSize: 13, color: '#6B6B6B', textAlign: 'center', marginTop: 8, lineHeight: 19 }}>
         {error.message}
-        {'\n'}The error was reported to the JAMIN team.
+        {'\n'}The error was reported to the Jamin Bazaar team.
       </RNText>
       <Pressable
         onPress={() => void retry()}
@@ -141,6 +141,7 @@ export default function RootLayout() {
             <Stack.Screen name="buyer-hub" />
             <Stack.Screen name="calculators" />
             <Stack.Screen name="promoter-hub" />
+            <Stack.Screen name="income" />
             <Stack.Screen name="clients" />
             <Stack.Screen name="role" />
             <Stack.Screen name="sell/index" />

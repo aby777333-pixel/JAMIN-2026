@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>JAMIN Properties — Live property</title>
+    <title>Jamin Bazaar — Live property</title>
     <link rel="icon" href="/logo.jpg" />
-    <meta property="og:title" content="JAMIN Properties — Real property, captured live" />
+    <meta property="og:title" content="Jamin Bazaar — Real property, captured live" />
     <meta property="og:description" content="View this property's live photo, location and contact." />
     <meta property="og:image" content="https://wonderful-cupcake-0d3074.netlify.app/logo.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -18,7 +18,7 @@
       .wrap { max-width:480px; margin:0 auto; padding:16px 14px 40px; }
       .state { text-align:center; padding:64px 20px; color:var(--muted); }
       .state img { height:40px; margin-bottom:14px; }
-      /* The shared image already carries the JAMIN branding, location, agent stamp
+      /* The shared image already carries the Jamin Bazaar branding, location, agent stamp
          and QR — show it CLEAN (no overlay) so nothing is duplicated. */
       .ad { width:100%; display:block; border-radius:18px; border:1px solid var(--line); background:#000; box-shadow:0 10px 30px rgba(0,0,0,.12); }
       .panel { background:#fff; border:1px solid var(--line); border-radius:16px; padding:14px; margin-top:14px; }
@@ -110,9 +110,9 @@
 
       function notFound(msg) {
         document.getElementById('root').innerHTML =
-          '<div class="state"><img src="/logo.jpg" alt="JAMIN Properties" /><h2>' + esc(msg || 'Ad not found') + '</h2>' +
+          '<div class="state"><img src="/logo.jpg" alt="Jamin Bazaar" /><h2>' + esc(msg || 'Ad not found') + '</h2>' +
           '<p>This ad may have expired or the link is incomplete.</p>' +
-          '<a class="big primary" href="/">Explore JAMIN Properties →</a></div>';
+          '<a class="big primary" href="/">Explore Jamin Bazaar →</a></div>';
       }
 
       function loadAd() {
@@ -135,7 +135,7 @@
         SHOW_CONTACT = SETTINGS.ad_contact_visibility === 'visible';
         var hasGeo = ad.lat != null && ad.lng != null;
         var digits = SHOW_CONTACT ? phoneDigits(ad.agent_phone) : '';
-        var name = ad.agent_name || 'JAMIN Partner';
+        var name = ad.agent_name || 'Jamin Bazaar Partner';
         var refUrl = ad.agent_referral ? SITE + '/r/' + encodeURIComponent(ad.agent_referral) : SITE;
 
         var geoBtns = hasGeo ? (
@@ -151,9 +151,9 @@
           '<div class="p" style="color:var(--muted);font-size:13px">Location wasn’t captured for this photo.</div>';
         var callRow = (SHOW_CONTACT && ad.agent_phone) ? (
           '<a class="call" href="tel:' + esc(ad.agent_phone) + '">📞 <span class="num">' + esc(ad.agent_phone) + '</span><span class="t">Tap to call</span></a>') :
-          '<div class="p" style="color:var(--muted);font-size:12.5px;margin-top:6px">🔒 For your safety, contact happens securely through JAMIN — message or call in-app below.</div>';
+          '<div class="p" style="color:var(--muted);font-size:12.5px;margin-top:6px">🔒 For your safety, contact happens securely through Jamin Bazaar — message or call in-app below.</div>';
 
-        var waText = encodeURIComponent('Hi ' + name + ', I saw the property you shared on JAMIN Properties' + (ad.place ? ' (' + ad.place + ')' : '') + '. Please share the details.');
+        var waText = encodeURIComponent('Hi ' + name + ', I saw the property you shared on Jamin Bazaar' + (ad.place ? ' (' + ad.place + ')' : '') + '. Please share the details.');
         var actions =
           (digits ? '<a class="big wa" href="https://wa.me/' + digits + '?text=' + waText + '">💬 Chat on WhatsApp</a>' : '') +
           (digits ? '<a class="big primary" href="tel:' + esc(ad.agent_phone) + '">📞 Call ' + esc(name) + '</a>' : '') +
@@ -185,7 +185,7 @@
           media +
           '<div class="panel"><h3>Location &amp; contact</h3>' + coordRow + geoBtns + callRow + '</div>' +
           '<div class="panel"><h3>Get in touch</h3>' + actions + '</div>' +
-          sender + chat + '<div class="tag">JAMIN PROPERTIES</div>';
+          sender + chat + '<div class="tag">JAMIN BAZAAR</div>';
 
         wire();
         startChat();
@@ -207,10 +207,10 @@
         };
         var sc = document.getElementById('saveContact');
         if (sc) sc.onclick = function () {
-          var name = ad.agent_name || 'JAMIN Partner';
-          var v = ['BEGIN:VCARD', 'VERSION:3.0', 'FN:' + name, 'ORG:JAMIN Properties'];
+          var name = ad.agent_name || 'Jamin Bazaar Partner';
+          var v = ['BEGIN:VCARD', 'VERSION:3.0', 'FN:' + name, 'ORG:Jamin Bazaar'];
           if (SHOW_CONTACT && ad.agent_phone) v.push('TEL;TYPE=CELL:' + ad.agent_phone);
-          if (ad.agent_referral) v.push('NOTE:JAMIN referral ' + ad.agent_referral);
+          if (ad.agent_referral) v.push('NOTE:Jamin Bazaar referral ' + ad.agent_referral);
           v.push('END:VCARD');
           var blob = new Blob([v.join('\r\n')], { type: 'text/vcard' });
           var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
@@ -219,7 +219,7 @@
         };
         var sh = document.getElementById('shareBtn');
         if (sh) sh.onclick = function () {
-          var data = { title: 'JAMIN Properties', text: 'Real property — captured live', url: location.href };
+          var data = { title: 'Jamin Bazaar', text: 'Real property — captured live', url: location.href };
           if (navigator.share) navigator.share(data).catch(function () {});
           else if (navigator.clipboard) navigator.clipboard.writeText(location.href).then(function () { sh.textContent = 'Link copied ✓'; });
         };
@@ -253,7 +253,7 @@
         document.getElementById('qrClose').onclick = function () { modal.classList.remove('open'); };
         modal.onclick = function (e) { if (e.target === modal) modal.classList.remove('open'); };
         document.getElementById('qrShare').onclick = function () {
-          if (navigator.share) navigator.share({ title: 'JAMIN Properties', url: refUrl }).catch(function () {});
+          if (navigator.share) navigator.share({ title: 'Jamin Bazaar', url: refUrl }).catch(function () {});
           else if (navigator.clipboard) navigator.clipboard.writeText(refUrl).then(function () { this.textContent = 'Copied ✓'; });
         };
       }
@@ -283,7 +283,7 @@
         if (!rows.length) { log.innerHTML = '<div class="chat-empty">Send a message — we’ll reply right here.</div>'; return; }
         log.innerHTML = rows.map(function (m) {
           var cls = m.sender === 'agent' ? 'a' : 'v';
-          var nm = m.sender === 'agent' ? (AD.agent_name || 'JAMIN') : (m.name || 'You');
+          var nm = m.sender === 'agent' ? (AD.agent_name || 'Jamin Bazaar') : (m.name || 'You');
           return '<div class="msg ' + cls + '"><div class="nm">' + esc(nm) + '</div>' + esc(m.body) + '</div>';
         }).join('');
         if (rows.length !== lastCount) { lastCount = rows.length; log.scrollTop = log.scrollHeight; }

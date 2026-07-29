@@ -210,7 +210,7 @@ export default function AiImage() {
   }
 
   /**
-   * Capture the on-screen branded frame (image + JAMIN badge + agent card + QR
+   * Capture the on-screen branded frame (image + Jamin Bazaar badge + agent card + QR
    * + website) so saves/shares carry the full branding, like the poster maker.
    * Falls back to the raw image if the capture fails.
    */
@@ -229,18 +229,18 @@ export default function AiImage() {
     if (local) {
       try {
         if (Platform.OS === 'web') {
-          await shareImageFile(local, 'JAMIN Properties');
+          await shareImageFile(local, 'Jamin Bazaar');
         } else {
           const perm = await MediaLibrary.requestPermissionsAsync();
           if (perm.granted) {
             await MediaLibrary.saveToLibraryAsync(local);
             Alert.alert(t('tools.aiImage.saved'), t('tools.aiImage.savedBody'));
           } else {
-            await shareImageFile(local, 'JAMIN Properties');
+            await shareImageFile(local, 'Jamin Bazaar');
           }
         }
       } catch {
-        await shareImageFile(local, 'JAMIN Properties');
+        await shareImageFile(local, 'Jamin Bazaar');
       }
     }
     setBusy(false);
@@ -249,7 +249,7 @@ export default function AiImage() {
   async function onShare() {
     setBusy(true);
     const local = await toBranded();
-    if (local) await shareImageFile(local, 'Made with JAMIN Properties');
+    if (local) await shareImageFile(local, 'Made with Jamin Bazaar');
     setBusy(false);
   }
 
@@ -299,7 +299,7 @@ export default function AiImage() {
         <Card className="items-center gap-3">
           {url ? (
             // Branded frame — captured as-is on Save/Share (like the poster maker):
-            // JAMIN badge, agent card with referral QR, and the website.
+            // Jamin Bazaar badge, agent card with referral QR, and the website.
             <View
               ref={frameRef}
               collapsable={false}
@@ -310,13 +310,13 @@ export default function AiImage() {
                 contentFit="cover"
               />
               <View style={{ position: 'absolute', top: 10, left: 10 }} className="rounded-lg bg-red px-2 py-1">
-                <Text className="font-bold text-[10px] uppercase tracking-[1px] text-white">JAMIN Properties</Text>
+                <Text className="font-bold text-[10px] uppercase tracking-[1px] text-white">Jamin Bazaar</Text>
               </View>
               <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }} className="bg-black/65 px-3 pb-2 pt-2.5">
                 <AgentStamp
-                  name={profile?.full_name ?? 'JAMIN Partner'}
+                  name={profile?.full_name ?? 'Jamin Bazaar Partner'}
                   phone={profile?.phone}
-                  referralCode={profile?.referral_code ?? 'JAMIN'}
+                  referralCode={profile?.referral_code ?? 'Jamin Bazaar'}
                   photoUrl={profile?.photo_url}
                   qrSize={44}
                 />

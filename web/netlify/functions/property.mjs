@@ -1,6 +1,6 @@
 // Serves /p/<propertyId> with per-property Open Graph tags injected, so shared
 // links (WhatsApp / Telegram / Facebook / X / LinkedIn / iMessage previews)
-// show the property's primary photo — or the JAMIN logo when the listing has
+// show the property's primary photo — or the Jamin Bazaar logo when the listing has
 // no photos yet. Mirrors ad.mjs: crawlers don't run page JS, so tags are
 // injected server-side; humans still get the normal landing page.
 const SUPABASE_URL = 'https://oaqwnjgaypmuafvnfhxv.supabase.co';
@@ -51,10 +51,10 @@ export default async (request) => {
   }
   if (!html) return new Response('Not found', { status: 404, headers: { 'content-type': 'text/html' } });
 
-  // Branded fallback: every /p link previews with the JAMIN logo at minimum.
+  // Branded fallback: every /p link previews with the Jamin Bazaar logo at minimum.
   let img = `${url.origin}/logo.jpg`;
-  let title = 'JAMIN Properties — Signature for Fortune';
-  let desc = 'View this property — details, photos & price on JAMIN Properties.';
+  let title = 'Jamin Bazaar — Signature for Fortune';
+  let desc = 'View this property — details, photos & price on Jamin Bazaar.';
 
   try {
     if (UUID_RE.test(id)) {
@@ -74,7 +74,7 @@ export default async (request) => {
         const photo = firstImage(p.media);
         if (photo) img = previewImage(photo);
         const where = [p.project, p.location].filter(Boolean).join(', ');
-        title = ['JAMIN Properties', p.plot_code, where].filter(Boolean).join(' · ');
+        title = ['Jamin Bazaar', p.plot_code, where].filter(Boolean).join(' · ');
         const price = inr(p.price);
         desc =
           (price ? `${price} · ` : '') +
@@ -93,7 +93,7 @@ export default async (request) => {
       '</head>',
       `<meta property="og:image" content="${IMG}" />` +
         `<meta property="og:url" content="${esc(`${url.origin}/p/${id}`)}" />` +
-        `<meta property="og:site_name" content="JAMIN Properties" />` +
+        `<meta property="og:site_name" content="Jamin Bazaar" />` +
         `<meta name="twitter:card" content="summary_large_image" />` +
         `<meta name="twitter:image" content="${IMG}" /></head>`,
     );

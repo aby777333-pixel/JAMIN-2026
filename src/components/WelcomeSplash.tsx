@@ -149,7 +149,7 @@ export function WelcomeSplash() {
           </Text>
           <Text variant="h1" className="pt-1 text-center">
             {isNew || !firstName
-              ? t('welcome.new', { defaultValue: 'Welcome to JAMIN' })
+              ? t('welcome.new', { defaultValue: 'Welcome to Jamin Bazaar' })
               : t('welcome.back', { defaultValue: 'Welcome Back, {{name}}', name: firstName })}
           </Text>
           <Text variant="caption" className="pb-5 pt-1 text-center">

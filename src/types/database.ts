@@ -629,6 +629,326 @@ export type Database = {
           },
         ]
       }
+      bazaar_award_levels: {
+        Row: {
+          active: boolean
+          created_at: string
+          designation: string
+          id: string
+          level: number
+          min_direct_referrals: number
+          monthly_award: number
+          per_referral_team_sales: number
+          updated_at: string
+          validity_months: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          designation: string
+          id?: string
+          level: number
+          min_direct_referrals?: number
+          monthly_award?: number
+          per_referral_team_sales?: number
+          updated_at?: string
+          validity_months?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          designation?: string
+          id?: string
+          level?: number
+          min_direct_referrals?: number
+          monthly_award?: number
+          per_referral_team_sales?: number
+          updated_at?: string
+          validity_months?: number
+        }
+        Relationships: []
+      }
+      bazaar_awards: {
+        Row: {
+          created_at: string
+          designation: string
+          id: string
+          last_credited_month: string | null
+          level: number
+          monthly_amount: number
+          months_credited: number
+          months_total: number
+          status: string
+          user_id: string
+          valid_from: string
+          valid_until: string
+        }
+        Insert: {
+          created_at?: string
+          designation: string
+          id?: string
+          last_credited_month?: string | null
+          level: number
+          monthly_amount?: number
+          months_credited?: number
+          months_total: number
+          status?: string
+          user_id: string
+          valid_from?: string
+          valid_until: string
+        }
+        Update: {
+          created_at?: string
+          designation?: string
+          id?: string
+          last_credited_month?: string | null
+          level?: number
+          monthly_amount?: number
+          months_credited?: number
+          months_total?: number
+          status?: string
+          user_id?: string
+          valid_from?: string
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazaar_awards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bazaar_income_ledger: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          income_type: string
+          meta: Json
+          property_id: string | null
+          reference_no: string
+          released_at: string | null
+          source_ref: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          income_type: string
+          meta?: Json
+          property_id?: string | null
+          reference_no?: string
+          released_at?: string | null
+          source_ref?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          income_type?: string
+          meta?: Json
+          property_id?: string | null
+          reference_no?: string
+          released_at?: string | null
+          source_ref?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazaar_income_ledger_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_income_ledger_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_income_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bazaar_launch_offers: {
+        Row: {
+          active: boolean
+          banner_url: string | null
+          created_at: string
+          description: string | null
+          ends_at: string
+          id: string
+          required_direct_sales: number
+          reward_amount: number
+          reward_label: string | null
+          reward_type: string
+          starts_at: string
+          terms: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          banner_url?: string | null
+          created_at?: string
+          description?: string | null
+          ends_at: string
+          id?: string
+          required_direct_sales?: number
+          reward_amount?: number
+          reward_label?: string | null
+          reward_type?: string
+          starts_at?: string
+          terms?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          banner_url?: string | null
+          created_at?: string
+          description?: string | null
+          ends_at?: string
+          id?: string
+          required_direct_sales?: number
+          reward_amount?: number
+          reward_label?: string | null
+          reward_type?: string
+          starts_at?: string
+          terms?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bazaar_offer_awards: {
+        Row: {
+          achieved_at: string
+          direct_sales_count: number
+          id: string
+          issued_at: string | null
+          note: string | null
+          offer_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          achieved_at?: string
+          direct_sales_count?: number
+          id?: string
+          issued_at?: string | null
+          note?: string | null
+          offer_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          achieved_at?: string
+          direct_sales_count?: number
+          id?: string
+          issued_at?: string | null
+          note?: string | null
+          offer_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazaar_offer_awards_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "bazaar_launch_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bazaar_offer_awards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bazaar_promoter_status: {
+        Row: {
+          admin_override: boolean
+          current_level: number
+          designation: string | null
+          direct_referrals_count: number
+          direct_sales_count: number
+          last_evaluated_at: string | null
+          min_referral_team_sales: number
+          rsi_unlocked: boolean
+          rsi_unlocked_at: string | null
+          team_sales: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_override?: boolean
+          current_level?: number
+          designation?: string | null
+          direct_referrals_count?: number
+          direct_sales_count?: number
+          last_evaluated_at?: string | null
+          min_referral_team_sales?: number
+          rsi_unlocked?: boolean
+          rsi_unlocked_at?: string | null
+          team_sales?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_override?: boolean
+          current_level?: number
+          designation?: string | null
+          direct_referrals_count?: number
+          direct_sales_count?: number
+          last_evaluated_at?: string | null
+          min_referral_team_sales?: number
+          rsi_unlocked?: boolean
+          rsi_unlocked_at?: string | null
+          team_sales?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bazaar_promoter_status_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           agent_id: string | null
@@ -4602,6 +4922,74 @@ export type Database = {
       auth_is_admin: { Args: never; Returns: boolean }
       auth_role_slug: { Args: never; Returns: string }
       auto_assign_lead: { Args: { p_lead: string }; Returns: string }
+      bazaar_admin_adjust: {
+        Args: {
+          p_amount: number
+          p_description: string
+          p_direction?: string
+          p_type?: string
+          p_user: string
+        }
+        Returns: string
+      }
+      bazaar_admin_evaluate_all: { Args: never; Returns: number }
+      bazaar_admin_issue_offer_reward: {
+        Args: { p_id: string; p_note?: string }
+        Returns: undefined
+      }
+      bazaar_admin_overview: {
+        Args: never
+        Returns: {
+          admin_override: boolean
+          current_level: number
+          designation: string
+          direct_referrals_count: number
+          direct_sales_count: number
+          email: string
+          full_name: string
+          locked_income: number
+          min_referral_team_sales: number
+          phone: string
+          role_slug: string
+          rsi_unlocked: boolean
+          team_sales: number
+          total_income: number
+          user_id: string
+          wallet_balance: number
+        }[]
+      }
+      bazaar_admin_set_designation: {
+        Args: { p_level: number; p_override?: boolean; p_user: string }
+        Returns: undefined
+      }
+      bazaar_admin_set_income_status: {
+        Args: { p_id: string; p_status: string }
+        Returns: undefined
+      }
+      bazaar_cfg: { Args: never; Returns: Json }
+      bazaar_credit_monthly_awards: { Args: never; Returns: number }
+      bazaar_direct_sales_count: {
+        Args: { p_from?: string; p_to?: string; p_user: string }
+        Returns: number
+      }
+      bazaar_evaluate: { Args: { p_user: string }; Returns: undefined }
+      bazaar_income_history: {
+        Args: { p_from?: string; p_to?: string; p_type?: string }
+        Returns: {
+          amount: number
+          description: string
+          entry_date: string
+          income_type: string
+          reference_no: string
+          status: string
+        }[]
+      }
+      bazaar_income_summary: { Args: never; Returns: Json }
+      bazaar_notify_admins: {
+        Args: { p_body: string; p_data?: Json; p_title: string; p_type: string }
+        Returns: undefined
+      }
+      bazaar_team_sales: { Args: { p_root: string }; Returns: number }
       become_partner: { Args: never; Returns: string }
       book_site_visit: {
         Args: {
@@ -4840,6 +5228,7 @@ export type Database = {
           wallet_balance: number
         }[]
       }
+      property_share_preview: { Args: { p_id: string }; Returns: Json }
       public_selectable_roles: {
         Args: never
         Returns: {

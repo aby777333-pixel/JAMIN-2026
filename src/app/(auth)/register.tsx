@@ -71,7 +71,7 @@ export default function Register() {
   return (
     <Screen scroll keyboardAvoiding backdrop={<ImageBackdrop source={BG.register} height={300} />} contentClassName="pb-12 gap-4">
       <BackHeader title="Create your account" />
-      <Text variant="caption">Join JAMIN Properties. Pick the role that fits you — you can switch anytime.</Text>
+      <Text variant="caption">Join Jamin Bazaar. Pick the role that fits you — you can switch anytime.</Text>
 
       <View className="gap-4">
         <Input label="Full name" value={fullName} onChangeText={setFullName} autoCapitalize="words" placeholder="Your name" />

@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>JAMIN Properties — Agent</title>
+    <title>Jamin Bazaar — Agent</title>
     <link rel="icon" href="/logo.jpg" />
-    <meta property="og:title" content="JAMIN Properties — Agent listings" />
+    <meta property="og:title" content="Jamin Bazaar — Agent listings" />
     <meta property="og:image" content="https://wonderful-cupcake-0d3074.netlify.app/logo.jpg" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <style>
@@ -31,7 +31,7 @@
     </style>
   </head>
   <body>
-    <div id="root" class="wrap"><div class="state"><img src="/logo.jpg" alt="JAMIN" /><div>Loading…</div></div></div>
+    <div id="root" class="wrap"><div class="state"><img src="/logo.jpg" alt="Jamin Bazaar" /><div>Loading…</div></div></div>
     <script>
       var SUPABASE_URL = 'https://oaqwnjgaypmuafvnfhxv.supabase.co';
       var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXduamdheXBtdWFmdm5maHh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMDI2ODAsImV4cCI6MjA5Nzc3ODY4MH0.2tfyC3Z8Kzib8FdLjnE-z8m830PZUd9vfcWtDXIqp3E';
@@ -39,7 +39,7 @@
       var root = document.getElementById('root');
       function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
       function inr(n){return '₹' + Number(n||0).toLocaleString('en-IN');}
-      function state(msg){root.innerHTML='<div class="state"><img src="/logo.jpg" alt="JAMIN" /><div>'+esc(msg)+'</div></div>';}
+      function state(msg){root.innerHTML='<div class="state"><img src="/logo.jpg" alt="Jamin Bazaar" /><div>'+esc(msg)+'</div></div>';}
 
       var parts = location.pathname.split('/').filter(Boolean); // ['a','<code>']
       var raw = parts[1] ? decodeURIComponent(parts[1]) : '';
@@ -67,7 +67,7 @@
               '<div class="rf">'+esc(p.referral_code||'')+'</div></div></div>' +
             '<h2>'+(p.listings&&p.listings.length?p.listings.length+' available listing'+(p.listings.length===1?'':'s'):'No live listings')+'</h2>' +
             (listings || '<div class="note">This agent has no live listings right now.</div>') +
-            '<a class="cta" href="https://wonderful-cupcake-0d3074.netlify.app/">Open JAMIN Properties</a>' +
+            '<a class="cta" href="https://wonderful-cupcake-0d3074.netlify.app/">Open Jamin Bazaar</a>' +
             '<div class="note">Enquiries are handled in-app to keep your details private.</div>';
         })
         .catch(function(){ state('Could not load this page'); });

@@ -46,7 +46,7 @@ export default function Calculators() {
       <BackHeader title={t('calculators.title', { defaultValue: 'Calculators' })} />
       <Text variant="caption">
         {t('calculators.subtitle', {
-          defaultValue: 'Every JAMIN financial tool in one place. Set a property price, pick a tool.',
+          defaultValue: 'Every Jamin Bazaar financial tool in one place. Set a property price, pick a tool.',
         })}
       </Text>
 

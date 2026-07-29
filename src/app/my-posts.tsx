@@ -58,7 +58,7 @@ export default function MyPosts() {
     const url = `${AD_SITE}/ad/${ad.slug}`;
     const caption =
       `🏡 Real property — captured live${ad.place ? ` · ${ad.place}` : ''}\n` +
-      'JAMIN Properties · Signature for Fortune\n' +
+      'Jamin Bazaar · Signature for Fortune\n' +
       'View photo, location & contact 👇\n' +
       url;
     try {

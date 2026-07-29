@@ -206,6 +206,13 @@ export default function PromoterHub() {
           onPress={() => router.push('/recruit')}
         />
         <ToolTile
+          icon="cash"
+          label={t('promoterHub.salesIncome', { defaultValue: 'Sales Income' })}
+          accent={category.finance}
+          // Typed routes regenerate on the next `expo start`; cast keeps CI green (same idiom as properties.tsx).
+          onPress={() => router.push('/income' as never)}
+        />
+        <ToolTile
           icon="wallet"
           label={t('promoterHub.wallet', { defaultValue: 'Wallet' })}
           accent={category.finance}

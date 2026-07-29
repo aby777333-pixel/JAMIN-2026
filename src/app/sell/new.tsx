@@ -785,7 +785,7 @@ export default function NewListing() {
           left={<Ionicons name="folder-open" size={16} color={color.ink} />}
         />
         <Text variant="caption">
-          Any file type (PDF or photo). Shared with the JAMIN team for verification and kept in
+          Any file type (PDF or photo). Shared with the Jamin Bazaar team for verification and kept in
           your Document vault.
         </Text>
       </View>

@@ -152,7 +152,7 @@ export default function Login() {
 
         <Pressable onPress={() => router.push('/(auth)/register')} hitSlop={8} className="mt-1 self-center">
           <Text className="text-[14px] text-ink">
-            New to JAMIN? <Text className="font-semibold text-[14px] text-red">Create an account</Text>
+            New to Jamin Bazaar? <Text className="font-semibold text-[14px] text-red">Create an account</Text>
           </Text>
         </Pressable>
       </View>

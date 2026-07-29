@@ -10,7 +10,7 @@ import * as api from './api';
  */
 export const CONTENT_DEFAULTS: Record<string, string> = {
   'brand.tagline': 'Signature for Fortune',
-  'brand.name': 'JAMIN PROPERTIES',
+  'brand.name': 'JAMIN BAZAAR',
   'home.buyer_card_title': 'Find your next property',
   'home.buyer_card_body': 'Browse dynamic inventory, calculate EMI & ROI, and enquire or book a visit.',
   'support.hours': 'Mon–Sat, 10am–7pm IST',

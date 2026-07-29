@@ -29,12 +29,12 @@ export default function CardScreen() {
   const cardRef = useRef<View>(null);
   const verified = isRealAdmin || profile?.kyc_status === 'verified';
 
-  const code = profile?.referral_code ?? 'JAMIN';
+  const code = profile?.referral_code ?? 'Jamin Bazaar';
   const referralUrl = `${SITE_URL}/r/${code}`;
 
   async function onVCard() {
     await shareVCard({
-      name: profile?.full_name ?? 'JAMIN Partner',
+      name: profile?.full_name ?? 'Jamin Bazaar Partner',
       phone: profile?.phone,
       email: profile?.email,
       url: referralUrl,
@@ -46,11 +46,11 @@ export default function CardScreen() {
       const uri = await captureRef(cardRef, { format: 'png', quality: 1 });
       await Share.share({
         url: uri,
-        message: `${profile?.full_name ?? 'A JAMIN partner'} invites you to JAMIN Properties — ${referralUrl}`,
+        message: `${profile?.full_name ?? 'A Jamin Bazaar partner'} invites you to Jamin Bazaar — ${referralUrl}`,
       });
     } catch {
       await Share.share({
-        message: `${profile?.full_name ?? 'A JAMIN partner'} invites you to JAMIN Properties — ${referralUrl}`,
+        message: `${profile?.full_name ?? 'A Jamin Bazaar partner'} invites you to Jamin Bazaar — ${referralUrl}`,
       });
     }
   }
@@ -76,7 +76,7 @@ export default function CardScreen() {
               </Text>
               <View className="mt-0.5 flex-row items-center gap-1">
                 <Text className="text-[13px] text-white/70" numberOfLines={1}>
-                  {profile?.designation ?? 'JAMIN Partner'}
+                  {profile?.designation ?? 'Jamin Bazaar Partner'}
                 </Text>
                 {verified ? (
                   <Ionicons name="checkmark-circle" size={14} color={color.success} />
@@ -123,7 +123,7 @@ export default function CardScreen() {
       <View className="gap-2">
         <Text variant="label">Send your invite link</Text>
         <ShareChannels
-          text="Join me on JAMIN Properties —"
+          text="Join me on Jamin Bazaar —"
           url={referralUrl}
           onShare={(ch) => logArtifactShare({ artifact: 'card', referralCode: code, channel: ch })}
         />
@@ -143,7 +143,7 @@ export default function CardScreen() {
         <View className="flex-1">
           <Text variant="title" className="text-[14px]">Scan to install the app</Text>
           <Text variant="caption">
-            Buyers scan this with their camera to download the JAMIN Android app on the spot.
+            Buyers scan this with their camera to download the Jamin Bazaar Android app on the spot.
           </Text>
         </View>
       </View>

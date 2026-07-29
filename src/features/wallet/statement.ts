@@ -45,7 +45,7 @@ export async function exportCommissionStatement(summary: WalletSummary, agentNam
     .amt{text-align:right;font-family:monospace;white-space:nowrap}
     .foot{margin-top:22px;color:#999;font-size:10px}
   </style></head><body>
-    <h1>JAMIN Properties — Commission Statement</h1>
+    <h1>Jamin Bazaar — Commission Statement</h1>
     <div class="sub">${esc(agentName)} · generated ${now.toLocaleString('en-IN')}</div>
     <div class="cards">
       <div class="card"><div class="l">Wallet balance</div><div class="v">${esc(formatINR(summary.balance))}</div></div>

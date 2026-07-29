@@ -24,7 +24,7 @@ export default function ShortlistDetail() {
   function share() {
     if (!shortlist) return;
     Share.share({
-      message: `Join my JAMIN shortlist "${shortlist.name}" — open the app → Shared shortlists → Join with code:\n${shortlist.share_token}`,
+      message: `Join my Jamin Bazaar shortlist "${shortlist.name}" — open the app → Shared shortlists → Join with code:\n${shortlist.share_token}`,
     }).catch(() => {});
   }
 

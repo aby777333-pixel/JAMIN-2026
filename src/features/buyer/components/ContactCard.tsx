@@ -24,7 +24,7 @@ type ContactRow = {
 
 /**
  * Contact block (Buyer + Seller module specs). Routing follows the install source:
- *  - direct install       → call/WhatsApp/email JAMIN (app_content support.*)
+ *  - direct install       → call/WhatsApp/email Jamin Bazaar (app_content support.*)
  *  - promoter referral    → call/WhatsApp ONLY the assigned promoter
  * Every tap is captured in contact_events for the admin's engagement view.
  * Renders for buyers and seller-side roles; partners keep their CTA blocks.
@@ -38,7 +38,7 @@ export function ContactCard({ propertyId }: { propertyId?: string }) {
   const { get } = useContent();
 
   if (!isEligible) return null;
-  // Referral buyer: never show JAMIN numbers while the promoter is still loading.
+  // Referral buyer: never show Jamin Bazaar numbers while the promoter is still loading.
   if (isReferral && promoterLoading) return null;
 
   const promoterPhone = clean(promoter?.phone ?? '');
@@ -49,7 +49,7 @@ export function ContactCard({ propertyId }: { propertyId?: string }) {
   let sub: string;
   if (usePromoter) {
     const name = promoter?.full_name?.trim() || t('contact.yourPromoter', { defaultValue: 'Your promoter' });
-    heading = t('contact.promoterTitle', { defaultValue: 'Your JAMIN promoter' });
+    heading = t('contact.promoterTitle', { defaultValue: 'Your Jamin Bazaar promoter' });
     sub = t('contact.promoterSub', {
       defaultValue: '{{name}} looks after you personally — call or message anytime.',
       name,
@@ -74,11 +74,11 @@ export function ContactCard({ propertyId }: { propertyId?: string }) {
     const phone = clean(get('support.phone'));
     const whatsapp = clean(get('support.whatsapp'));
     const email = clean(get('support.email'));
-    heading = t('contact.jaminTitle', { defaultValue: 'Talk to JAMIN' });
+    heading = t('contact.jaminTitle', { defaultValue: 'Talk to Jamin Bazaar' });
     sub = t('contact.jaminSub', { defaultValue: 'Our team answers every question — no obligation.' });
     rows = [
       phone
-        ? { icon: 'call' as const, label: t('contact.callJamin', { defaultValue: 'Call JAMIN' }), value: phone, url: `tel:${phone}`, channel: 'call' as const }
+        ? { icon: 'call' as const, label: t('contact.callJamin', { defaultValue: 'Call Jamin Bazaar' }), value: phone, url: `tel:${phone}`, channel: 'call' as const }
         : null,
       whatsapp
         ? { icon: 'logo-whatsapp' as const, label: t('contact.whatsapp', { defaultValue: 'WhatsApp' }), value: whatsapp, url: `https://wa.me/${whatsapp.replace(/[^0-9]/g, '')}`, channel: 'whatsapp' as const }

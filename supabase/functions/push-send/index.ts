@@ -1,4 +1,4 @@
-// JAMIN Properties — push-send Edge Function (§11).
+// Jamin Bazaar — push-send Edge Function (§11).
 // Sends an Expo push to all of a user's registered devices. Called by the app
 // (admin "notify") or a future DB trigger. In-app delivery is handled by Realtime.
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
 
     const messages = (tokens ?? []).map((t: { token: string }) => ({
       to: t.token,
-      title: title ?? 'JAMIN Properties',
+      title: title ?? 'Jamin Bazaar',
       body: body ?? '',
       data: data ?? {},
       sound: 'default',

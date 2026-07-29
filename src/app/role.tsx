@@ -65,7 +65,7 @@ export default function RoleSwitch() {
         </Card>
       ) : (
         <Text variant="caption">
-          Choose how you want to use JAMIN — switch any time, no new account needed.
+          Choose how you want to use Jamin Bazaar — switch any time, no new account needed.
         </Text>
       )}
 
@@ -103,7 +103,7 @@ export default function RoleSwitch() {
         )
       ) : null}
 
-      {/* Broker is apply-first (0097): verified by the JAMIN team, never instant. */}
+      {/* Broker is apply-first (0097): verified by the Jamin Bazaar team, never instant. */}
       {!isAssignedRank && current !== 'broker' ? (
         <Pressable onPress={() => router.push('/forms/broker')}>
           <Card className="flex-row items-center gap-3 border-gold/40 bg-gold/5">
@@ -113,7 +113,7 @@ export default function RoleSwitch() {
             <View className="flex-1">
               <Text variant="title">Broker — apply & get verified</Text>
               <Text variant="caption">
-                Submit your details and license proof. The JAMIN team verifies and upgrades you to a
+                Submit your details and license proof. The Jamin Bazaar team verifies and upgrades you to a
                 verified Broker.
               </Text>
             </View>
@@ -135,7 +135,7 @@ export default function RoleSwitch() {
         </Card>
       ))}
       <Text variant="caption" className="text-muted">
-        Want to become a Promoter or Sub Promoter? Apply from Account → Become a partner — the JAMIN
+        Want to become a Promoter or Sub Promoter? Apply from Account → Become a partner — the Jamin Bazaar
         team reviews and assigns it.
       </Text>
     </Screen>

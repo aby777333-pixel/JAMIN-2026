@@ -47,7 +47,7 @@ export default async (request) => {
     const ad = Array.isArray(rows) ? rows[0] : null;
     if (ad?.image_url) {
       const img = esc(previewImage(ad.image_url));
-      const title = esc('JAMIN Properties — Real property' + (ad.place ? ` · ${ad.place}` : ''));
+      const title = esc('Jamin Bazaar — Real property' + (ad.place ? ` · ${ad.place}` : ''));
       const desc = esc(
         (ad.agent_name ? `${ad.agent_name} · ` : '') + "View this property's live photo, location & contact.",
       );
@@ -58,15 +58,15 @@ export default async (request) => {
         .replace('</head>', `<meta name="twitter:image" content="${img}" /></head>`);
     }
   } catch {
-    /* serve unchanged — the template's JAMIN-logo og:image still previews */
+    /* serve unchanged — the template's Jamin Bazaar-logo og:image still previews */
   }
 
   // Always present, ad or not: canonical URL + site name (WhatsApp/FB renderers
   // are far more reliable with og:url; the template's logo og:image is the
-  // fallback so every /ad link previews with JAMIN branding at minimum).
+  // fallback so every /ad link previews with Jamin Bazaar branding at minimum).
   html = html.replace(
     '</head>',
-    `<meta property="og:url" content="${esc(`${url.origin}/ad/${slug}`)}" /><meta property="og:site_name" content="JAMIN Properties" /></head>`,
+    `<meta property="og:url" content="${esc(`${url.origin}/ad/${slug}`)}" /><meta property="og:site_name" content="Jamin Bazaar" /></head>`,
   );
 
   return new Response(html, {

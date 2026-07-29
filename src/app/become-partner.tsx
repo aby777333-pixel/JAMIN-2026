@@ -35,7 +35,7 @@ export default function BecomePartner() {
       const { error } = await supabase.rpc('become_partner');
       if (error) throw error;
       await refreshProfile();
-      Alert.alert('Welcome aboard! 🎉', "You're now a JAMIN partner — your tools are ready.", [
+      Alert.alert('Welcome aboard! 🎉', "You're now a Jamin Bazaar partner — your tools are ready.", [
         { text: 'Get started', onPress: () => router.replace('/(tabs)') },
       ]);
     } catch (e) {
@@ -71,7 +71,7 @@ export default function BecomePartner() {
         <>
           <Card className="gap-2 bg-charcoal">
             <Text variant="h2" className="text-white">
-              Earn with JAMIN
+              Earn with Jamin Bazaar
             </Text>
             <Text variant="body" className="text-white/75">
               Join free as an Agent and start earning commission today — sell properties, market like
@@ -104,7 +104,7 @@ export default function BecomePartner() {
             onPress={() => router.push('/forms/promoter')}
           />
           <Button
-            title="Apply for a JAMIN staff role"
+            title="Apply for a Jamin Bazaar staff role"
             variant="outline"
             onPress={() => router.push('/staff-apply')}
           />

@@ -1,4 +1,4 @@
-// JAMIN Properties — email-send Edge Function (bulk CSV smart emailer).
+// Jamin Bazaar — email-send Edge Function (bulk CSV smart emailer).
 // Sends via Resend using app_secrets 'resend_api_key' (+ optional 'email_from',
 // default onboarding@resend.dev for testing) — completely inert until the key
 // exists. ADMIN-ONLY: callers must present an admin JWT (auth_is_admin RPC).
@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
     const { data: keyRow } = await svc.from('app_secrets').select('value').eq('key', 'resend_api_key').maybeSingle();
     const apiKey = (keyRow as { value?: string } | null)?.value?.trim() || undefined;
     const { data: fromRow } = await svc.from('app_secrets').select('value').eq('key', 'email_from').maybeSingle();
-    const from = (fromRow as { value?: string } | null)?.value?.trim() || 'JAMIN Properties <onboarding@resend.dev>';
+    const from = (fromRow as { value?: string } | null)?.value?.trim() || 'Jamin Bazaar <onboarding@resend.dev>';
 
     if (action === 'status') {
       return json({ configured: !!apiKey, from });

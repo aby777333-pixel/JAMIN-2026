@@ -39,7 +39,7 @@ export default function FeaturesScreen() {
     <Screen contentClassName="pb-12 gap-4">
       <BackHeader title="What's included" />
       <Text variant="body" className="text-muted">
-        Everything JAMIN Properties offers. Your access depends on your role — partners and
+        Everything Jamin Bazaar offers. Your access depends on your role — partners and
         admins unlock more.
       </Text>
 

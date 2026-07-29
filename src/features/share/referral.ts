@@ -48,7 +48,7 @@ export async function shareReferral(opts: {
   }
 
   const message = opts.propertyLabel
-    ? `Check out ${opts.propertyLabel} on JAMIN Properties — ${url}`
-    : `Join me on JAMIN Properties — ${url}`;
+    ? `Check out ${opts.propertyLabel} on Jamin Bazaar — ${url}`
+    : `Join me on Jamin Bazaar — ${url}`;
   await Share.share({ message, url });
 }

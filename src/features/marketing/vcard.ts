@@ -15,7 +15,7 @@ export async function shareVCard(p: {
     'VERSION:3.0',
     `N:${p.name}`,
     `FN:${p.name}`,
-    `ORG:${p.org ?? 'JAMIN Properties'}`,
+    `ORG:${p.org ?? 'Jamin Bazaar'}`,
     p.phone ? `TEL;TYPE=CELL:${p.phone}` : '',
     p.email ? `EMAIL:${p.email}` : '',
     `URL:${p.url}`,

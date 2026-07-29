@@ -35,7 +35,7 @@ import { category, BRAND, color } from '@/theme/tokens';
  */
 export default function RecruitScreen() {
   const profile = useAuth((s) => s.profile);
-  const code = profile?.referral_code ?? 'JAMIN';
+  const code = profile?.referral_code ?? 'Jamin Bazaar';
   const url = referralUrl(code);
   const { data: team = [] } = useDownline();
   const recruits = team
@@ -60,7 +60,7 @@ export default function RecruitScreen() {
       <View className="gap-2">
         <Text variant="label">Invite a new partner</Text>
         <ShareChannels
-          text="Join my team on JAMIN Properties —"
+          text="Join my team on Jamin Bazaar —"
           url={url}
           onShare={(ch) => logArtifactShare({ artifact: 'link', referralCode: code, channel: ch })}
         />
@@ -122,7 +122,7 @@ function Invitations({ referralLink }: { referralLink: string }) {
       });
       const text = t('recruit.invites.waMessage', {
         defaultValue:
-          'Hi{{name}}! Join my team on JAMIN Properties — sign up with my link and you are auto-linked to me: {{link}}',
+          'Hi{{name}}! Join my team on Jamin Bazaar — sign up with my link and you are auto-linked to me: {{link}}',
         name: name.trim() ? ` ${name.trim()}` : '',
         link: referralLink,
       });

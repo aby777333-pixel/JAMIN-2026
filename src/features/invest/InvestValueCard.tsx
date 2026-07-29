@@ -81,7 +81,7 @@ export function InvestValueCard({
         />
 
         <Text variant="caption" className="text-muted">
-          Gold value is indicative (rate set by JAMIN); traditions shared for positivity, not as advice.
+          Gold value is indicative (rate set by Jamin Bazaar); traditions shared for positivity, not as advice.
         </Text>
       </Card>
 

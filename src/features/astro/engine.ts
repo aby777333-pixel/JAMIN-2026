@@ -1,5 +1,5 @@
 /**
- * JAMIN — Auspicious Insights engine.
+ * Jamin Bazaar — Auspicious Insights engine.
  *
  * A creative, POSITIVE-ONLY "fortune" reading for a property, meant to
  * celebrate the good vibrations of investing in land. Every output is

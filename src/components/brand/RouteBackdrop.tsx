@@ -77,6 +77,7 @@ const ROUTE_ART: [prefix: string, art: number][] = [
   ['/recruit', ART.poplarAvenue],
   ['/performance', ART.poplarAvenue],
   ['/promoter-hub', ART.poplarAvenue],
+  ['/income', ART.wheatTree],
   ['/team', ART.poplarAvenue],
   ['/referrals', ART.poplarAvenue],
   ['/cobroke', ART.poplarAvenue],

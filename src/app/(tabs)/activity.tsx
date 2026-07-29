@@ -87,7 +87,7 @@ export default function Activity() {
         icon="pricetag"
         accent={category.finance}
         label="My enquiries & offers"
-        sub="Every conversation goes through JAMIN"
+        sub="Every conversation goes through Jamin Bazaar"
         onPress={() => router.push('/offers')}
       />
       {canSell ? (
@@ -102,7 +102,7 @@ export default function Activity() {
 
       {visibleAnn.length > 0 ? (
         <View className="gap-2 pt-1">
-          <Text variant="label">From JAMIN</Text>
+          <Text variant="label">From Jamin Bazaar</Text>
           {visibleAnn.map((a) => (
             <Pressable key={a.id} disabled={!a.cta_url} onPress={() => openCta(a.cta_url)}>
               <Card className="gap-1">

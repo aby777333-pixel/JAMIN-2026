@@ -138,7 +138,7 @@ export default function PropertyDetail() {
   const label = `${property.project?.name ?? 'Property'} · ${property.plot_code}`;
   // Role-aware CTAs: buyers enquire/offer/reserve; partners (promoter/agent/
   // broker/seller) are the SELLING side — they share the plot with clients and
-  // team instead of making offers to JAMIN; a seller's own listing is managed.
+  // team instead of making offers to Jamin Bazaar; a seller's own listing is managed.
   const isOwnListing = !!myId && property.seller_id === myId;
 
   async function sharePlot() {
@@ -147,7 +147,7 @@ export default function PropertyDetail() {
       await Share.share({
         message:
           `🏡 ${label}\n` +
-          'JAMIN Properties · Signature for Fortune\n' +
+          'Jamin Bazaar · Signature for Fortune\n' +
           'View details, photos & price 👇\n' +
           url,
         url,
@@ -224,7 +224,7 @@ export default function PropertyDetail() {
             <Pressable
               onPress={() =>
                 Share.share({
-                  message: `${customTitle ?? property.project?.name ?? 'Property'} (${property.plot_code}) on JAMIN Properties\n${SITE_URL}/p/${property.id}`,
+                  message: `${customTitle ?? property.project?.name ?? 'Property'} (${property.plot_code}) on Jamin Bazaar\n${SITE_URL}/p/${property.id}`,
                   url: `${SITE_URL}/p/${property.id}`,
                 }).catch(() => {})
               }
@@ -365,7 +365,7 @@ export default function PropertyDetail() {
         </Card>
       ) : null}
 
-      {/* JAMIN-mediated contact + the primary actions (brief §4: value → line → action).
+      {/* Jamin Bazaar-mediated contact + the primary actions (brief §4: value → line → action).
           Role-aware: buyer CTAs only make sense for buyers — a promoter/agent/broker
           works this plot FOR clients, and a seller manages their own listing. */}
       {isOwnListing ? (
@@ -398,7 +398,7 @@ export default function PropertyDetail() {
             <Ionicons name="shield-checkmark" size={16} color={color.gold} />
             <Text variant="caption" className="flex-1 text-ink">{t('property.jaminConnect')}</Text>
           </View>
-          {/* Install-source contact routing: direct buyers reach JAMIN, referral
+          {/* Install-source contact routing: direct buyers reach Jamin Bazaar, referral
               buyers reach ONLY their assigned promoter (Buyer module spec). */}
           <ContactCard propertyId={property.id} />
           <Button title={t('property.cta.enquire')} onPress={() => setEnquiry(true)} />
