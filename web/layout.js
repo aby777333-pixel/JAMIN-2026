@@ -448,11 +448,17 @@
     el('qrTarget').innerHTML = '';
     el('qrCaption').textContent = 'Plot ' + p.number + ' · ' + ((layout || G).name || '');
     box.classList.add('open');
+    // qrcodejs renders into the element it is given; if the CDN is blocked we
+    // still show the link so the action is never a dead end.
     if (window.QRCode) {
-      window.QRCode.toCanvas(plotUrl(p), { width: 220, margin: 1 }, function (err, canvas) {
-        if (!err) el('qrTarget').appendChild(canvas);
-        else el('qrTarget').textContent = plotUrl(p);
-      });
+      try {
+        new window.QRCode(el('qrTarget'), {
+          text: plotUrl(p), width: 220, height: 220,
+          correctLevel: window.QRCode.CorrectLevel.M,
+        });
+      } catch (e) {
+        el('qrTarget').textContent = plotUrl(p);
+      }
     } else {
       el('qrTarget').textContent = plotUrl(p);
     }
