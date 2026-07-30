@@ -148,6 +148,23 @@
       .sw.sold { background: var(--grey); border-color: var(--grey); }
       .sw.blocked { background: var(--line); border-color: var(--muted); }
 
+      .locbox { margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--line); }
+      .locbox h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: var(--s2); }
+      #locMap {
+        width: 100%; height: 158px; border: 1px solid var(--line);
+        border-radius: 12px; display: block; background: var(--paper);
+      }
+      html[data-theme='dark'] #locMap { filter: invert(1) hue-rotate(180deg) brightness(.92); }
+      .locbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: var(--s2); }
+      .locbtns a {
+        display: flex; align-items: center; justify-content: center; gap: 5px;
+        font-size: 12px; font-weight: 500; text-decoration: none; color: var(--ink);
+        border: 1px solid var(--line); border-radius: 10px; padding: 8px 6px;
+        background: var(--surface); transition: transform .16s var(--ease), border-color .16s;
+      }
+      .locbtns a:hover { transform: translateY(-1px); border-color: var(--muted); }
+      .loccoords { font-size: 11px; color: var(--muted); margin-top: var(--s2); text-align: center; }
+
       /* ── stage ───────────────────────────────────────────────────────────── */
       #stage {
         position: relative; background: var(--plan-bg);
@@ -540,6 +557,17 @@
             <div><span class="sw booked"></span> Booked</div>
             <div><span class="sw sold"></span> Sold</div>
             <div><span class="sw blocked"></span> Not released</div>
+          </div>
+
+          <div class="locbox" id="locBox" hidden>
+            <h3>Where it is</h3>
+            <iframe
+              id="locMap"
+              title="Site location map"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <div class="locbtns" id="locBtns"></div>
+            <div class="loccoords" id="locCoords"></div>
           </div>
         </aside>
 

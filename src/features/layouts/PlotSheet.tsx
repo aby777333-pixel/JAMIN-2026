@@ -7,6 +7,7 @@ import QRCode from 'react-native-qrcode-svg';
 
 import type { LayoutHeader, LayoutPlot, PaymentMethod } from './api';
 import { useReservePlot } from './hooks';
+import { formatCoords, mapLinks } from './mapLinks';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { Sheet } from '@/features/buyer/components/EnquirySheet';
@@ -79,6 +80,10 @@ export function PlotSheet({ visible, onClose, plot, layout, slug, onPay }: PlotS
   const reserve = useReservePlot(slug);
 
   const shareUrl = plot ? `${SITE_URL}/layout.html?plot=${plot.number}` : SITE_URL;
+  // Maps / satellite / street view / Earth, derived from the layout's pin.
+  // Null until an admin sets coordinates, so the section simply stays hidden.
+  const links = mapLinks(layout);
+  const coords = formatCoords(layout);
 
   // EMI is indicative only and always computed through decimal.js.
   const monthly = useMemo(() => {
@@ -236,15 +241,26 @@ export function PlotSheet({ visible, onClose, plot, layout, slug, onPay }: PlotS
         </View>
 
         {/* quick links — only rendered when there is somewhere to go */}
+        {links ? (
+          <>
+            <Section title="See the site" />
+            <View className="flex-row flex-wrap gap-2">
+              <LinkChip icon="map-outline" label="Google Maps" onPress={() => void WebBrowser.openBrowserAsync(links.maps)} />
+              <LinkChip icon="globe-outline" label="Satellite" onPress={() => void WebBrowser.openBrowserAsync(links.satellite)} />
+              <LinkChip icon="eye-outline" label="Street view" onPress={() => void WebBrowser.openBrowserAsync(links.streetView)} />
+              <LinkChip icon="earth-outline" label="Google Earth" onPress={() => void WebBrowser.openBrowserAsync(links.earth)} />
+            </View>
+            {coords ? (
+              <Text variant="caption" className="mt-2">
+                Site pin {coords}
+              </Text>
+            ) : null}
+          </>
+        ) : null}
+
         <View className="mt-4 flex-row flex-wrap gap-2">
           {layout.brochureUrl ? (
             <LinkChip icon="download-outline" label="Brochure" onPress={() => void WebBrowser.openBrowserAsync(layout.brochureUrl as string)} />
-          ) : null}
-          {layout.mapsUrl ? (
-            <LinkChip icon="map-outline" label="Google Maps" onPress={() => void WebBrowser.openBrowserAsync(layout.mapsUrl as string)} />
-          ) : null}
-          {layout.streetViewUrl ? (
-            <LinkChip icon="eye-outline" label="Street view" onPress={() => void WebBrowser.openBrowserAsync(layout.streetViewUrl as string)} />
           ) : null}
           <LinkChip
             icon="share-social-outline"

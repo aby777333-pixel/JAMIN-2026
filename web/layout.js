@@ -512,6 +512,61 @@
     el('emiVal').textContent = inr(Math.round(emi)) + ' / mo';
   }
 
+  // ── location ──────────────────────────────────────────────────────────────
+  /**
+   * Maps / satellite / Street View / Google Earth, all derived from the site
+   * pin using Google's Maps URLs scheme — no API key, no billing account. The
+   * inline map is an OpenStreetMap embed, keyless for the same reason. An admin
+   * can paste explicit Maps / Street View URLs and those win.
+   *
+   * Mirrors src/features/layouts/mapLinks.ts, which the app uses.
+   */
+  function buildMapLinks(src) {
+    if (!src) return null;
+    // Number(null) and Number('') are both 0, so a half-filled pin would point
+    // at 0° longitude — the Atlantic. Anything non-numeric counts as unset.
+    var lat = coord(src.latitude), lng = coord(src.longitude);
+    if (lat === null || lng === null || (lat === 0 && lng === 0)) return null;
+
+    function coord(v) {
+      if (v === null || v === undefined || v === '') return null;
+      var n = Number(v);
+      return isFinite(n) ? n : null;
+    }
+    var at = lat.toFixed(6) + ',' + lng.toFixed(6);
+    var d = 0.0032; // ~350 m either side, so the whole site sits in the embed
+    var bbox = [(lng - d).toFixed(6), (lat - d).toFixed(6), (lng + d).toFixed(6), (lat + d).toFixed(6)].join(',');
+    return {
+      maps: src.mapsUrl || 'https://www.google.com/maps/search/?api=1&query=' + at,
+      satellite: 'https://www.google.com/maps/@?api=1&map_action=map&center=' + at + '&zoom=18&basemap=satellite',
+      streetView: src.streetViewUrl || 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + at,
+      earth: 'https://earth.google.com/web/@' + at + ',0a,800d,35y,0h,45t,0r',
+      embed: 'https://www.openstreetmap.org/export/embed.html?bbox=' + bbox + '&layer=mapnik&marker=' + at,
+      coords: lat.toFixed(6) + '° ' + (lat >= 0 ? 'N' : 'S') + ', ' + lng.toFixed(6) + '° ' + (lng >= 0 ? 'E' : 'W'),
+    };
+  }
+
+  function renderLocation() {
+    // live layout wins over the embedded fallback, so an admin edit shows up
+    var src = layout || G;
+    var links = buildMapLinks(src);
+    var box = el('locBox');
+    if (!links) { box.hidden = true; return; }
+    box.hidden = false;
+    if (el('locMap').getAttribute('src') !== links.embed) el('locMap').setAttribute('src', links.embed);
+    el('locBtns').innerHTML =
+      btn(links.maps, '🗺️', 'Map') +
+      btn(links.satellite, '🛰️', 'Satellite') +
+      btn(links.streetView, '👁️', 'Street view') +
+      btn(links.earth, '🌍', 'Earth');
+    el('locCoords').textContent = links.coords;
+
+    function btn(href, icon, label) {
+      return '<a href="' + href + '" target="_blank" rel="noopener noreferrer">' +
+        '<span aria-hidden="true">' + icon + '</span>' + label + '</a>';
+    }
+  }
+
   function plotUrl(p) {
     return location.origin + location.pathname + '?plot=' + p.number;
   }
@@ -685,6 +740,7 @@
       el('liveLabel').textContent = 'Live availability';
       drawPlan();
       renderSummary();
+      renderLocation();
       applyFilters();
       if (selected) {
         var p = plots.filter(function (x) { return x.number === selected; })[0];
@@ -725,6 +781,7 @@
 
     drawPlan();
     renderSummary();
+    renderLocation();
     bindPanZoom();
     initTheme();
 

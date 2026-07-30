@@ -19,6 +19,8 @@ window.JAMIN_LAYOUT = {
   "taluk": "Edappadi",
   "district": "Salem",
   "scale": "1:1000",
+  "latitude": 11.5871928,
+  "longitude": 77.8193972,
   "viewBox": [
     36,
     110,

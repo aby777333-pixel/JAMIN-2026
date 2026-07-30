@@ -49,6 +49,9 @@ export interface LayoutGeometry {
   taluk: string;
   district: string;
   scale: string;
+  /** Site pin — Maps, satellite, Street View and Earth links derive from it. */
+  latitude: number;
+  longitude: number;
   /** Viewport covering the drawing plus its dimension lines. */
   viewBox: [number, number, number, number];
   /** Sanctioned site boundary, in order, as a closed ring. */
@@ -98,6 +101,8 @@ export const EDAPPADI_LAYOUT: LayoutGeometry = {
   taluk: 'Edappadi',
   district: 'Salem',
   scale: '1:1000',
+  latitude: 11.5871928,
+  longitude: 77.8193972,
   viewBox: [36, 110, 286, 545],
   boundary: [[150.21, 133.03], [284.25, 139.73], [293.19, 267.07], [296.54, 355.32], [206.06, 359.78], [181.48, 569.79], [83.19, 577.6]],
   osr: { rect: [206.06, 296.11, 306.59, 363.14], polygon: [[206.06, 296.11], [294.29, 296.11], [296.54, 355.32], [206.06, 359.78]], areaSqm: 1342.0, label: 'O.S.R.' },

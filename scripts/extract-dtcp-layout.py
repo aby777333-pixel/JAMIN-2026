@@ -94,6 +94,12 @@ META = dict(
     taluk="Edappadi",
     district="Salem",
     scale="1:1000",
+    # Site pin. This is the owner's confirmed Edappadi pin; the layout itself is
+    # at Poolavari village (S.No. 214/1B, 214/2, 215/1), so nudge it in
+    # Admin -> Plot layouts -> Layout details once the plot is walked. Maps,
+    # satellite, Street View and Google Earth links all derive from it.
+    latitude=11.5871928,
+    longitude=77.8193972,
 )
 
 # Road bands and overall dimension callouts, read off the sheet. Shared by every
@@ -383,6 +389,8 @@ def layout_payload(boundary, osr, existing_road, plots) -> dict:
         "existingRoad": {"quad": existing_road, "label": "EXISTING ROAD — 12.00 m WIDE", "widthM": 12.0},
         "roads": ROADS,
         "dimensions": DIMENSIONS,
+        "latitude": META["latitude"],
+        "longitude": META["longitude"],
         "metresPerUnit": metres_per_unit(boundary),
         "plotShapes": plot_shapes(boundary, plots),
         "areaStatement": [{"label": l, "areaSqm": a, "percent": p} for l, a, p in AREA_STATEMENT],
@@ -489,6 +497,9 @@ export interface LayoutGeometry {{
   taluk: string;
   district: string;
   scale: string;
+  /** Site pin — Maps, satellite, Street View and Earth links derive from it. */
+  latitude: number;
+  longitude: number;
   /** Viewport covering the drawing plus its dimension lines. */
   viewBox: [number, number, number, number];
   /** Sanctioned site boundary, in order, as a closed ring. */
@@ -538,6 +549,8 @@ export const EDAPPADI_LAYOUT: LayoutGeometry = {{
   taluk: '{META["taluk"]}',
   district: '{META["district"]}',
   scale: '{META["scale"]}',
+  latitude: {META["latitude"]},
+  longitude: {META["longitude"]},
   viewBox: [36, 110, 286, 545],
   boundary: {pts(boundary)},
   osr: {{ rect: [{', '.join(str(v) for v in osr)}], polygon: {osr_poly}, areaSqm: 1342.0, label: 'O.S.R.' }},

@@ -3103,6 +3103,15 @@
                 '</textarea></label>' +
             '</div>' +
             '<div class="row" style="margin-top:8px"><button id="lay_save_details" class="btn btn-sm">Save layout details</button></div>' +
+            '<div class="muted" style="margin-top:6px">' +
+              'Latitude/longitude drive the <b>Map, Satellite, Street&nbsp;View and Google&nbsp;Earth</b> buttons on the plot sheet ' +
+              'and the small map on the public plan — no API key needed. Leave the two URL fields blank to use those derived links; ' +
+              'fill one only to override that single button.' +
+              (full.latitude != null && full.longitude != null
+                ? ' <a href="https://www.google.com/maps/search/?api=1&query=' + full.latitude + ',' + full.longitude +
+                  '" target="_blank" rel="noopener">Check the current pin ↗</a>'
+                : ' <b>No pin set yet — those buttons stay hidden.</b>') +
+            '</div>' +
             '<div class="muted" style="margin-top:6px">The plan geometry itself is not editable — it is regenerated from the approved DTCP drawing.</div>' +
           '</div>' +
 
