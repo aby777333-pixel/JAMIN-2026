@@ -2472,6 +2472,360 @@ export type Database = {
           },
         ]
       }
+      layout_bookings: {
+        Row: {
+          amount: number
+          bank_transfer_id: string | null
+          booking_ref: string
+          buyer_id: string
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          layout_id: string
+          meta: Json
+          note: string | null
+          payment_method: string
+          plot_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bank_transfer_id?: string | null
+          booking_ref?: string
+          buyer_id: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          layout_id: string
+          meta?: Json
+          note?: string | null
+          payment_method?: string
+          plot_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bank_transfer_id?: string | null
+          booking_ref?: string
+          buyer_id?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          layout_id?: string
+          meta?: Json
+          note?: string | null
+          payment_method?: string
+          plot_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "layout_bookings_bank_transfer_id_fkey"
+            columns: ["bank_transfer_id"]
+            isOneToOne: false
+            referencedRelation: "bank_transfers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "layout_bookings_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "layout_bookings_layout_id_fkey"
+            columns: ["layout_id"]
+            isOneToOne: false
+            referencedRelation: "layouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "layout_bookings_plot_id_fkey"
+            columns: ["plot_id"]
+            isOneToOne: false
+            referencedRelation: "layout_plots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      layout_plot_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          from_status: string | null
+          id: string
+          meta: Json
+          note: string | null
+          plot_id: string
+          to_status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          meta?: Json
+          note?: string | null
+          plot_id: string
+          to_status: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          meta?: Json
+          note?: string | null
+          plot_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "layout_plot_events_plot_id_fkey"
+            columns: ["plot_id"]
+            isOneToOne: false
+            referencedRelation: "layout_plots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      layout_plots: {
+        Row: {
+          area_sqm: number | null
+          block: string
+          booking_amount: number | null
+          buyer_id: string | null
+          created_at: string
+          depth_m: number | null
+          development_charges: number
+          documents: Json
+          facing: string | null
+          held_by: string | null
+          held_until: string | null
+          id: string
+          is_corner: boolean
+          layout_id: string
+          media: Json
+          note: string | null
+          number: number
+          offer_price: number | null
+          price: number | null
+          rect: Json
+          registration_charges: number
+          road_width_m: number | null
+          status: string
+          total_cost: number | null
+          updated_at: string
+          updated_by: string | null
+          width_m: number | null
+        }
+        Insert: {
+          area_sqm?: number | null
+          block: string
+          booking_amount?: number | null
+          buyer_id?: string | null
+          created_at?: string
+          depth_m?: number | null
+          development_charges?: number
+          documents?: Json
+          facing?: string | null
+          held_by?: string | null
+          held_until?: string | null
+          id?: string
+          is_corner?: boolean
+          layout_id: string
+          media?: Json
+          note?: string | null
+          number: number
+          offer_price?: number | null
+          price?: number | null
+          rect: Json
+          registration_charges?: number
+          road_width_m?: number | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          width_m?: number | null
+        }
+        Update: {
+          area_sqm?: number | null
+          block?: string
+          booking_amount?: number | null
+          buyer_id?: string | null
+          created_at?: string
+          depth_m?: number | null
+          development_charges?: number
+          documents?: Json
+          facing?: string | null
+          held_by?: string | null
+          held_until?: string | null
+          id?: string
+          is_corner?: boolean
+          layout_id?: string
+          media?: Json
+          note?: string | null
+          number?: number
+          offer_price?: number | null
+          price?: number | null
+          rect?: Json
+          registration_charges?: number
+          road_width_m?: number | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          width_m?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "layout_plots_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "layout_plots_held_by_fkey"
+            columns: ["held_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "layout_plots_layout_id_fkey"
+            columns: ["layout_id"]
+            isOneToOne: false
+            referencedRelation: "layouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      layouts: {
+        Row: {
+          amenities: Json
+          approval_date: string | null
+          approval_no: string | null
+          authority: string | null
+          brochure_url: string | null
+          created_at: string
+          district: string | null
+          documents: Json
+          geometry: Json
+          hold_minutes: number
+          id: string
+          is_published: boolean
+          landmarks: Json
+          latitude: number | null
+          longitude: number | null
+          maps_url: string | null
+          media: Json
+          name: string
+          owner_name: string | null
+          place: string | null
+          project_id: string | null
+          promoter_id: string | null
+          scale: string | null
+          slug: string
+          status: string
+          street_view_url: string | null
+          survey_nos: string | null
+          taluk: string | null
+          title: string | null
+          updated_at: string
+          village: string | null
+        }
+        Insert: {
+          amenities?: Json
+          approval_date?: string | null
+          approval_no?: string | null
+          authority?: string | null
+          brochure_url?: string | null
+          created_at?: string
+          district?: string | null
+          documents?: Json
+          geometry?: Json
+          hold_minutes?: number
+          id?: string
+          is_published?: boolean
+          landmarks?: Json
+          latitude?: number | null
+          longitude?: number | null
+          maps_url?: string | null
+          media?: Json
+          name: string
+          owner_name?: string | null
+          place?: string | null
+          project_id?: string | null
+          promoter_id?: string | null
+          scale?: string | null
+          slug: string
+          status?: string
+          street_view_url?: string | null
+          survey_nos?: string | null
+          taluk?: string | null
+          title?: string | null
+          updated_at?: string
+          village?: string | null
+        }
+        Update: {
+          amenities?: Json
+          approval_date?: string | null
+          approval_no?: string | null
+          authority?: string | null
+          brochure_url?: string | null
+          created_at?: string
+          district?: string | null
+          documents?: Json
+          geometry?: Json
+          hold_minutes?: number
+          id?: string
+          is_published?: boolean
+          landmarks?: Json
+          latitude?: number | null
+          longitude?: number | null
+          maps_url?: string | null
+          media?: Json
+          name?: string
+          owner_name?: string | null
+          place?: string | null
+          project_id?: string | null
+          promoter_id?: string | null
+          scale?: string | null
+          slug?: string
+          status?: string
+          street_view_url?: string | null
+          survey_nos?: string | null
+          taluk?: string | null
+          title?: string | null
+          updated_at?: string
+          village?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "layouts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "layouts_promoter_id_fkey"
+            columns: ["promoter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_events: {
         Row: {
           created_at: string
@@ -5103,6 +5457,25 @@ export type Database = {
       }
       is_shortlist_member: { Args: { p_sl: string }; Returns: boolean }
       join_shortlist: { Args: { p_token: string }; Returns: string }
+      admin_price_layout_block: {
+        Args: { p_block: string | null; p_layout: string; p_patch: Json }
+        Returns: number
+      }
+      admin_set_layout_plot_status: {
+        Args: { p_note?: string; p_plot: string; p_status: string }
+        Returns: undefined
+      }
+      admin_update_layout_plot: {
+        Args: { p_patch: Json; p_plot: string }
+        Returns: undefined
+      }
+      expire_layout_holds: { Args: never; Returns: number }
+      layout_overview: { Args: { p_slug: string }; Returns: Json }
+      release_layout_plot: { Args: { p_plot: string }; Returns: undefined }
+      reserve_layout_plot: {
+        Args: { p_method?: string; p_note?: string; p_plot: string }
+        Returns: Json
+      }
       lead_actor_suffix: { Args: never; Returns: string }
       lead_daily_digest: { Args: never; Returns: undefined }
       lead_score_band: { Args: { p_score: number }; Returns: string }

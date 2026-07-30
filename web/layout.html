@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Plot selection — Edappadi Layout | Jamin Bazaar</title>
+    <meta name="description" content="Choose your plot on the sanctioned DTCP layout at Edappadi, Salem. Live availability, full plot detail and instant reservation." />
+    <meta name="theme-color" content="#FD0001" />
+    <link rel="icon" href="logo.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      /* ── tokens ─────────────────────────────────────────────────────────────
+         Spacing follows the golden ratio from a 10px base:
+         6 / 10 / 16 / 26 / 42 / 68                                            */
+      :root {
+        --s1: 6px; --s2: 10px; --s3: 16px; --s4: 26px; --s5: 42px; --s6: 68px;
+
+        --red: #fd0001; --red-deep: #c70000;
+        --gold: #fbbc15; --gold-deep: #c8911e;
+        --ink: #1a1a1a; --muted: #74746e;
+        --line: #e6e7e2; --paper: #f8f8f6; --surface: #ffffff;
+        --green: #1e9e5a; --amber: #e6a10d; --blue: #2f6bff; --grey: #4a4a4a;
+
+        --plan-bg: #fcfcfa;
+        --road: #ececE8;
+        --road-line: #dcdcd6;
+        --osr: #eef5ea;
+        --osr-line: #5b8c3a;
+        --site-line: #d0402f;
+        --existing: #f4efdc;
+        --existing-line: #7a6b32;
+
+        --radius: 16px;
+        --shadow-sm: 0 1px 2px rgba(20,20,18,.05), 0 2px 8px rgba(20,20,18,.04);
+        --shadow-md: 0 4px 14px rgba(20,20,18,.07), 0 12px 34px rgba(20,20,18,.06);
+        --shadow-lg: 0 10px 30px rgba(20,20,18,.10), 0 30px 70px rgba(20,20,18,.10);
+        --ease: cubic-bezier(.22,.61,.36,1);
+      }
+      html[data-theme='dark'] {
+        --ink: #f2f2ee; --muted: #9b9b93; --line: #2a2a28;
+        --paper: #0e0e10; --surface: #17171a;
+        --plan-bg: #131316; --road: #232327; --road-line: #303035;
+        --osr: #1b2a1d; --osr-line: #6fae4c; --existing: #2a2620; --existing-line: #8d7c3c;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,.5); --shadow-md: 0 6px 20px rgba(0,0,0,.55);
+        --shadow-lg: 0 16px 50px rgba(0,0,0,.6);
+      }
+      html[data-theme='contrast'] {
+        --ink: #000; --muted: #333; --line: #000; --paper: #fff; --surface: #fff;
+        --plan-bg: #fff; --road: #e4e4e4; --road-line: #000;
+        --green: #006b34; --blue: #0033cc; --red: #b00000; --grey: #222;
+        --shadow-sm: none; --shadow-md: none; --shadow-lg: 0 0 0 2px #000;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: var(--paper); color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+        font-feature-settings: 'tnum' 1;
+      }
+      h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
+      button, input, select { font: inherit; color: inherit; }
+
+      /* ── shell ───────────────────────────────────────────────────────────── */
+      .wrap { max-width: 1440px; margin: 0 auto; padding: var(--s3); }
+      header.top {
+        display: flex; align-items: center; gap: var(--s3);
+        padding: var(--s3) 0 var(--s4);
+        flex-wrap: wrap;
+      }
+      .brand { display: flex; align-items: center; gap: var(--s2); }
+      .brand img { width: 34px; height: 34px; border-radius: 9px; object-fit: cover; }
+      .brand .n { font-weight: 800; font-size: 15px; letter-spacing: -.01em; }
+      .brand .t { font-size: 11px; color: var(--muted); }
+      .title-col { flex: 1 1 260px; min-width: 0; }
+      .title-col h1 { font-size: clamp(19px, 3.2vw, 26px); font-weight: 700; }
+      .title-col .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+      .approval {
+        display: inline-flex; align-items: center; gap: 6px; margin-top: var(--s1);
+        font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+        color: var(--gold-deep); background: rgba(251,188,21,.12);
+        border: 1px solid rgba(200,145,30,.28); padding: 4px 9px; border-radius: 999px;
+      }
+      .top-actions { display: flex; gap: var(--s1); align-items: center; margin-left: auto; }
+      .live { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+      .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+      .dot.on { background: var(--green); box-shadow: 0 0 0 3px rgba(30,158,90,.16); animation: pulse 2.4s infinite; }
+      @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(30,158,90,0); } }
+
+      .icon-btn {
+        width: 38px; height: 38px; border-radius: 11px; border: 1px solid var(--line);
+        background: var(--surface); cursor: pointer; display: grid; place-items: center;
+        box-shadow: var(--shadow-sm); transition: transform .18s var(--ease), border-color .18s;
+      }
+      .icon-btn:hover { transform: translateY(-1px); border-color: var(--muted); }
+      .icon-btn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+      /* ── summary ─────────────────────────────────────────────────────────── */
+      #summary {
+        display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--s2);
+        margin-bottom: var(--s3);
+      }
+      .stat {
+        background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+        padding: var(--s2) var(--s3); box-shadow: var(--shadow-sm);
+      }
+      .stat b { display: block; font-size: 22px; font-weight: 700; letter-spacing: -.03em; }
+      .stat span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+      .stat.total b { color: var(--ink); }
+      .stat.p-available b { color: var(--green); }
+      .stat.p-reserved b { color: var(--amber); }
+      .stat.p-booked b { color: var(--red); }
+      .stat.p-sold b { color: var(--grey); }
+      .stat.p-blocked b { color: var(--muted); }
+
+      /* ── layout grid ─────────────────────────────────────────────────────── */
+      .cols { display: grid; grid-template-columns: 300px 1fr; gap: var(--s3); align-items: start; }
+
+      .panel {
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: var(--radius); box-shadow: var(--shadow-sm);
+      }
+      .filters { padding: var(--s3); position: sticky; top: var(--s3); }
+      .filters h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: var(--s2); }
+      .field { margin-bottom: var(--s2); }
+      .field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+      .field input, .field select {
+        width: 100%; padding: 9px 11px; border-radius: 10px;
+        border: 1px solid var(--line); background: var(--paper);
+        transition: border-color .18s, box-shadow .18s;
+      }
+      .field input:focus, .field select:focus {
+        outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(47,107,255,.14);
+      }
+      .check { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: var(--s2) 0; }
+      .filter-foot { display: flex; align-items: center; justify-content: space-between; margin-top: var(--s3); }
+      #filterCount { font-size: 12px; color: var(--muted); }
+      .linkish { background: none; border: 0; color: var(--blue); cursor: pointer; font-size: 12px; padding: 0; }
+
+      .legend { margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--line); }
+      .legend div { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 7px; color: var(--muted); }
+      .sw { width: 13px; height: 13px; border-radius: 4px; border: 1.4px solid var(--green); background: var(--surface); }
+      .sw.reserved { background: var(--amber); border-color: var(--amber); }
+      .sw.booked { background: var(--red); border-color: var(--red); }
+      .sw.sold { background: var(--grey); border-color: var(--grey); }
+      .sw.blocked { background: var(--line); border-color: var(--muted); }
+
+      /* ── stage ───────────────────────────────────────────────────────────── */
+      #stage {
+        position: relative; background: var(--plan-bg);
+        border: 1px solid var(--line); border-radius: var(--radius);
+        box-shadow: var(--shadow-md); overflow: hidden;
+        min-height: 520px; height: calc(100vh - 300px);
+      }
+      #stage:fullscreen { border-radius: 0; height: 100vh; }
+      #plan { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+      #plan:active { cursor: grabbing; }
+
+      .plan-tools {
+        position: absolute; right: var(--s2); bottom: var(--s2);
+        display: flex; flex-direction: column; gap: 6px;
+      }
+      .plan-tools .icon-btn { width: 34px; height: 34px; }
+      #zoomLevel {
+        position: absolute; left: var(--s2); bottom: var(--s2);
+        font-size: 11px; color: var(--muted); background: var(--surface);
+        border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px;
+      }
+      .survey-toggle {
+        position: absolute; left: var(--s2); top: var(--s2);
+        display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted);
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: 999px; padding: 5px 11px; box-shadow: var(--shadow-sm);
+      }
+
+      /* ── plan graphics ───────────────────────────────────────────────────── */
+      .road-fill { fill: var(--road); }
+      .osr-fill { fill: var(--osr); }
+      .osr-line { fill: none; stroke: var(--osr-line); stroke-width: .5; stroke-dasharray: 2.5 1.8; vector-effect: non-scaling-stroke; }
+      .site-line { fill: none; stroke: var(--site-line); stroke-width: 1.9; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+      .existing-road { fill: var(--existing); stroke: var(--existing-line); stroke-width: .6; vector-effect: non-scaling-stroke; }
+
+      .plot { cursor: pointer; transition: opacity .25s var(--ease); }
+      .plot-shape {
+        fill: var(--surface); stroke: var(--green); stroke-width: .9;
+        vector-effect: non-scaling-stroke;
+        transition: fill .28s var(--ease), stroke .28s var(--ease), transform .28s var(--ease);
+      }
+      .plot-no {
+        font: 600 5.2px Inter, sans-serif; fill: var(--green);
+        pointer-events: none; transition: fill .28s var(--ease);
+      }
+      .plot-badge { font: 700 2.7px Inter, sans-serif; fill: #fff; letter-spacing: .1px; pointer-events: none; }
+      .plot-icon-fill { fill: #fff; opacity: .92; }
+      .plot-icon-line { fill: none; stroke: #fff; stroke-width: .55; vector-effect: non-scaling-stroke; }
+
+      .plot:hover .plot-shape { stroke-width: 1.6; filter: brightness(1.02); }
+      .plot:focus { outline: none; }
+      .plot:focus-visible .plot-shape { stroke: var(--blue); stroke-width: 2.2; }
+
+      .p-reserved .plot-shape { fill: var(--amber); stroke: #b4790a; }
+      .p-reserved .plot-no { fill: #fff; }
+      .p-booked .plot-shape { fill: var(--red); stroke: var(--red-deep); }
+      .p-booked .plot-no { fill: #fff; }
+      .p-sold .plot-shape { fill: var(--grey); stroke: #2e2e2e; }
+      .p-sold .plot-no { fill: #fff; }
+      .p-blocked .plot-shape { fill: var(--line); stroke: var(--muted); stroke-dasharray: 2 1.5; }
+      .p-blocked .plot-no { fill: var(--muted); }
+
+      .plot.is-selected .plot-shape { fill: var(--blue); stroke: #1b4fd8; filter: url(#lift); }
+      .plot.is-selected .plot-no { fill: #fff; }
+      .plot.dimmed { opacity: .2; pointer-events: none; }
+
+      .road-label { font: 500 4px Inter, sans-serif; fill: var(--muted); pointer-events: none; }
+      .osr-label { font: 600 6px Inter, sans-serif; fill: var(--osr-line); pointer-events: none; }
+      .osr-sub { font: 500 4px Inter, sans-serif; fill: var(--osr-line); opacity: .85; pointer-events: none; }
+      .dim-line { stroke: var(--muted); stroke-width: .45; opacity: .55; vector-effect: non-scaling-stroke; }
+      .dim-label { font: 600 4.2px Inter, sans-serif; fill: var(--muted); pointer-events: none; }
+      .amenity-dot { fill: var(--surface); stroke: var(--gold-deep); stroke-width: .7; vector-effect: non-scaling-stroke; }
+      .amenity-icon { font: 600 4.4px Inter, sans-serif; fill: var(--gold-deep); pointer-events: none; }
+
+      /* survey view restores the drawing's own layer colours */
+      body.survey .road-fill { fill: #d99f6f; }
+      body.survey .osr-fill { fill: #e8f0e2; }
+      body.survey .site-line { stroke: #d0342c; stroke-width: 2.2; }
+      body.survey .plot-shape { fill: #fff; stroke: #1f1f1d; stroke-width: .8; }
+      body.survey .plot-no { fill: #1f1f1d; }
+      body.survey .p-booked .plot-shape { fill: var(--red); }
+      body.survey .p-booked .plot-no,
+      body.survey .p-sold .plot-no,
+      body.survey .p-reserved .plot-no { fill: #fff; }
+      body.survey .p-sold .plot-shape { fill: var(--grey); }
+      body.survey .p-reserved .plot-shape { fill: var(--amber); }
+
+      /* ── detail sheet ────────────────────────────────────────────────────── */
+      #scrim {
+        position: fixed; inset: 0; background: rgba(16,16,18,.42);
+        backdrop-filter: blur(2px); opacity: 0; pointer-events: none;
+        transition: opacity .3s var(--ease); z-index: 40;
+      }
+      #sheet.open ~ #scrim, #scrim.on { opacity: 1; pointer-events: auto; }
+      #sheet {
+        position: fixed; z-index: 50; background: var(--surface);
+        box-shadow: var(--shadow-lg); display: flex; flex-direction: column;
+        transition: transform .42s var(--ease);
+      }
+      @media (min-width: 900px) {
+        #sheet {
+          top: 0; right: 0; height: 100vh; width: 420px;
+          border-left: 1px solid var(--line); transform: translateX(100%);
+        }
+        #sheet.open { transform: none; }
+      }
+      @media (max-width: 899px) {
+        #sheet {
+          left: 0; right: 0; bottom: 0; max-height: 88vh;
+          border-radius: 22px 22px 0 0; border-top: 1px solid var(--line);
+          transform: translateY(100%);
+        }
+        #sheet.open { transform: none; }
+      }
+      .sheet-bar {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: var(--s2) var(--s3); border-bottom: 1px solid var(--line);
+      }
+      .grabber { width: 38px; height: 4px; border-radius: 3px; background: var(--line); margin: 8px auto 0; }
+      @media (min-width: 900px) { .grabber { display: none; } }
+      #sheetBody { overflow-y: auto; padding: var(--s3) var(--s3) var(--s5); -webkit-overflow-scrolling: touch; }
+
+      .sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s2); }
+      .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+      .sheet-head h2 { font-size: 26px; font-weight: 700; }
+      .chip {
+        font-size: 11px; font-weight: 600; padding: 5px 11px; border-radius: 999px;
+        border: 1px solid var(--line); white-space: nowrap;
+      }
+      .chip.p-available { color: var(--green); border-color: rgba(30,158,90,.35); background: rgba(30,158,90,.09); }
+      .chip.p-reserved { color: #a5760a; border-color: rgba(230,161,13,.4); background: rgba(230,161,13,.12); }
+      .chip.p-booked { color: var(--red); border-color: rgba(253,0,1,.3); background: rgba(253,0,1,.08); }
+      .chip.p-sold { color: var(--grey); background: rgba(74,74,74,.09); }
+
+      .price-block { display: flex; align-items: baseline; gap: var(--s2); margin: var(--s3) 0; }
+      .price { font-size: 27px; font-weight: 700; letter-spacing: -.03em; }
+      .price.muted-price { font-size: 19px; color: var(--muted); font-weight: 600; }
+      .was { color: var(--muted); text-decoration: line-through; font-size: 15px; }
+
+      .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--s3); }
+      .grid1 { display: grid; }
+      .row {
+        display: flex; align-items: baseline; justify-content: space-between; gap: var(--s2);
+        padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13px;
+      }
+      .row span { color: var(--muted); }
+      .row b { font-weight: 600; text-align: right; }
+      .row.total { border-bottom: 0; padding-top: 12px; font-size: 15px; }
+      .row.total b { color: var(--red); }
+      .sec-title {
+        font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+        color: var(--muted); margin: var(--s4) 0 var(--s1); font-weight: 600;
+      }
+
+      .emi label { display: block; font-size: 12px; color: var(--muted); margin-top: var(--s2); }
+      .emi output { float: right; font-weight: 600; color: var(--ink); }
+      .emi input[type=range] { width: 100%; accent-color: var(--red); margin-top: 4px; }
+      .emi-out {
+        margin-top: var(--s3); padding: var(--s2) var(--s3); border-radius: 12px;
+        background: var(--paper); border: 1px solid var(--line); font-size: 13px; color: var(--muted);
+      }
+      .emi-out b { display: block; font-size: 20px; color: var(--ink); margin: 2px 0; }
+      .emi-out span { font-size: 11px; }
+
+      .tags { display: flex; flex-wrap: wrap; gap: 7px; }
+      .tag {
+        font-size: 12px; padding: 5px 10px; border-radius: 999px;
+        background: var(--paper); border: 1px solid var(--line); color: var(--muted);
+      }
+      .tag.link { color: var(--blue); text-decoration: none; }
+      .verified {
+        display: flex; align-items: center; gap: 8px; margin-top: var(--s3);
+        font-size: 12px; font-weight: 600; color: var(--gold-deep);
+      }
+      .tick {
+        width: 17px; height: 17px; border-radius: 50%; background: var(--gold);
+        color: #fff; display: grid; place-items: center; font-size: 10px;
+      }
+      .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+      .gallery img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; }
+
+      .actions { display: flex; gap: var(--s1); margin-top: var(--s4); }
+      .actions.wrap { flex-wrap: wrap; margin-top: var(--s2); }
+      .btn {
+        flex: 1; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line);
+        background: var(--surface); font-weight: 600; font-size: 14px; cursor: pointer;
+        text-align: center; text-decoration: none; color: var(--ink);
+        transition: transform .16s var(--ease), box-shadow .16s var(--ease), opacity .16s;
+      }
+      .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+      .btn:active { transform: translateY(0) scale(.985); }
+      .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+      .btn.primary { background: var(--red); border-color: var(--red); color: #fff; }
+      .btn.ghost { flex: 0 0 auto; padding: 9px 13px; font-size: 13px; font-weight: 500; }
+      .foot-note { margin-top: var(--s4); font-size: 11px; line-height: 1.6; color: var(--muted); }
+
+      /* ── modals ──────────────────────────────────────────────────────────── */
+      .modal {
+        position: fixed; inset: 0; z-index: 70; display: none;
+        place-items: center; background: rgba(16,16,18,.5); backdrop-filter: blur(3px);
+        padding: var(--s3);
+      }
+      .modal.open { display: grid; animation: fade .24s var(--ease); }
+      @keyframes fade { from { opacity: 0; } }
+      .modal-card {
+        background: var(--surface); border-radius: 20px; padding: var(--s4);
+        width: min(420px, 100%); box-shadow: var(--shadow-lg);
+        animation: rise .34s var(--ease);
+      }
+      @keyframes rise { from { transform: translateY(14px) scale(.98); opacity: 0; } }
+      .book-plot { font-size: 12px; color: var(--muted); }
+      .book-q { font-size: 21px; font-weight: 700; margin: var(--s1) 0 var(--s3); letter-spacing: -.02em; }
+      .book-amt {
+        display: flex; justify-content: space-between; align-items: baseline;
+        padding: var(--s3); border-radius: 13px; background: var(--paper); border: 1px solid var(--line);
+      }
+      .book-amt span { font-size: 12px; color: var(--muted); }
+      .book-amt b { font-size: 22px; letter-spacing: -.02em; }
+      .pay { display: grid; gap: 7px; }
+      .pay label {
+        display: flex; align-items: center; gap: 9px; padding: 11px 13px;
+        border: 1px solid var(--line); border-radius: 12px; cursor: pointer; font-size: 14px;
+        transition: border-color .18s, background .18s;
+      }
+      .pay label:has(input:checked) { border-color: var(--red); background: rgba(253,0,1,.04); }
+      .book-note { font-size: 11px; line-height: 1.6; color: var(--muted); margin-top: var(--s3); }
+      #qrTarget { display: grid; place-items: center; padding: var(--s3) 0; }
+      #qrCaption { text-align: center; font-size: 12px; color: var(--muted); }
+
+      /* ── toast + confetti ────────────────────────────────────────────────── */
+      #toast {
+        position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 16px);
+        background: var(--ink); color: var(--paper); padding: 11px 18px; border-radius: 999px;
+        font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; z-index: 90;
+        transition: opacity .28s var(--ease), transform .28s var(--ease);
+      }
+      #toast.show { opacity: 1; transform: translate(-50%, 0); }
+      #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 95; overflow: hidden; }
+      #confetti i {
+        position: absolute; top: -14px; width: 8px; height: 13px; border-radius: 2px; opacity: 0;
+      }
+      #confetti.go i { animation: fall 2.2s var(--ease) forwards; }
+      @keyframes fall {
+        0% { opacity: 1; transform: translateY(0) rotate(0); }
+        100% { opacity: 0; transform: translateY(102vh) rotate(560deg); }
+      }
+
+      /* ── skeleton ────────────────────────────────────────────────────────── */
+      .skeleton { animation: shimmer 1.4s infinite linear;
+        background: linear-gradient(90deg, var(--line) 25%, var(--paper) 37%, var(--line) 63%);
+        background-size: 400% 100%; border-radius: 8px; }
+      @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+      }
+
+      /* ── responsive ──────────────────────────────────────────────────────── */
+      @media (max-width: 1080px) { #summary { grid-template-columns: repeat(3, 1fr); } }
+      @media (max-width: 899px) {
+        .cols { grid-template-columns: 1fr; }
+        .filters { position: static; }
+        #stage { height: 64vh; min-height: 420px; }
+        .wrap { padding: var(--s2); }
+      }
+      @media (max-width: 520px) {
+        #summary { grid-template-columns: repeat(2, 1fr); }
+        .grid2 { grid-template-columns: 1fr; }
+      }
+      .sr-only {
+        position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+        overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <a class="brand" href="/" style="text-decoration:none;color:inherit">
+          <img src="logo.jpg" alt="" />
+          <span>
+            <span class="n">JAMIN BAZAAR</span><br />
+            <span class="t">Signature for Fortune</span>
+          </span>
+        </a>
+        <div class="title-col">
+          <h1 id="layoutName">Edappadi — Poolavari Layout</h1>
+          <div class="sub" id="layoutPlace"></div>
+          <span class="approval">DTCP <span id="approvalNo"></span></span>
+        </div>
+        <div class="top-actions">
+          <span class="live"><span class="dot" id="liveDot"></span><span id="liveLabel">Indicative plan</span></span>
+          <button class="icon-btn" id="themeBtn" title="Switch theme" aria-label="Switch theme">◐</button>
+        </div>
+      </header>
+
+      <div id="summary" aria-live="polite"></div>
+
+      <div class="cols">
+        <aside class="panel filters" aria-label="Filter plots">
+          <h3>Find a plot</h3>
+          <div class="field">
+            <label for="search">Search plot, block or price</label>
+            <input id="search" type="search" placeholder="e.g. 14, Block C" />
+          </div>
+          <div class="field">
+            <label for="fStatus">Availability</label>
+            <select id="fStatus">
+              <option value="">Any</option>
+              <option value="available">Available</option>
+              <option value="reserved">On hold</option>
+              <option value="booked">Booked</option>
+              <option value="sold">Sold</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fFacing">Facing</label>
+            <select id="fFacing">
+              <option value="">Any</option>
+              <option value="north">North</option>
+              <option value="south">South</option>
+              <option value="east">East</option>
+              <option value="west">West</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fRoad">Road width</label>
+            <select id="fRoad">
+              <option value="">Any</option>
+              <option value="9">9.00 m</option>
+              <option value="12">12.00 m</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fBudget">Max budget (₹)</label>
+            <input id="fBudget" type="number" min="0" step="50000" placeholder="No limit" />
+          </div>
+          <div class="field">
+            <label for="fArea">Min area (Sq.m)</label>
+            <input id="fArea" type="number" min="0" step="5" placeholder="Any" />
+          </div>
+          <label class="check"><input type="checkbox" id="fCorner" /> Corner plots only</label>
+          <div class="filter-foot">
+            <span id="filterCount"></span>
+            <button class="linkish" id="filterReset">Reset</button>
+          </div>
+
+          <div class="legend" aria-hidden="true">
+            <div><span class="sw"></span> Available</div>
+            <div><span class="sw reserved"></span> On hold</div>
+            <div><span class="sw booked"></span> Booked</div>
+            <div><span class="sw sold"></span> Sold</div>
+            <div><span class="sw blocked"></span> Not released</div>
+          </div>
+        </aside>
+
+        <main id="stage">
+          <label class="survey-toggle">
+            <input type="checkbox" id="surveyToggle" /> Survey view
+          </label>
+          <svg id="plan" preserveAspectRatio="xMidYMid meet" role="img"
+               aria-label="Interactive sanctioned layout plan. Use Tab to move between plots and Enter to open a plot."></svg>
+          <div id="zoomLevel">100%</div>
+          <div class="plan-tools">
+            <button class="icon-btn" id="zoomIn" aria-label="Zoom in">+</button>
+            <button class="icon-btn" id="zoomOut" aria-label="Zoom out">−</button>
+            <button class="icon-btn" id="zoomReset" aria-label="Reset view">⤾</button>
+            <button class="icon-btn" id="fullBtn" aria-label="Full screen">⛶</button>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <aside id="sheet" aria-hidden="true" aria-label="Plot detail">
+      <div class="grabber"></div>
+      <div class="sheet-bar">
+        <strong style="font-size:13px">Plot detail</strong>
+        <button class="icon-btn" id="sheetClose" aria-label="Close">✕</button>
+      </div>
+      <div id="sheetBody"></div>
+    </aside>
+    <div id="scrim"></div>
+
+    <div class="modal" id="bookModal" role="dialog" aria-modal="true" aria-label="Reserve plot">
+      <div class="modal-card">
+        <div id="bookBody"></div>
+        <div class="actions">
+          <button class="btn" id="bookCancel">Cancel</button>
+          <button class="btn primary" id="bookConfirm">Reserve plot</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="qrModal" role="dialog" aria-modal="true" aria-label="Plot QR code">
+      <div class="modal-card">
+        <div id="qrTarget"></div>
+        <div id="qrCaption"></div>
+        <div class="actions"><button class="btn" id="qrClose">Close</button></div>
+      </div>
+    </div>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+    <div id="confetti" aria-hidden="true"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+      var SUPABASE_URL = 'https://oaqwnjgaypmuafvnfhxv.supabase.co';
+      var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXduamdheXBtdWFmdm5maHh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMDI2ODAsImV4cCI6MjA5Nzc3ODY4MH0.2tfyC3Z8Kzib8FdLjnE-z8m830PZUd9vfcWtDXIqp3E';
+      window.SUPABASE_URL = SUPABASE_URL;
+      window.SUPABASE_ANON = SUPABASE_ANON;
+    </script>
+    <script src="layout-data.js"></script>
+    <script src="layout.js"></script>
+  </body>
+</html>

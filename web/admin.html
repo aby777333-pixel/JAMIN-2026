@@ -191,6 +191,7 @@
         <button class="nav-i" data-tab="properties">🏠 Properties</button>
         <button class="nav-i" data-tab="catalog">📁 Catalog</button>
         <button class="nav-i" data-tab="territories">🗺️ Territories</button>
+        <button class="nav-i" data-tab="layouts">🧭 Plot layouts</button>
         <button class="nav-i" data-tab="visits">📅 Site visits</button>
         <button class="nav-i" data-tab="reviews">⭐ Reviews</button>
         <button class="nav-i" data-tab="duplicates">🧬 Duplicates</button>
@@ -261,6 +262,7 @@
         <div id="tabCrm" class="hidden"></div>
         <div id="tabMarketing" class="hidden"></div>
         <div id="tabTerritories" class="hidden"></div>
+        <div id="tabLayouts" class="hidden"></div>
         <div id="tabApprovals" class="hidden"></div>
         <div id="tabSubmissions" class="hidden"></div>
         <div id="tabFormsubs" class="hidden"></div>
@@ -409,7 +411,7 @@
         var mainEl = document.querySelector('.main');
         if (mainEl) mainEl.scrollTop = 0;
         document.querySelectorAll('.nav-i').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
-        ['dashboard', 'properties', 'catalog', 'users', 'buyers', 'sellers', 'promoters', 'agents', 'staff', 'crm', 'marketing', 'territories', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'aisuite', 'aiconvos', 'calldesk', 'faith', 'nridesk', 'rewards', 'referrals', 'commissions', 'usermedia', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'community', 'moderation', 'insights', 'audit', 'exports', 'festivals', 'bazaar'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
+        ['dashboard', 'properties', 'catalog', 'users', 'buyers', 'sellers', 'promoters', 'agents', 'staff', 'crm', 'marketing', 'territories', 'layouts', 'approvals', 'submissions', 'formsubs', 'sharedads', 'adchats', 'payments', 'chat', 'forms', 'features', 'aisuite', 'aiconvos', 'calldesk', 'faith', 'nridesk', 'rewards', 'referrals', 'commissions', 'usermedia', 'content', 'announcements', 'config', 'offers', 'requirements', 'visits', 'reviews', 'cobroke', 'shortlists', 'academy', 'loans', 'documents', 'duplicates', 'campaigns', 'escrow', 'drips', 'reels', 'whatsapp', 'community', 'moderation', 'insights', 'audit', 'exports', 'festivals', 'bazaar'].forEach(function (t) { $('tab' + t[0].toUpperCase() + t.slice(1)).classList.toggle('hidden', t !== tab); });
         if (tab === 'dashboard') renderDashboard();
         if (tab === 'properties') renderProperties();
         if (tab === 'catalog') renderCatalog();
@@ -422,6 +424,7 @@
         if (tab === 'crm') renderCrm();
         if (tab === 'marketing') renderMarketing();
         if (tab === 'territories') renderTerritories();
+        if (tab === 'layouts') renderLayouts();
         if (tab === 'approvals') renderApprovals();
         if (tab === 'submissions') renderSubmissions();
         if (tab === 'formsubs') renderFormSubs();
@@ -2966,6 +2969,218 @@
             if (!confirm('Delete this template?')) return;
             var r = await sb.from('brochure_templates').delete().eq('id', id);
             if (r.error) return alert(r.error.message); renderMarketing();
+          };
+        });
+      }
+
+      // ─── Plot layouts ───────────────────────────────────────────────────
+      // Sanctioned DTCP plans as selectable inventory. The plan geometry is
+      // traced from the approval drawing and is NOT editable here — only the
+      // commercial and presentation fields are. To change the plan itself,
+      // re-run scripts/extract-dtcp-layout.py against the approved sheet.
+      var layoutState = { slug: null, data: null };
+
+      var PLOT_FILL = { available: '#ffffff', reserved: '#e6a10d', booked: '#fd0001', sold: '#4a4a4a', blocked: '#e6e7e2' };
+      var PLOT_STROKE = { available: '#1e9e5a', reserved: '#b4790a', booked: '#c70000', sold: '#2e2e2e', blocked: '#74746e' };
+      var PLOT_TEXT = { available: '#1e9e5a', reserved: '#ffffff', booked: '#ffffff', sold: '#ffffff', blocked: '#74746e' };
+
+      function layoutPlanSvg(geo, plots, selectedId) {
+        if (!geo || !geo.boundary) return '<div class="muted">No plan geometry on this layout.</div>';
+        function pts(ring) { return ring.map(function (p) { return p.join(','); }).join(' '); }
+        var svg = '<svg viewBox="' + geo.viewBox.join(' ') + '" style="width:100%;max-height:520px" preserveAspectRatio="xMidYMid meet">';
+        svg += '<polygon points="' + pts(geo.boundary) + '" fill="#ececE8" />';
+        if (geo.osr && geo.osr.polygon) {
+          svg += '<polygon points="' + pts(geo.osr.polygon) + '" fill="#eef5ea" stroke="#5b8c3a" stroke-width="0.5" stroke-dasharray="2.5 1.8" />';
+        }
+        if (geo.existingRoad && geo.existingRoad.quad) {
+          svg += '<polygon points="' + pts(geo.existingRoad.quad) + '" fill="#f4efdc" stroke="#7a6b32" stroke-width="0.6" />';
+        }
+        svg += '<polygon points="' + pts(geo.boundary) + '" fill="none" stroke="#d0402f" stroke-width="1.9" stroke-linejoin="round" />';
+        (plots || []).forEach(function (p) {
+          var r = p.rect, w = r[2] - r[0], h = r[3] - r[1];
+          var sel = p.id === selectedId;
+          svg += '<g class="lay_plot" data-id="' + p.id + '" style="cursor:pointer">' +
+            '<title>Plot ' + p.number + ' — ' + p.status + '</title>' +
+            '<rect x="' + r[0] + '" y="' + r[1] + '" width="' + w + '" height="' + h + '" rx="1.8" fill="' +
+              (sel ? '#2f6bff' : (PLOT_FILL[p.status] || '#fff')) + '" stroke="' +
+              (sel ? '#1b4fd8' : (PLOT_STROKE[p.status] || '#1e9e5a')) + '" stroke-width="' + (sel ? 2.2 : 0.9) + '" />' +
+            '<text x="' + (r[0] + w / 2) + '" y="' + (r[1] + h / 2 + 1.6) + '" font-size="5.2" font-weight="600" text-anchor="middle" fill="' +
+              (sel ? '#fff' : (PLOT_TEXT[p.status] || '#1e9e5a')) + '">' + p.number + '</text></g>';
+        });
+        return svg + '</svg>';
+      }
+
+      async function renderLayouts() {
+        var el = $('tabLayouts');
+        el.innerHTML = '<div class="head"><h2>Plot layouts</h2></div><div class="muted">Loading…</div>';
+
+        var lq = await sb.from('layouts').select('id,slug,name,place,approval_no,is_published,status,hold_minutes').eq('status', 'active').order('name');
+        if (lq.error) { el.innerHTML = '<div class="head"><h2>Plot layouts</h2></div><div class="muted">' + esc(lq.error.message) + '</div>'; return; }
+        var layouts = lq.data || [];
+        if (!layouts.length) {
+          el.innerHTML = '<div class="head"><h2>Plot layouts</h2></div><div class="muted">No layouts yet. Seed one with a migration generated from its DTCP approval drawing.</div>';
+          return;
+        }
+        if (!layoutState.slug || !layouts.some(function (l) { return l.slug === layoutState.slug; })) layoutState.slug = layouts[0].slug;
+
+        var oq = await sb.rpc('layout_overview', { p_slug: layoutState.slug });
+        if (oq.error) { el.innerHTML = '<div class="head"><h2>Plot layouts</h2></div><div class="muted">' + esc(oq.error.message) + '</div>'; return; }
+        layoutState.data = oq.data;
+        var head = layouts.filter(function (l) { return l.slug === layoutState.slug; })[0];
+        var lay = (oq.data && oq.data.layout) || {};
+        var plots = (oq.data && oq.data.plots) || [];
+        var sum = (oq.data && oq.data.summary) || {};
+
+        var explain =
+          '<div class="panel" style="background:#f2f9f4;border-color:#bfe3cb"><h3>How this works</h3><div style="font-size:13px;line-height:1.7">' +
+          '• The plan is traced from the <b>approved DTCP drawing</b> — plot positions, roads, OSR and boundary are not editable here. Only price, status, media and documents are.<br />' +
+          '• <b>Availability is live.</b> Changing a status here repaints every buyer\'s map instantly, in the app and on the public plan.<br />' +
+          '• A plot only shows a price once you set one. <b>Publish</b> the layout when the pricing is ready — until then it is hidden from buyers.<br />' +
+          '• <b>Facing</b> and <b>corner</b> are read off the plan, not stated on the DTCP sheet — correct them here if the surveyor advises otherwise.</div></div>';
+
+        var stats = [['total', 'Total', '#1a1a1a'], ['available', 'Available', '#1e9e5a'], ['reserved', 'On hold', '#e6a10d'],
+                     ['booked', 'Booked', '#fd0001'], ['sold', 'Sold', '#4a4a4a'], ['blocked', 'Held back', '#74746e']];
+
+        el.innerHTML = '<div class="head"><h2>Plot layouts</h2></div>' + explain +
+          '<div class="panel"><div class="row" style="align-items:center">' +
+            '<select id="lay_pick" class="inp" style="max-width:320px">' +
+              layouts.map(function (l) { return '<option value="' + l.slug + '"' + (l.slug === layoutState.slug ? ' selected' : '') + '>' + esc(l.name) + (l.is_published ? '' : ' (draft)') + '</option>'; }).join('') +
+            '</select>' +
+            '<label style="display:flex;align-items:center;gap:6px;font-size:13px">' +
+              '<input type="checkbox" id="lay_pub"' + (head.is_published ? ' checked' : '') + ' /> Published (visible to buyers)</label>' +
+            '<a class="btn btn-o btn-sm" href="/layout.html" target="_blank" rel="noopener">Open public plan ↗</a>' +
+          '</div>' +
+          '<div class="muted" style="margin-top:6px">DTCP ' + esc(lay.approvalNo || '—') + ' · ' + esc(lay.place || '') + ' · hold window ' + (head.hold_minutes || 0) + ' min</div></div>' +
+
+          '<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:12px">' +
+            stats.map(function (s) {
+              return '<div class="panel" style="flex:1;min-width:120px;margin:0"><div style="font-size:22px;font-weight:700;color:' + s[2] + '">' +
+                (sum[s[0]] == null ? 0 : sum[s[0]]) + '</div><div class="muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px">' + s[1] + '</div></div>';
+            }).join('') +
+          '</div>' +
+
+          '<div class="panel"><h3>Plan</h3><div id="lay_plan">' + layoutPlanSvg(lay.geometry, plots, null) + '</div>' +
+            '<div class="muted" style="margin-top:6px">Click a plot on the plan to jump to its row.</div></div>' +
+
+          '<div class="panel"><h3>Price a whole block</h3><div class="row">' +
+            '<select id="lay_block" class="inp" style="max-width:150px"><option value="">— every plot —</option>' +
+              plots.map(function (p) { return p.block; }).filter(function (b, i, a) { return a.indexOf(b) === i; })
+                .map(function (b) { return '<option value="' + b + '">Block ' + esc(b) + '</option>'; }).join('') +
+            '</select>' +
+            '<input id="lay_bp" class="inp" type="number" placeholder="Price ₹" style="max-width:130px" />' +
+            '<input id="lay_bo" class="inp" type="number" placeholder="Offer ₹" style="max-width:130px" />' +
+            '<input id="lay_bb" class="inp" type="number" placeholder="Booking ₹" style="max-width:130px" />' +
+            '<input id="lay_br" class="inp" type="number" placeholder="Registration ₹" style="max-width:150px" />' +
+            '<input id="lay_bd" class="inp" type="number" placeholder="Development ₹" style="max-width:150px" />' +
+            '<button id="lay_bapply" class="btn btn-sm">Apply</button>' +
+          '</div><div class="muted" style="margin-top:6px">Blank fields are left unchanged.</div></div>' +
+
+          '<table><thead><tr><th>Plot</th><th>Block</th><th>Area</th><th>Facing</th><th>Corner</th><th>Status</th>' +
+            '<th>Price ₹</th><th>Offer ₹</th><th>Booking ₹</th><th>Reg. ₹</th><th>Dev. ₹</th><th>Total</th><th></th></tr></thead><tbody>' +
+          plots.map(function (p) {
+            return '<tr data-plot="' + p.id + '">' +
+              '<td><b>' + p.number + '</b></td>' +
+              '<td>' + esc(p.block) + '</td>' +
+              '<td class="muted">' + (p.areaSqm || '—') + ' m²<br /><span style="font-size:11px">' + (p.widthM || '?') + '×' + (p.depthM || '?') + ' m</span></td>' +
+              '<td><select class="inp lp_facing" style="height:34px;width:96px">' +
+                ['', 'north', 'south', 'east', 'west'].map(function (f) {
+                  return '<option value="' + f + '"' + (f === (p.facing || '') ? ' selected' : '') + '>' + (f ? f[0].toUpperCase() + f.slice(1) : '—') + '</option>';
+                }).join('') + '</select></td>' +
+              '<td style="text-align:center"><input type="checkbox" class="lp_corner"' + (p.isCorner ? ' checked' : '') + ' /></td>' +
+              '<td><select class="inp lp_status" style="height:34px;width:120px">' +
+                ['available', 'reserved', 'booked', 'sold', 'blocked'].map(function (s) {
+                  return '<option value="' + s + '"' + (s === p.status ? ' selected' : '') + '>' + s + '</option>';
+                }).join('') + '</select></td>' +
+              '<td><input class="inp lp_price" type="number" style="height:34px;width:110px" value="' + (p.price == null ? '' : p.price) + '" /></td>' +
+              '<td><input class="inp lp_offer" type="number" style="height:34px;width:110px" value="' + (p.offerPrice == null ? '' : p.offerPrice) + '" /></td>' +
+              '<td><input class="inp lp_book" type="number" style="height:34px;width:110px" value="' + (p.bookingAmount == null ? '' : p.bookingAmount) + '" /></td>' +
+              '<td><input class="inp lp_reg" type="number" style="height:34px;width:105px" value="' + (p.registrationCharges || 0) + '" /></td>' +
+              '<td><input class="inp lp_dev" type="number" style="height:34px;width:105px" value="' + (p.developmentCharges || 0) + '" /></td>' +
+              '<td class="muted">' + (p.totalCost ? '₹' + Number(p.totalCost).toLocaleString('en-IN') : '—') + '</td>' +
+              '<td><button class="btn btn-sm lp_save">Save</button></td></tr>';
+          }).join('') + '</tbody></table>';
+
+        $('lay_pick').onchange = function () { layoutState.slug = this.value; renderLayouts(); };
+
+        $('lay_pub').onchange = async function () {
+          var on = this.checked;
+          this.disabled = true;
+          var r = await sb.from('layouts').update({ is_published: on }).eq('id', head.id);
+          this.disabled = false;
+          if (r.error) { this.checked = !on; return alert(r.error.message); }
+          renderLayouts();
+        };
+
+        $('lay_bapply').onclick = async function () {
+          var patch = {};
+          function num(id, key) { var v = $(id).value.trim(); if (v !== '') patch[key] = Number(v); }
+          num('lay_bp', 'price'); num('lay_bo', 'offerPrice'); num('lay_bb', 'bookingAmount');
+          num('lay_br', 'registrationCharges'); num('lay_bd', 'developmentCharges');
+          if (!Object.keys(patch).length) return alert('Enter at least one amount.');
+          this.textContent = '…'; this.disabled = true;
+          var r = await sb.rpc('admin_price_layout_block', {
+            p_layout: head.id, p_block: $('lay_block').value || null, p_patch: patch
+          });
+          this.disabled = false; this.textContent = 'Apply';
+          if (r.error) return alert(r.error.message);
+          alert('Updated ' + r.data + ' plot(s).');
+          renderLayouts();
+        };
+
+        // clicking the plan highlights the matching row
+        el.querySelectorAll('.lay_plot').forEach(function (g) {
+          g.onclick = function () {
+            var row = el.querySelector('tr[data-plot="' + g.dataset.id + '"]');
+            if (!row) return;
+            $('lay_plan').innerHTML = layoutPlanSvg(lay.geometry, plots, g.dataset.id);
+            renderLayoutsPlanHandlers(el, lay, plots);
+            row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            row.style.background = '#fff8e1';
+            setTimeout(function () { row.style.background = ''; }, 1600);
+          };
+        });
+
+        el.querySelectorAll('tr[data-plot]').forEach(function (tr) {
+          var id = tr.dataset.plot;
+          var before = plots.filter(function (p) { return p.id === id; })[0];
+          tr.querySelector('.lp_save').onclick = async function () {
+            var btn = this; btn.textContent = '…'; btn.disabled = true;
+            function val(sel) { var v = tr.querySelector(sel).value.trim(); return v === '' ? null : Number(v); }
+            var patch = {
+              price: val('.lp_price'),
+              offerPrice: tr.querySelector('.lp_offer').value.trim(),
+              bookingAmount: val('.lp_book'),
+              registrationCharges: val('.lp_reg'),
+              developmentCharges: val('.lp_dev'),
+              facing: tr.querySelector('.lp_facing').value,
+              isCorner: tr.querySelector('.lp_corner').checked
+            };
+            // the RPC leaves a key alone when it is null, so drop the empties
+            Object.keys(patch).forEach(function (k) {
+              if (patch[k] === null && k !== 'offerPrice') delete patch[k];
+            });
+            var r1 = await sb.rpc('admin_update_layout_plot', { p_plot: id, p_patch: patch });
+            if (r1.error) { btn.disabled = false; btn.textContent = 'Save'; return alert(r1.error.message); }
+
+            var status = tr.querySelector('.lp_status').value;
+            if (status !== before.status) {
+              var r2 = await sb.rpc('admin_set_layout_plot_status', { p_plot: id, p_status: status, p_note: null });
+              if (r2.error) { btn.disabled = false; btn.textContent = 'Save'; return alert(r2.error.message); }
+            }
+            btn.textContent = 'Saved'; setTimeout(function () { renderLayouts(); }, 400);
+          };
+        });
+      }
+
+      /** Re-bind plan clicks after the plan is redrawn for a new selection. */
+      function renderLayoutsPlanHandlers(el, lay, plots) {
+        el.querySelectorAll('.lay_plot').forEach(function (g) {
+          g.onclick = function () {
+            var row = el.querySelector('tr[data-plot="' + g.dataset.id + '"]');
+            if (!row) return;
+            $('lay_plan').innerHTML = layoutPlanSvg(lay.geometry, plots, g.dataset.id);
+            renderLayoutsPlanHandlers(el, lay, plots);
+            row.scrollIntoView({ block: 'center', behavior: 'smooth' });
           };
         });
       }

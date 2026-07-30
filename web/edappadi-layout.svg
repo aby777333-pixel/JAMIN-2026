@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="30 100 300 540" width="600" height="1080" role="img" aria-label="Edappadi — Poolavari Layout — sanctioned layout plan">
+<title>Edappadi — Poolavari Layout</title>
+<desc>Layout Plan — Residential Subdivision · Edappadi Town Panchayat · Salem District · Tamil Nadu · DTCP application LP/EDP/2026/0148. Geometry traced from the approved drawing; sizes and areas quoted from the sanctioned plot schedule.</desc>
+<defs><style>.pn{font:600 5.2px Inter,Helvetica,Arial,sans-serif;fill:#1e9e5a;text-anchor:middle}.rl{font:500 4px Inter,Helvetica,Arial,sans-serif;fill:#74746e;text-anchor:middle}.ol{font:600 6px Inter,Helvetica,Arial,sans-serif;fill:#5b8c3a;text-anchor:middle}.os{font:500 4px Inter,Helvetica,Arial,sans-serif;fill:#5b8c3a;text-anchor:middle}.dl{font:600 4.2px Inter,Helvetica,Arial,sans-serif;fill:#74746e;text-anchor:middle}</style>
+</defs>
+<polygon points="150.21,133.03 284.25,139.73 293.19,267.07 296.54,355.32 206.06,359.78 181.48,569.79 83.19,577.6" fill="#ececE8"/>
+<polygon points="206.06,296.11 294.29,296.11 296.54,355.32 206.06,359.78" fill="#eef5ea" stroke="#5b8c3a" stroke-width="0.5" stroke-dasharray="2.5 1.8"/>
+<polygon points="44.09,588.77 49.67,615.58 212.76,598.83 207.18,572.02" fill="#f4efdc" stroke="#7a6b32" stroke-width="0.6"/>
+<polygon points="150.21,133.03 284.25,139.73 293.19,267.07 296.54,355.32 206.06,359.78 181.48,569.79 83.19,577.6" fill="none" stroke="#d0402f" stroke-width="1.9" stroke-linejoin="round"/>
+<g id="plots">
+<g id="plot-1" data-plot="1" data-block="A" data-area-sqm="223.26" data-size="12.2x18.3" data-facing="south">
+<title>Plot 1 · Block A · 223.26 Sq.m</title>
+<rect x="151.32" y="143.08" width="28.49" height="39.1" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="165.56" y="164.23">1</text>
+</g>
+<g id="plot-2" data-plot="2" data-block="A" data-area-sqm="223.26" data-size="12.2x18.3" data-facing="south">
+<title>Plot 2 · Block A · 223.26 Sq.m</title>
+<rect x="179.81" y="143.08" width="28.48" height="39.1" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="194.05" y="164.23">2</text>
+</g>
+<g id="plot-3" data-plot="3" data-block="A" data-area-sqm="223.26" data-size="12.2x18.3" data-facing="south">
+<title>Plot 3 · Block A · 223.26 Sq.m</title>
+<rect x="208.29" y="143.08" width="28.49" height="39.1" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="222.53" y="164.23">3</text>
+</g>
+<g id="plot-4" data-plot="4" data-block="A" data-area-sqm="223.26" data-size="12.2x18.3" data-facing="south">
+<title>Plot 4 · Block A · 223.26 Sq.m</title>
+<rect x="236.78" y="143.08" width="28.48" height="39.1" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="251.02" y="164.23">4</text>
+</g>
+<g id="plot-5" data-plot="5" data-block="A" data-area-sqm="223.26" data-size="12.2x18.3" data-facing="south">
+<title>Plot 5 · Block A · 223.26 Sq.m</title>
+<rect x="265.26" y="143.08" width="28.48" height="39.1" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="279.5" y="164.23">5</text>
+</g>
+<g id="plot-6" data-plot="6" data-block="B" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="north">
+<title>Plot 6 · Block B · 217.16 Sq.m</title>
+<rect x="141.83" y="201.17" width="30.16" height="39.09" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="156.91" y="222.31">6</text>
+</g>
+<g id="plot-7" data-plot="7" data-block="B" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="north">
+<title>Plot 7 · Block B · 217.16 Sq.m</title>
+<rect x="171.99" y="201.17" width="30.16" height="39.09" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="187.07" y="222.31">7</text>
+</g>
+<g id="plot-8" data-plot="8" data-block="B" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="north">
+<title>Plot 8 · Block B · 217.16 Sq.m</title>
+<rect x="202.15" y="201.17" width="30.16" height="39.09" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="217.23" y="222.31">8</text>
+</g>
+<g id="plot-9" data-plot="9" data-block="B" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="north">
+<title>Plot 9 · Block B · 217.16 Sq.m</title>
+<rect x="232.31" y="201.17" width="30.16" height="39.09" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="247.39" y="222.31">9</text>
+</g>
+<g id="plot-10" data-plot="10" data-block="B" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="north">
+<title>Plot 10 · Block B · 217.16 Sq.m</title>
+<rect x="262.47" y="201.17" width="31.27" height="39.09" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="278.11" y="222.31">10</text>
+</g>
+<g id="plot-11" data-plot="11" data-block="C" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="south">
+<title>Plot 11 · Block C · 217.16 Sq.m</title>
+<rect x="136.24" y="240.26" width="30.72" height="39.1" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="151.6" y="261.41">11</text>
+</g>
+<g id="plot-12" data-plot="12" data-block="C" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="south">
+<title>Plot 12 · Block C · 217.16 Sq.m</title>
+<rect x="166.96" y="240.26" width="30.72" height="39.1" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="182.32" y="261.41">12</text>
+</g>
+<g id="plot-13" data-plot="13" data-block="C" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="south">
+<title>Plot 13 · Block C · 217.16 Sq.m</title>
+<rect x="197.68" y="240.26" width="30.72" height="39.1" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="213.04" y="261.41">13</text>
+</g>
+<g id="plot-14" data-plot="14" data-block="C" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="south">
+<title>Plot 14 · Block C · 217.16 Sq.m</title>
+<rect x="228.4" y="240.26" width="30.72" height="39.1" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="243.76" y="261.41">14</text>
+</g>
+<g id="plot-15" data-plot="15" data-block="C" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="south">
+<title>Plot 15 · Block C · 217.16 Sq.m</title>
+<rect x="259.12" y="240.26" width="34.62" height="39.1" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="276.43" y="261.41">15</text>
+</g>
+<g id="plot-16" data-plot="16" data-block="D" data-area-sqm="235.46" data-size="12.2x19.3" data-facing="north">
+<title>Plot 16 · Block D · 235.46 Sq.m</title>
+<rect x="127.87" y="297.23" width="30.71" height="42.45" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="143.22" y="320.06">16</text>
+</g>
+<g id="plot-17" data-plot="17" data-block="D" data-area-sqm="235.46" data-size="12.2x19.3" data-facing="north">
+<title>Plot 17 · Block D · 235.46 Sq.m</title>
+<rect x="158.59" y="297.23" width="30.71" height="42.45" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="173.94" y="320.06">17</text>
+</g>
+<g id="plot-18" data-plot="18" data-block="E" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="west">
+<title>Plot 18 · Block E · 204.35 Sq.m</title>
+<rect x="112.23" y="362.02" width="31.28" height="36.86" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="127.87" y="382.05">18</text>
+</g>
+<g id="plot-19" data-plot="19" data-block="E" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="east">
+<title>Plot 19 · Block E · 204.35 Sq.m</title>
+<rect x="143.51" y="362.02" width="31.27" height="36.86" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="159.14" y="382.05">19</text>
+</g>
+<g id="plot-20" data-plot="20" data-block="F" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="west">
+<title>Plot 20 · Block F · 204.35 Sq.m</title>
+<rect x="106.64" y="398.88" width="31.28" height="36.86" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="122.28" y="418.91">20</text>
+</g>
+<g id="plot-21" data-plot="21" data-block="F" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="east">
+<title>Plot 21 · Block F · 204.35 Sq.m</title>
+<rect x="137.92" y="398.88" width="31.28" height="36.86" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="153.56" y="418.91">21</text>
+</g>
+<g id="plot-22" data-plot="22" data-block="G" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="west">
+<title>Plot 22 · Block G · 204.35 Sq.m</title>
+<rect x="101.06" y="435.74" width="31.28" height="36.86" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="116.7" y="455.77000000000004">22</text>
+</g>
+<g id="plot-23" data-plot="23" data-block="G" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="east">
+<title>Plot 23 · Block G · 204.35 Sq.m</title>
+<rect x="132.34" y="435.74" width="31.27" height="36.86" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="147.97" y="455.77000000000004">23</text>
+</g>
+<g id="plot-24" data-plot="24" data-block="H" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="west">
+<title>Plot 24 · Block H · 204.35 Sq.m</title>
+<rect x="95.47" y="472.6" width="31.28" height="36.86" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="111.11" y="492.63">24</text>
+</g>
+<g id="plot-25" data-plot="25" data-block="H" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="east">
+<title>Plot 25 · Block H · 204.35 Sq.m</title>
+<rect x="126.75" y="472.6" width="31.28" height="36.86" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="142.39" y="492.63">25</text>
+</g>
+<g id="plot-26" data-plot="26" data-block="J" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="west">
+<title>Plot 26 · Block J · 204.35 Sq.m</title>
+<rect x="89.89" y="509.46" width="31.28" height="36.87" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="105.53" y="529.49">26</text>
+</g>
+<g id="plot-27" data-plot="27" data-block="J" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="east">
+<title>Plot 27 · Block J · 204.35 Sq.m</title>
+<rect x="121.17" y="509.46" width="31.27" height="36.87" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="136.81" y="529.49">27</text>
+</g>
+</g>
+<g id="labels">
+<text class="rl" x="217.79" y="192.88">9.00 m ROAD</text>
+<text class="rl" x="210.81" y="289.5">9.00 m ROAD</text>
+<text class="rl" x="179.25" y="465.97999999999996" transform="rotate(-84 179.25 464.78)">12.00 m ROAD</text>
+<text class="ol" x="251.3" y="330">O.S.R.</text>
+<text class="os" x="251.3" y="337">1,342.00 Sq.m</text>
+<text class="rl" x="128.43" y="607.8" transform="rotate(-6 128.43 607.8)">EXISTING ROAD — 12.00 m WIDE</text>
+</g>
+<g id="dimensions">
+<line x1="150.21" y1="121.86" x2="284.25" y2="128.56" stroke="#74746e" stroke-width="0.45" opacity="0.55"/>
+<text class="dl" x="217.23" y="122.71" transform="rotate(2.86 217.23 125.21)">72.40 m</text>
+<line x1="307.71" y1="144.2" x2="307.71" y2="356.43" stroke="#74746e" stroke-width="0.45" opacity="0.55"/>
+<text class="dl" x="307.71" y="247.81" transform="rotate(90.00 307.71 250.31)">118.60 m</text>
+<line x1="69.78" y1="138.61" x2="60.85" y2="574.25" stroke="#74746e" stroke-width="0.45" opacity="0.55"/>
+<text class="dl" x="65.31" y="353.93" transform="rotate(271.17 65.31 356.43)">246.15 m</text>
+</g>
+</svg>
