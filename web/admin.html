@@ -2996,15 +2996,22 @@
           svg += '<polygon points="' + pts(geo.existingRoad.quad) + '" fill="#f4efdc" stroke="#7a6b32" stroke-width="0.6" />';
         }
         svg += '<polygon points="' + pts(geo.boundary) + '" fill="none" stroke="#d0402f" stroke-width="1.9" stroke-linejoin="round" />';
+        var shapes = geo.plotShapes || {};
         (plots || []).forEach(function (p) {
           var r = p.rect, w = r[2] - r[0], h = r[3] - r[1];
           var sel = p.id === selectedId;
+          var shape = shapes[String(p.number)];
+          var fill = sel ? '#2f6bff' : (PLOT_FILL[p.status] || '#fff');
+          var stroke = sel ? '#1b4fd8' : (PLOT_STROKE[p.status] || '#1e9e5a');
+          var sw = sel ? 2.2 : 0.9;
+          // the sheet clips plots that run past the site edge to the boundary
+          var body = (shape && shape.clipped)
+            ? '<polygon points="' + pts(shape.poly) + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + sw + '" />'
+            : '<rect x="' + r[0] + '" y="' + r[1] + '" width="' + w + '" height="' + h + '" rx="1.8" fill="' + fill + '" stroke="' + stroke + '" stroke-width="' + sw + '" />';
+          var at = shape ? shape.at : [r[0] + w / 2, r[1] + h / 2];
           svg += '<g class="lay_plot" data-id="' + p.id + '" style="cursor:pointer">' +
-            '<title>Plot ' + p.number + ' — ' + p.status + '</title>' +
-            '<rect x="' + r[0] + '" y="' + r[1] + '" width="' + w + '" height="' + h + '" rx="1.8" fill="' +
-              (sel ? '#2f6bff' : (PLOT_FILL[p.status] || '#fff')) + '" stroke="' +
-              (sel ? '#1b4fd8' : (PLOT_STROKE[p.status] || '#1e9e5a')) + '" stroke-width="' + (sel ? 2.2 : 0.9) + '" />' +
-            '<text x="' + (r[0] + w / 2) + '" y="' + (r[1] + h / 2 + 1.6) + '" font-size="5.2" font-weight="600" text-anchor="middle" fill="' +
+            '<title>Plot ' + p.number + ' — ' + p.status + '</title>' + body +
+            '<text x="' + at[0] + '" y="' + (at[1] + 1.6) + '" font-size="5.2" font-weight="600" text-anchor="middle" fill="' +
               (sel ? '#fff' : (PLOT_TEXT[p.status] || '#1e9e5a')) + '">' + p.number + '</text></g>';
         });
         return svg + '</svg>';

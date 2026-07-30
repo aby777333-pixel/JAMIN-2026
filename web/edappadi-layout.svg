@@ -23,8 +23,8 @@
 <g id="plot-3" data-plot="3" data-block="A" data-area-sqm="223.26" data-size="12.2x18.3" data-facing="south">
 <title>Plot 3 · Block A · 223.26 Sq.m</title>
 <rect x="208.29" y="143.08" width="28.49" height="39.1" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="222.53" y="161.82999999999998">3</text>
-<text class="pa" x="222.53" y="168.63">223 m²</text>
+<text class="pn" x="222.54" y="161.82999999999998">3</text>
+<text class="pa" x="222.54" y="168.63">223 m²</text>
 </g>
 <g id="plot-4" data-plot="4" data-block="A" data-area-sqm="223.26" data-size="12.2x18.3" data-facing="south">
 <title>Plot 4 · Block A · 223.26 Sq.m</title>
@@ -34,15 +34,15 @@
 </g>
 <g id="plot-5" data-plot="5" data-block="A" data-area-sqm="223.26" data-size="12.2x18.3" data-facing="south">
 <title>Plot 5 · Block A · 223.26 Sq.m</title>
-<rect x="265.26" y="143.08" width="28.48" height="39.1" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="279.5" y="161.82999999999998">5</text>
-<text class="pa" x="279.5" y="168.63">223 m²</text>
+<polygon points="265.26,182.18 265.26,143.08 284.49,143.08 287.23,182.18" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="275.58" y="162.26">5</text>
+<text class="pa" x="275.58" y="169.06">223 m²</text>
 </g>
 <g id="plot-6" data-plot="6" data-block="B" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="north">
 <title>Plot 6 · Block B · 217.16 Sq.m</title>
 <rect x="141.83" y="201.17" width="30.16" height="39.09" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="156.91" y="219.91">6</text>
-<text class="pa" x="156.91" y="226.71">217 m²</text>
+<text class="pn" x="156.91" y="219.92">6</text>
+<text class="pa" x="156.91" y="226.72">217 m²</text>
 </g>
 <g id="plot-7" data-plot="7" data-block="B" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="north">
 <title>Plot 7 · Block B · 217.16 Sq.m</title>
@@ -53,8 +53,8 @@
 <g id="plot-8" data-plot="8" data-block="B" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="north">
 <title>Plot 8 · Block B · 217.16 Sq.m</title>
 <rect x="202.15" y="201.17" width="30.16" height="39.09" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="217.23" y="219.91">8</text>
-<text class="pa" x="217.23" y="226.71">217 m²</text>
+<text class="pn" x="217.23" y="219.92">8</text>
+<text class="pa" x="217.23" y="226.72">217 m²</text>
 </g>
 <g id="plot-9" data-plot="9" data-block="B" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="north">
 <title>Plot 9 · Block B · 217.16 Sq.m</title>
@@ -64,9 +64,9 @@
 </g>
 <g id="plot-10" data-plot="10" data-block="B" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="north">
 <title>Plot 10 · Block B · 217.16 Sq.m</title>
-<rect x="262.47" y="201.17" width="31.27" height="39.09" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="278.11" y="219.91">10</text>
-<text class="pa" x="278.11" y="226.71">217 m²</text>
+<polygon points="262.47,240.26 262.47,201.17 288.56,201.17 291.31,240.26" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="276.21" y="220.23999999999998">10</text>
+<text class="pa" x="276.21" y="227.04">217 m²</text>
 </g>
 <g id="plot-11" data-plot="11" data-block="C" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="south">
 <title>Plot 11 · Block C · 217.16 Sq.m</title>
@@ -94,27 +94,27 @@
 </g>
 <g id="plot-15" data-plot="15" data-block="C" data-area-sqm="217.16" data-size="12.2x17.8" data-facing="south">
 <title>Plot 15 · Block C · 217.16 Sq.m</title>
-<rect x="259.12" y="240.26" width="34.62" height="39.1" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="276.43" y="259.01">15</text>
-<text class="pa" x="276.43" y="265.81">217 m²</text>
+<polygon points="259.12,279.36 259.12,240.26 291.31,240.26 293.19,267.07 293.66,279.36" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="275.88" y="259.25">15</text>
+<text class="pa" x="275.88" y="266.05">217 m²</text>
 </g>
 <g id="plot-16" data-plot="16" data-block="D" data-area-sqm="235.46" data-size="12.2x19.3" data-facing="north">
 <title>Plot 16 · Block D · 235.46 Sq.m</title>
 <rect x="127.87" y="297.23" width="30.71" height="42.45" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="143.22" y="317.65999999999997">16</text>
-<text class="pa" x="143.22" y="324.46">235 m²</text>
+<text class="pn" x="143.23" y="317.65999999999997">16</text>
+<text class="pa" x="143.23" y="324.46">235 m²</text>
 </g>
 <g id="plot-17" data-plot="17" data-block="D" data-area-sqm="235.46" data-size="12.2x19.3" data-facing="north">
 <title>Plot 17 · Block D · 235.46 Sq.m</title>
 <rect x="158.59" y="297.23" width="30.71" height="42.45" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="173.94" y="317.65999999999997">17</text>
-<text class="pa" x="173.94" y="324.46">235 m²</text>
+<text class="pn" x="173.95" y="317.65999999999997">17</text>
+<text class="pa" x="173.95" y="324.46">235 m²</text>
 </g>
 <g id="plot-18" data-plot="18" data-block="E" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="west">
 <title>Plot 18 · Block E · 204.35 Sq.m</title>
-<rect x="112.23" y="362.02" width="31.28" height="36.86" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="127.87" y="379.65">18</text>
-<text class="pa" x="127.87" y="386.45">204 m²</text>
+<polygon points="143.51,362.02 143.51,398.88 112.23,398.88 112.23,384.96 115.69,362.02" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="128.39" y="380.03">18</text>
+<text class="pa" x="128.39" y="386.83">204 m²</text>
 </g>
 <g id="plot-19" data-plot="19" data-block="E" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="east">
 <title>Plot 19 · Block E · 204.35 Sq.m</title>
@@ -124,9 +124,9 @@
 </g>
 <g id="plot-20" data-plot="20" data-block="F" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="west">
 <title>Plot 20 · Block F · 204.35 Sq.m</title>
-<rect x="106.64" y="398.88" width="31.28" height="36.86" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="122.28" y="416.51">20</text>
-<text class="pa" x="122.28" y="423.31">204 m²</text>
+<polygon points="137.92,398.88 137.92,435.74 106.64,435.74 106.64,422.08 110.14,398.88" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="122.81" y="416.9">20</text>
+<text class="pa" x="122.81" y="423.7">204 m²</text>
 </g>
 <g id="plot-21" data-plot="21" data-block="F" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="east">
 <title>Plot 21 · Block F · 204.35 Sq.m</title>
@@ -136,9 +136,9 @@
 </g>
 <g id="plot-22" data-plot="22" data-block="G" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="west">
 <title>Plot 22 · Block G · 204.35 Sq.m</title>
-<rect x="101.06" y="435.74" width="31.28" height="36.86" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="116.7" y="453.37">22</text>
-<text class="pa" x="116.7" y="460.17">204 m²</text>
+<polygon points="132.34,435.74 132.34,472.6 101.06,472.6 101.06,459.08 104.58,435.74" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="117.23" y="453.76">22</text>
+<text class="pa" x="117.23" y="460.56">204 m²</text>
 </g>
 <g id="plot-23" data-plot="23" data-block="G" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="east">
 <title>Plot 23 · Block G · 204.35 Sq.m</title>
@@ -148,9 +148,9 @@
 </g>
 <g id="plot-24" data-plot="24" data-block="H" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="west">
 <title>Plot 24 · Block H · 204.35 Sq.m</title>
-<rect x="95.47" y="472.6" width="31.28" height="36.86" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="111.11" y="490.22999999999996">24</text>
-<text class="pa" x="111.11" y="497.03">204 m²</text>
+<polygon points="126.75,472.6 126.75,509.46 95.47,509.46 95.47,496.13 99.02,472.6" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="111.65" y="490.63">24</text>
+<text class="pa" x="111.65" y="497.43">204 m²</text>
 </g>
 <g id="plot-25" data-plot="25" data-block="H" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="east">
 <title>Plot 25 · Block H · 204.35 Sq.m</title>
@@ -160,15 +160,15 @@
 </g>
 <g id="plot-26" data-plot="26" data-block="J" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="west">
 <title>Plot 26 · Block J · 204.35 Sq.m</title>
-<rect x="89.89" y="509.46" width="31.28" height="36.87" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="105.53" y="527.09">26</text>
-<text class="pa" x="105.53" y="533.89">204 m²</text>
+<polygon points="121.17,509.46 121.17,546.33 89.89,546.33 89.89,533.13 93.46,509.46" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
+<text class="pn" x="106.08" y="527.5">26</text>
+<text class="pa" x="106.08" y="534.3">204 m²</text>
 </g>
 <g id="plot-27" data-plot="27" data-block="J" data-area-sqm="204.35" data-size="12.2x16.75" data-facing="east">
 <title>Plot 27 · Block J · 204.35 Sq.m</title>
 <rect x="121.17" y="509.46" width="31.27" height="36.87" rx="1.8" fill="#ffffff" stroke="#1e9e5a" stroke-width="0.9"/>
-<text class="pn" x="136.81" y="527.09">27</text>
-<text class="pa" x="136.81" y="533.89">204 m²</text>
+<text class="pn" x="136.8" y="527.09">27</text>
+<text class="pa" x="136.8" y="533.89">204 m²</text>
 </g>
 </g>
 <g id="labels">

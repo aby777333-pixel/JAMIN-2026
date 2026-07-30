@@ -92,8 +92,18 @@
         role: 'button',
         'aria-label': plotAria(p),
       }, gp);
-      make('rect', { x: r[0], y: r[1], width: w, height: h, rx: 1.8, class: 'plot-shape' }, g);
-      var cx = r[0] + w / 2, cy = r[1] + h / 2;
+      // The approval sheet clips its plot rectangles to the site boundary —
+      // eight plots run past the edge and the drawing shows the boundary line
+      // as their edge. Draw the clipped ring for those; the rest keep the
+      // rounded rectangle.
+      var shape = (G.plotShapes || {})[String(p.number)];
+      if (shape && shape.clipped) {
+        make('polygon', { points: ptsOf(shape.poly), class: 'plot-shape' }, g);
+      } else {
+        make('rect', { x: r[0], y: r[1], width: w, height: h, rx: 1.8, class: 'plot-shape' }, g);
+      }
+      var at = shape ? shape.at : [r[0] + w / 2, r[1] + h / 2];
+      var cx = at[0], cy = at[1];
       // Plot number reads first; the sanctioned area sits under it the way a
       // surveyed sheet annotates each plot.
       make('text', { x: cx, y: cy - 0.8, class: 'plot-no', 'text-anchor': 'middle' }, g)
@@ -108,12 +118,12 @@
         'Plot ' + p.number + ' · Block ' + p.block +
         (p.areaSqm ? ' · ' + p.areaSqm + ' Sq.m' : '') +
         (p.widthM && p.depthM ? ' · ' + p.widthM + ' × ' + p.depthM + ' m' : '');
-      // state marks: a lock for booked, a clock for reserved, a word for sold
-      if (p.status === 'booked') badge(g, cx, r[3] - 3.2, 'BOOKED');
-      if (p.status === 'sold') badge(g, cx, r[3] - 3.2, 'SOLD');
-      if (p.status === 'reserved') badge(g, cx, r[3] - 3.2, 'HELD');
-      if (p.status === 'booked' || p.status === 'sold') lockIcon(g, cx, r[1] + 5.5);
-      if (p.status === 'reserved') clockIcon(g, cx, r[1] + 5.5);
+      // state marks, placed off the label anchor so they stay inside a clipped plot
+      if (p.status === 'booked') badge(g, cx, cy + 11, 'BOOKED');
+      if (p.status === 'sold') badge(g, cx, cy + 11, 'SOLD');
+      if (p.status === 'reserved') badge(g, cx, cy + 11, 'HELD');
+      if (p.status === 'booked' || p.status === 'sold') lockIcon(g, cx, cy - 9.5);
+      if (p.status === 'reserved') clockIcon(g, cx, cy - 9.5);
       g.addEventListener('click', function () { select(p.number); });
       g.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(p.number); }

@@ -90,6 +90,7 @@ def render(g: dict) -> str:
     add(f'<polygon points="{boundary}" fill="none" stroke="{PALETTE["site"]}" '
         f'stroke-width="1.9" stroke-linejoin="round"/>')
 
+    shapes = g.get("plotShapes", {})
     add('<g id="plots">')
     for p in g["plots"]:
         x0, y0, x1, y1 = p["rect"]
@@ -99,8 +100,18 @@ def render(g: dict) -> str:
             f'data-area-sqm="{p["areaSqm"]}" data-size="{p["widthM"]}x{p["depthM"]}" '
             f'data-facing="{p["facing"]}">')
         add(f'<title>Plot {p["number"]} · Block {p["block"]} · {p["areaSqm"]} Sq.m</title>')
-        add(f'<rect x="{x0}" y="{y0}" width="{w}" height="{h}" rx="1.8" '
-            f'fill="{PALETTE["plot"]}" stroke="{PALETTE["plotLine"]}" stroke-width="0.9"/>')
+        # The approval sheet clips its plot rectangles to the site boundary;
+        # eight plots run past the edge and take the boundary as their edge.
+        shape = shapes.get(str(p["number"]))
+        if shape and shape.get("clipped"):
+            ring = " ".join(f"{x},{y}" for x, y in shape["poly"])
+            add(f'<polygon points="{ring}" '
+                f'fill="{PALETTE["plot"]}" stroke="{PALETTE["plotLine"]}" stroke-width="0.9"/>')
+        else:
+            add(f'<rect x="{x0}" y="{y0}" width="{w}" height="{h}" rx="1.8" '
+                f'fill="{PALETTE["plot"]}" stroke="{PALETTE["plotLine"]}" stroke-width="0.9"/>')
+        if shape:
+            cx, cy = shape["at"]
         add(f'<text class="pn" x="{cx}" y="{cy - 0.8}">{p["number"]}</text>')
         # rounded so the annotation always fits inside the plot box; the exact
         # schedule figure stays in data-area-sqm and in the detail sheet

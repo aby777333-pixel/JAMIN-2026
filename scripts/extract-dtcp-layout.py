@@ -305,6 +305,63 @@ def main() -> None:
     print(f"wrote {OUT_WEB.relative_to(REPO)}", file=sys.stderr)
 
 
+def polygon_centroid(ring):
+    """Area-weighted centroid. Degrades to the mean for a degenerate ring."""
+    a = cx = cy = 0.0
+    n = len(ring)
+    for i in range(n):
+        x0, y0 = ring[i]
+        x1, y1 = ring[(i + 1) % n]
+        cross = x0 * y1 - x1 * y0
+        a += cross
+        cx += (x0 + x1) * cross
+        cy += (y0 + y1) * cross
+    if abs(a) < 1e-9:
+        return [r2(sum(p[0] for p in ring) / n), r2(sum(p[1] for p in ring) / n)]
+    return [r2(cx / (3 * a)), r2(cy / (3 * a))]
+
+
+def plot_shapes(boundary, plots) -> dict:
+    """
+    The outline actually drawn for each plot, clipped to the site boundary.
+
+    The approval sheet clips its plot rectangles to the boundary: where a plot
+    runs past the site edge, the drawing shows the red boundary line as that
+    plot's edge, not the rectangle's. Eight of the 27 plots do this, by up to
+    5 m. Reproducing the raw rectangles instead makes plots visibly spill
+    outside the site, so the clipped ring is what every renderer must draw.
+
+    The rectangle itself is still carried on each plot as the sanctioned
+    set-out. Nothing here changes a quoted size or area — this is display only.
+    """
+    out = {}
+    for p in plots:
+        x0, y0, x1, y1 = p["rect"]
+        rect = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]
+        # boundary is concave, the rectangle is convex, so the rectangle has to
+        # be the clip and the boundary the subject (intersection is symmetric)
+        ring = clip_polygon(boundary, rect)
+        clipped = len(ring) != 4 or any(
+            not (x0 - 0.01 <= x <= x1 + 0.01 and y0 - 0.01 <= y <= y1 + 0.01) for x, y in ring
+        ) or abs(_area(ring) - (x1 - x0) * (y1 - y0)) > 0.5
+        out[str(p["number"])] = {
+            "poly": ring if ring else rect,
+            "at": polygon_centroid(ring if ring else rect),
+            "clipped": bool(clipped and ring),
+        }
+    return out
+
+
+def _area(ring) -> float:
+    a = 0.0
+    n = len(ring)
+    for i in range(n):
+        x0, y0 = ring[i]
+        x1, y1 = ring[(i + 1) % n]
+        a += x0 * y1 - x1 * y0
+    return abs(a) / 2
+
+
 def layout_payload(boundary, osr, existing_road, plots) -> dict:
     """Shared shape consumed by the web viewer and the seed migration."""
     return {
@@ -327,6 +384,7 @@ def layout_payload(boundary, osr, existing_road, plots) -> dict:
         "roads": ROADS,
         "dimensions": DIMENSIONS,
         "metresPerUnit": metres_per_unit(boundary),
+        "plotShapes": plot_shapes(boundary, plots),
         "areaStatement": [{"label": l, "areaSqm": a, "percent": p} for l, a, p in AREA_STATEMENT],
         "totalPlots": len(plots),
         "notes": NOTES,
@@ -368,6 +426,7 @@ def render_ts(boundary, osr, existing_road, plots) -> str:
     )
     area_lines = "\n".join(f"    {{ label: '{l}', areaSqm: {a}, percent: {p} }}," for l, a, p in AREA_STATEMENT)
     note_lines = "\n".join(f"    '{n}'," for n in NOTES)
+    shape_lit = json.dumps(plot_shapes(boundary, plots), separators=(", ", ": "))
     road_lines = "\n".join(
         "    {{ label: '{}', widthM: {}, band: [{}]{} }},".format(
             r["label"], r["widthM"], ", ".join(str(v) for v in r["band"]),
@@ -456,6 +515,11 @@ export interface LayoutGeometry {{
   areaStatement: Array<{{ label: string; areaSqm: number; percent: number }}>;
   /** Metres represented by one drawing unit — drives the scale bar. */
   metresPerUnit: number;
+  /**
+   * Outline actually drawn per plot number, clipped to the site boundary
+   * exactly as the approval sheet clips it. Draw this, not `rect`.
+   */
+  plotShapes: Record<string, {{ poly: Array<[number, number]>; at: [number, number]; clipped: boolean }}>;
   totalPlots: number;
   notes: string[];
   plots: LayoutPlotGeometry[];
@@ -488,6 +552,7 @@ export const EDAPPADI_LAYOUT: LayoutGeometry = {{
 {area_lines}
   ],
   metresPerUnit: {metres_per_unit(boundary)},
+  plotShapes: {shape_lit},
   totalPlots: {len(plots)},
   notes: [
 {note_lines}

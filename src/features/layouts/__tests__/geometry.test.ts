@@ -78,12 +78,29 @@ describe('Edappadi DTCP layout', () => {
     expect(first).not.toEqual(last); // stored as an open ring
   });
 
-  it('places every plot inside the site boundary', () => {
+  it('draws every plot inside the site boundary', () => {
+    // The sheet clips plots that run past the site edge, so the drawn outline —
+    // not the sanctioned rectangle — is what must sit inside the boundary.
+    // Checking the centre alone is not enough: 8 plots overhang by up to 5 m.
     for (const p of L.plots) {
-      const [x0, y0, x1, y1] = p.rect;
-      const cx = (x0 + x1) / 2;
-      const cy = (y0 + y1) / 2;
-      expect(pointInPolygon(cx, cy, L.boundary)).toBe(true);
+      const shape = L.plotShapes[String(p.number)];
+      expect(shape).toBeDefined();
+      expect(pointInPolygon(shape.at[0], shape.at[1], L.boundary)).toBe(true);
+      for (const [x, y] of shape.poly) {
+        expect(pointInPolygon(x, y, L.boundary, true)).toBe(true);
+      }
+    }
+  });
+
+  it('clips exactly the plots that overhang, and leaves the rest alone', () => {
+    const clipped = L.plots
+      .filter((p) => L.plotShapes[String(p.number)].clipped)
+      .map((p) => p.number);
+    expect(clipped).toEqual([5, 10, 15, 18, 20, 22, 24, 26]);
+    // untouched plots keep their four-cornered rectangle
+    for (const p of L.plots) {
+      const shape = L.plotShapes[String(p.number)];
+      if (!shape.clipped) expect(shape.poly).toHaveLength(4);
     }
   });
 
@@ -160,14 +177,20 @@ function pointInPolygon(
   onEdge = false,
 ): boolean {
   if (onEdge) {
+    // Perpendicular distance to each segment. The cross product must be divided
+    // by the segment length or a long edge swamps any fixed tolerance — the
+    // site's west edge is 450 units, so an unnormalised test rejects points
+    // sitting exactly on it.
     for (let i = 0; i < poly.length; i++) {
       const [x0, y0] = poly[i];
       const [x1, y1] = poly[(i + 1) % poly.length];
-      const cross = (x1 - x0) * (y - y0) - (y1 - y0) * (x - x0);
-      const within =
-        Math.min(x0, x1) - 0.02 <= x && x <= Math.max(x0, x1) + 0.02 &&
-        Math.min(y0, y1) - 0.02 <= y && y <= Math.max(y0, y1) + 0.02;
-      if (Math.abs(cross) < 0.5 && within) return true;
+      const dx = x1 - x0;
+      const dy = y1 - y0;
+      const len2 = dx * dx + dy * dy;
+      if (len2 === 0) continue;
+      const t = Math.max(0, Math.min(1, ((x - x0) * dx + (y - y0) * dy) / len2));
+      const d = Math.hypot(x - (x0 + t * dx), y - (y0 + t * dy));
+      if (d < 0.05) return true; // 0.05 units ≈ 27 mm on the ground
     }
   }
   let inside = false;

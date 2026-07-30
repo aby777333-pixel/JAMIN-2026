@@ -64,6 +64,13 @@ Every renderer reads the same object:
    to the boundary — not every consumer honours clip paths.
 4. **Use `osr.polygon`, not `osr.rect`.** The rectangle as drawn runs past the
    site edge.
+4b. **Use `plotShapes[number]`, not `plot.rect`, to draw a plot.** The approval
+   sheet clips its plot rectangles to the site boundary, and eight plots
+   (5, 10, 15, 18, 20, 22, 24, 26) run past the edge by up to 5 m — the drawing
+   shows the boundary line as their edge. Draw `poly` when `clipped` is true and
+   the rounded rectangle otherwise, and anchor labels and state badges on `at`
+   (the polygon centroid), never on the rectangle centre. `rect` remains the
+   sanctioned set-out and is what the plot schedule refers to.
 5. `facing` and `is_corner` are read off the plan and are **not** stated on the
    DTCP sheet. Never present them as approval facts.
 6. **`metresPerUnit` drives the scale bar and nothing else.** It is a

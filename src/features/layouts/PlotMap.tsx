@@ -213,8 +213,11 @@ export function PlotMap({ geometry, plots, selected, visible, onSelect, height =
           const [x0, y0, x1, y1] = p.rect;
           const w = x1 - x0;
           const h = y1 - y0;
-          const cx = x0 + w / 2;
-          const cy = y0 + h / 2;
+          // The approval sheet clips its plot rectangles to the site boundary —
+          // eight plots run past the edge and take the boundary as their edge.
+          const shape = geometry.plotShapes?.[String(p.number)];
+          const cx = shape ? shape.at[0] : x0 + w / 2;
+          const cy = shape ? shape.at[1] : y0 + h / 2;
           const isSel = selected === p.id;
           const dim = visible ? !visible.has(p.id) : false;
           const badge = BADGE[p.status];
@@ -226,16 +229,25 @@ export function PlotMap({ geometry, plots, selected, visible, onSelect, height =
               accessibilityRole="button"
               accessibilityLabel={`Plot ${p.number}, block ${p.block}, ${p.areaSqm ?? '—'} square metres, ${p.status}`}
             >
-              <Rect
-                x={x0}
-                y={y0}
-                width={w}
-                height={h}
-                rx={1.8}
-                fill={isSel ? color.gold : FILL[p.status]}
-                stroke={isSel ? color.goldDeep : STROKE[p.status]}
-                strokeWidth={isSel ? 2.2 : 0.9}
-              />
+              {shape?.clipped ? (
+                <Polygon
+                  points={pointsOf(shape.poly)}
+                  fill={isSel ? color.gold : FILL[p.status]}
+                  stroke={isSel ? color.goldDeep : STROKE[p.status]}
+                  strokeWidth={isSel ? 2.2 : 0.9}
+                />
+              ) : (
+                <Rect
+                  x={x0}
+                  y={y0}
+                  width={w}
+                  height={h}
+                  rx={1.8}
+                  fill={isSel ? color.gold : FILL[p.status]}
+                  stroke={isSel ? color.goldDeep : STROKE[p.status]}
+                  strokeWidth={isSel ? 2.2 : 0.9}
+                />
+              )}
               <SvgText
                 x={cx}
                 y={cy - 0.8}
@@ -261,7 +273,8 @@ export function PlotMap({ geometry, plots, selected, visible, onSelect, height =
                 </SvgText>
               ) : null}
               {badge ? (
-                <SvgText x={cx} y={y1 - 3.2} fontSize={2.7} fontWeight="700" fill="#FFFFFF" textAnchor="middle">
+                // off the label anchor, so it stays inside a clipped plot
+                <SvgText x={cx} y={cy + 11} fontSize={2.7} fontWeight="700" fill="#FFFFFF" textAnchor="middle">
                   {badge}
                 </SvgText>
               ) : null}

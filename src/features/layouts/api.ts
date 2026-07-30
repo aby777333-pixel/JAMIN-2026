@@ -54,6 +54,11 @@ export interface LayoutGeometry {
   totalPlots: number;
   /** Metres represented by one drawing unit — drives the scale bar. */
   metresPerUnit?: number;
+  /**
+   * Outline actually drawn per plot number, clipped to the site boundary
+   * exactly as the approval sheet clips it. Draw this, not `rect`.
+   */
+  plotShapes?: Record<string, { poly: Array<[number, number]>; at: [number, number]; clipped: boolean }>;
 }
 
 export interface LayoutHeader {
