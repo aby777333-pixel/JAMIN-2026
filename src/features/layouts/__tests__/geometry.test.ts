@@ -112,6 +112,39 @@ describe('Edappadi DTCP layout', () => {
     }
   });
 
+  it('derives a scale that agrees with every printed callout', () => {
+    // The scale bar is sized from metresPerUnit, so drift here would silently
+    // misrepresent distance. Measure against the boundary edges each callout
+    // annotates — NOT the callout line, which is drawn offset and runs short.
+    expect(L.metresPerUnit).toBeGreaterThan(0);
+    for (const d of L.dimensions) {
+      let span = 0;
+      for (let i = 0; i < d.measures.length - 1; i++) {
+        const a = L.boundary[d.measures[i]];
+        const b = L.boundary[d.measures[i + 1]];
+        span += Math.hypot(b[0] - a[0], b[1] - a[1]);
+      }
+      const stated = Number(d.label.split(' ')[0]);
+      // the sheet is not perfectly uniform; 1.5% is the spread it actually has
+      expect(Math.abs(span * L.metresPerUnit - stated) / stated).toBeLessThan(0.015);
+    }
+  });
+
+  it('keeps the whole drawing inside the viewport', () => {
+    const [vx, vy, vw, vh] = L.viewBox;
+    const xs: number[] = [];
+    const ys: number[] = [];
+    const push = (p: readonly [number, number]) => { xs.push(p[0]); ys.push(p[1]); };
+    L.boundary.forEach(push);
+    L.existingRoad.quad.forEach(push);
+    L.dimensions.forEach((d) => { push(d.from); push(d.to); });
+    L.plots.forEach((p) => { push([p.rect[0], p.rect[1]]); push([p.rect[2], p.rect[3]]); });
+    expect(Math.min(...xs)).toBeGreaterThanOrEqual(vx);
+    expect(Math.min(...ys)).toBeGreaterThanOrEqual(vy);
+    expect(Math.max(...xs)).toBeLessThanOrEqual(vx + vw);
+    expect(Math.max(...ys)).toBeLessThanOrEqual(vy + vh);
+  });
+
   it('keeps the road widths that the sheet labels', () => {
     expect(L.roads.map((r) => r.widthM)).toEqual([9, 9, 12]);
     expect(L.existingRoad.widthM).toBe(12);

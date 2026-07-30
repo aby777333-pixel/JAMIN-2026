@@ -176,6 +176,26 @@
         border-radius: 999px; padding: 5px 11px; box-shadow: var(--shadow-sm);
       }
 
+      /* drawing chrome — north point and the sheet's scale note */
+      .plan-meta {
+        position: absolute; right: var(--s2); top: var(--s2);
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        pointer-events: none;
+      }
+      .north { width: 22px; height: 38px; opacity: .8; }
+      .north .n-solid { fill: var(--ink); }
+      .north .n-open { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+      .north .n-ring { fill: none; stroke: var(--ink); stroke-width: 1.1; }
+      .north .n-mark { font: 700 8px Inter, sans-serif; fill: var(--ink); }
+      .plan-scale {
+        text-align: center; font-size: 10px; font-weight: 600; color: var(--muted);
+        letter-spacing: .06em; text-transform: uppercase; line-height: 1.45;
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: 9px; padding: 4px 8px; box-shadow: var(--shadow-sm);
+      }
+      .plan-scale span { display: block; font-weight: 500; letter-spacing: .02em; text-transform: none; font-size: 9px; }
+      @media (max-width: 520px) { .plan-scale span { display: none; } }
+
       /* ── plan graphics ───────────────────────────────────────────────────── */
       .road-fill { fill: var(--road); }
       .osr-fill { fill: var(--osr); }
@@ -190,8 +210,13 @@
         transition: fill .28s var(--ease), stroke .28s var(--ease), transform .28s var(--ease);
       }
       .plot-no {
-        font: 600 5.2px Inter, sans-serif; fill: var(--green);
+        font: 700 6.6px Inter, sans-serif; fill: var(--green);
+        letter-spacing: -0.1px;
         pointer-events: none; transition: fill .28s var(--ease);
+      }
+      .plot-area {
+        font: 500 3.1px Inter, sans-serif; fill: var(--muted);
+        pointer-events: none; opacity: .85; transition: fill .28s var(--ease);
       }
       .plot-badge { font: 700 2.7px Inter, sans-serif; fill: #fff; letter-spacing: .1px; pointer-events: none; }
       .plot-icon-fill { fill: #fff; opacity: .92; }
@@ -202,23 +227,27 @@
       .plot:focus-visible .plot-shape { stroke: var(--blue); stroke-width: 2.2; }
 
       .p-reserved .plot-shape { fill: var(--amber); stroke: #b4790a; }
-      .p-reserved .plot-no { fill: #fff; }
       .p-booked .plot-shape { fill: var(--red); stroke: var(--red-deep); }
-      .p-booked .plot-no { fill: #fff; }
       .p-sold .plot-shape { fill: var(--grey); stroke: #2e2e2e; }
-      .p-sold .plot-no { fill: #fff; }
       .p-blocked .plot-shape { fill: var(--line); stroke: var(--muted); stroke-dasharray: 2 1.5; }
-      .p-blocked .plot-no { fill: var(--muted); }
+      .p-blocked .plot-no, .p-blocked .plot-area { fill: var(--muted); }
+      /* taken plots carry solid fills, so their annotation flips to white */
+      .p-reserved .plot-no, .p-booked .plot-no, .p-sold .plot-no { fill: #fff; }
+      .p-reserved .plot-area, .p-booked .plot-area, .p-sold .plot-area { fill: rgba(255, 255, 255, .82); }
 
       .plot.is-selected .plot-shape { fill: var(--blue); stroke: #1b4fd8; filter: url(#lift); }
       .plot.is-selected .plot-no { fill: #fff; }
+      .plot.is-selected .plot-area { fill: rgba(255, 255, 255, .85); }
       .plot.dimmed { opacity: .2; pointer-events: none; }
 
       .road-label { font: 500 4px Inter, sans-serif; fill: var(--muted); pointer-events: none; }
       .osr-label { font: 600 6px Inter, sans-serif; fill: var(--osr-line); pointer-events: none; }
       .osr-sub { font: 500 4px Inter, sans-serif; fill: var(--osr-line); opacity: .85; pointer-events: none; }
-      .dim-line { stroke: var(--muted); stroke-width: .45; opacity: .55; vector-effect: non-scaling-stroke; }
-      .dim-label { font: 600 4.2px Inter, sans-serif; fill: var(--muted); pointer-events: none; }
+      .dim-line { stroke: var(--muted); stroke-width: .5; opacity: .6; vector-effect: non-scaling-stroke; }
+      .dim-label { font: 600 4.2px Inter, sans-serif; fill: var(--muted); pointer-events: none; letter-spacing: .1px; }
+      .sb-fill { fill: var(--ink); }
+      .sb-empty { fill: none; stroke: var(--ink); stroke-width: .4; vector-effect: non-scaling-stroke; }
+      .sb-label { font: 600 3.4px Inter, sans-serif; fill: var(--muted); pointer-events: none; }
       .amenity-dot { fill: var(--surface); stroke: var(--gold-deep); stroke-width: .7; vector-effect: non-scaling-stroke; }
       .amenity-icon { font: 600 4.4px Inter, sans-serif; fill: var(--gold-deep); pointer-events: none; }
 
@@ -286,6 +315,16 @@
       .price { font-size: 27px; font-weight: 700; letter-spacing: -.03em; }
       .price.muted-price { font-size: 19px; color: var(--muted); font-weight: 600; }
       .was { color: var(--muted); text-decoration: line-through; font-size: 15px; }
+      .save {
+        font-size: 11px; font-weight: 700; color: var(--green);
+        background: rgba(30,158,90,.12); border-radius: 999px; padding: 3px 9px;
+      }
+      .hint { font-size: 11px; line-height: 1.6; color: var(--muted); margin-top: var(--s2); }
+      .notice {
+        border: 1px solid var(--line); background: var(--paper); border-radius: 13px;
+        padding: var(--s3); font-size: 13px; line-height: 1.65; color: var(--muted);
+      }
+      .notice b { display: block; color: var(--ink); margin-bottom: 4px; }
 
       .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--s3); }
       .grid1 { display: grid; }
@@ -508,6 +547,15 @@
           <label class="survey-toggle">
             <input type="checkbox" id="surveyToggle" /> Survey view
           </label>
+          <div class="plan-meta" aria-hidden="true">
+            <svg class="north" viewBox="0 0 24 40">
+              <circle class="n-ring" cx="12" cy="30" r="6.5" />
+              <text class="n-mark" x="12" y="33" text-anchor="middle">N</text>
+              <polygon class="n-solid" points="12,2 17,20 12,16" />
+              <polygon class="n-open" points="12,2 7,20 12,16" />
+            </svg>
+            <div class="plan-scale">1:1000<span>dimensions in metres</span></div>
+          </div>
           <svg id="plan" preserveAspectRatio="xMidYMid meet" role="img"
                aria-label="Interactive sanctioned layout plan. Use Tab to move between plots and Enter to open a plot."></svg>
           <div id="zoomLevel">100%</div>
@@ -525,7 +573,11 @@
       <div class="grabber"></div>
       <div class="sheet-bar">
         <strong style="font-size:13px">Plot detail</strong>
-        <button class="icon-btn" id="sheetClose" aria-label="Close">✕</button>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="icon-btn" id="prevPlot" aria-label="Previous plot">‹</button>
+          <button class="icon-btn" id="nextPlot" aria-label="Next plot">›</button>
+          <button class="icon-btn" id="sheetClose" aria-label="Close">✕</button>
+        </div>
       </div>
       <div id="sheetBody"></div>
     </aside>

@@ -164,17 +164,50 @@ export function PlotMap({ geometry, plots, selected, visible, onSelect, height =
         {geometry.dimensions.map((d, i) => {
           const mx = (d.from[0] + d.to[0]) / 2;
           const my = (d.from[1] + d.to[1]) / 2;
-          let ang = (Math.atan2(d.to[1] - d.from[1], d.to[0] - d.from[0]) * 180) / Math.PI;
+          const rad = Math.atan2(d.to[1] - d.from[1], d.to[0] - d.from[0]);
+          // short ticks square to the run, so each callout reads as a measurement
+          const tx = Math.cos(rad + Math.PI / 2) * 2.4;
+          const ty = Math.sin(rad + Math.PI / 2) * 2.4;
+          let ang = (rad * 180) / Math.PI;
           if (ang > 90 || ang < -90) ang += 180; // keep the text upright
           return (
             <G key={`dim-${i}`}>
-              <Line x1={d.from[0]} y1={d.from[1]} x2={d.to[0]} y2={d.to[1]} stroke={color.muted} strokeWidth={0.45} opacity={0.55} />
-              <SvgText x={mx} y={my - 2.5} fontSize={4.2} fontWeight="600" fill={color.muted} textAnchor="middle" transform={`rotate(${ang.toFixed(2)} ${mx} ${my})`}>
+              <Line x1={d.from[0]} y1={d.from[1]} x2={d.to[0]} y2={d.to[1]} stroke={color.muted} strokeWidth={0.5} opacity={0.6} />
+              {[d.from, d.to].map((e, k) => (
+                <Line key={k} x1={e[0] - tx} y1={e[1] - ty} x2={e[0] + tx} y2={e[1] + ty} stroke={color.muted} strokeWidth={0.5} opacity={0.6} />
+              ))}
+              <SvgText x={mx} y={my - 2.6} fontSize={4.2} fontWeight="600" fill={color.muted} textAnchor="middle" transform={`rotate(${ang.toFixed(2)} ${mx} ${my})`}>
                 {d.label}
               </SvgText>
             </G>
           );
         })}
+
+        {/* Scale bar, sized from the sheet's own overall dimension so it always
+            agrees with the printed callouts. Drawn in plan coordinates, so it
+            zooms with the drawing and keeps representing the same distance. */}
+        {geometry.metresPerUnit ? (
+          <G>
+            <Rect x={46} y={628} width={10 / geometry.metresPerUnit} height={2.6} fill={color.ink} />
+            <Rect
+              x={46 + 10 / geometry.metresPerUnit}
+              y={628}
+              width={10 / geometry.metresPerUnit}
+              height={2.6}
+              fill="none"
+              stroke={color.ink}
+              strokeWidth={0.4}
+            />
+            {[0, 1, 2].map((k) => (
+              <SvgText key={k} x={46 + (10 / geometry.metresPerUnit!) * k} y={626.4} fontSize={3.4} fontWeight="600" fill={color.muted} textAnchor="middle">
+                {String(k * 10)}
+              </SvgText>
+            ))}
+            <SvgText x={46 + 10 / geometry.metresPerUnit} y={634.4} fontSize={3.4} fontWeight="600" fill={color.muted} textAnchor="middle">
+              metres
+            </SvgText>
+          </G>
+        ) : null}
 
         {plots.map((p) => {
           const [x0, y0, x1, y1] = p.rect;
@@ -205,14 +238,28 @@ export function PlotMap({ geometry, plots, selected, visible, onSelect, height =
               />
               <SvgText
                 x={cx}
-                y={cy + 1.6}
-                fontSize={5.2}
-                fontWeight="600"
+                y={cy - 0.8}
+                fontSize={6.6}
+                fontWeight="700"
                 fill={isSel ? color.ink : LABEL[p.status]}
                 textAnchor="middle"
               >
                 {String(p.number)}
               </SvgText>
+              {p.areaSqm ? (
+                // rounded so the annotation always fits inside the plot box;
+                // the exact schedule figure is on the detail sheet
+                <SvgText
+                  x={cx}
+                  y={cy + 6}
+                  fontSize={3.1}
+                  fill={isSel ? color.ink : p.status === 'available' ? color.muted : 'rgba(255,255,255,0.82)'}
+                  opacity={0.9}
+                  textAnchor="middle"
+                >
+                  {`${Math.round(p.areaSqm)} m²`}
+                </SvgText>
+              ) : null}
               {badge ? (
                 <SvgText x={cx} y={y1 - 3.2} fontSize={2.7} fontWeight="700" fill="#FFFFFF" textAnchor="middle">
                   {badge}

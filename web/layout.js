@@ -94,8 +94,20 @@
       }, gp);
       make('rect', { x: r[0], y: r[1], width: w, height: h, rx: 1.8, class: 'plot-shape' }, g);
       var cx = r[0] + w / 2, cy = r[1] + h / 2;
-      make('text', { x: cx, y: cy + 1.6, class: 'plot-no', 'text-anchor': 'middle' }, g)
+      // Plot number reads first; the sanctioned area sits under it the way a
+      // surveyed sheet annotates each plot.
+      make('text', { x: cx, y: cy - 0.8, class: 'plot-no', 'text-anchor': 'middle' }, g)
         .textContent = String(p.number);
+      if (p.areaSqm) {
+        // rounded on the plan so the annotation always fits inside the plot;
+        // the exact schedule figure is in the detail sheet
+        make('text', { x: cx, y: cy + 6, class: 'plot-area', 'text-anchor': 'middle' }, g)
+          .textContent = Math.round(p.areaSqm) + ' m²';
+      }
+      make('title', {}, g).textContent =
+        'Plot ' + p.number + ' · Block ' + p.block +
+        (p.areaSqm ? ' · ' + p.areaSqm + ' Sq.m' : '') +
+        (p.widthM && p.depthM ? ' · ' + p.widthM + ' × ' + p.depthM + ' m' : '');
       // state marks: a lock for booked, a clock for reserved, a word for sold
       if (p.status === 'booked') badge(g, cx, r[3] - 3.2, 'BOOKED');
       if (p.status === 'sold') badge(g, cx, r[3] - 3.2, 'SOLD');
@@ -127,17 +139,25 @@
     ert.setAttribute('transform', 'rotate(-6 ' + erx + ' ' + ery + ')');
     ert.textContent = G.existingRoad.label;
 
-    // ── overall dimensions from the sheet
+    // ── overall dimensions from the sheet, with surveyor's end ticks
     var gd = make('g', { id: 'dims' }, vp);
     G.dimensions.forEach(function (d) {
       make('line', { x1: d.from[0], y1: d.from[1], x2: d.to[0], y2: d.to[1], class: 'dim-line' }, gd);
+      var ang = Math.atan2(d.to[1] - d.from[1], d.to[0] - d.from[0]);
+      // short ticks square to the run, so each callout reads as a measurement
+      var tx = Math.cos(ang + Math.PI / 2) * 2.4, ty = Math.sin(ang + Math.PI / 2) * 2.4;
+      [d.from, d.to].forEach(function (e) {
+        make('line', { x1: e[0] - tx, y1: e[1] - ty, x2: e[0] + tx, y2: e[1] + ty, class: 'dim-line' }, gd);
+      });
       var mx = (d.from[0] + d.to[0]) / 2, my = (d.from[1] + d.to[1]) / 2;
-      var ang = Math.atan2(d.to[1] - d.from[1], d.to[0] - d.from[0]) * 180 / Math.PI;
-      if (ang > 90 || ang < -90) ang += 180; // keep text upright
-      var t = make('text', { x: mx, y: my - 2.5, class: 'dim-label', 'text-anchor': 'middle' }, gd);
-      t.setAttribute('transform', 'rotate(' + ang.toFixed(2) + ' ' + mx + ' ' + my + ')');
+      var deg = ang * 180 / Math.PI;
+      if (deg > 90 || deg < -90) deg += 180; // keep text upright
+      var t = make('text', { x: mx, y: my - 2.6, class: 'dim-label', 'text-anchor': 'middle' }, gd);
+      t.setAttribute('transform', 'rotate(' + deg.toFixed(2) + ' ' + mx + ' ' + my + ')');
       t.textContent = d.label;
     });
+
+    drawScaleBar(vp);
 
     // ── amenity pins (admin-placeable; only what the sheet itself defines is seeded)
     var ga = make('g', { id: 'amenities' }, vp);
@@ -166,6 +186,28 @@
   }
   function ptsOf(ring) {
     return ring.map(function (p) { return p.join(','); }).join(' ');
+  }
+
+  /**
+   * Alternating 0-10-20 m bar, drawn in plan coordinates so it zooms with the
+   * drawing — it always represents the same real distance, which is the whole
+   * point of a scale bar. Length comes from the sheet's own overall dimension,
+   * not from the stated 1:1000, so bar and callouts always agree.
+   */
+  function drawScaleBar(vp) {
+    var mpu = G.metresPerUnit;
+    if (!mpu) return;
+    var g = make('g', { id: 'scalebar' }, vp);
+    var half = 10 / mpu;              // 10 m in drawing units
+    var x = 46, y = 628, h = 2.6;
+    make('rect', { x: x, y: y, width: half, height: h, class: 'sb-fill' }, g);
+    make('rect', { x: x + half, y: y, width: half, height: h, class: 'sb-empty' }, g);
+    [0, half, half * 2].forEach(function (dx, i) {
+      make('text', { x: x + dx, y: y - 1.6, class: 'sb-label', 'text-anchor': 'middle' }, g)
+        .textContent = i * 10;
+    });
+    make('text', { x: x + half, y: y + h + 3.8, class: 'sb-label', 'text-anchor': 'middle' }, g)
+      .textContent = 'metres';
   }
   function plotAria(p) {
     return 'Plot ' + p.number + ', block ' + p.block + ', ' + p.areaSqm + ' square metres, ' +
@@ -273,6 +315,15 @@
     el('sheet').setAttribute('aria-hidden', 'false');
   }
 
+  /** Walk to the neighbouring plot without closing the sheet. Wraps at the ends. */
+  function step(delta) {
+    if (!selected) return;
+    var order = plots.map(function (p) { return p.number; }).sort(function (a, b) { return a - b; });
+    var i = order.indexOf(selected);
+    if (i === -1) return;
+    select(order[(i + delta + order.length) % order.length]);
+  }
+
   function closeSheet() {
     el('sheet').classList.remove('open');
     el('sheet').setAttribute('aria-hidden', 'true');
@@ -299,29 +350,48 @@
     html += '<div class="price-block">';
     if (offer && price) {
       html += '<div class="price">' + offer + '</div><div class="was">' + price + '</div>';
+      var pct = Math.round((1 - Number(p.offerPrice) / Number(p.price)) * 100);
+      if (pct > 0) html += '<div class="save">Save ' + pct + '%</div>';
     } else if (price) {
       html += '<div class="price">' + price + '</div>';
     } else {
-      html += '<div class="price muted-price">Price on request</div>';
+      html += '<div class="price muted-price">Pricing on request</div>';
     }
     html += '</div>';
 
+    // ── the sanctioned record. These fields come off the approved drawing, so
+    //    they are always present even before the layout is priced.
+    html += '<div class="sec-title">Plot record</div>';
     html += '<div class="grid2">';
-    html += row('Area', p.areaSqm + ' Sq.m · ' + sqft(p.areaSqm) + ' Sq.ft');
-    html += row('Dimensions', p.widthM + ' m × ' + p.depthM + ' m');
-    html += row('Facing', titleCase(p.facing));
-    html += row('Road width', p.roadWidthM ? p.roadWidthM.toFixed(2) + ' m' : '—');
-    html += row('Corner plot', p.isCorner ? 'Yes' : 'No');
+    html += row('Plot number', String(p.number));
     html += row('Block', p.block);
+    html += row('Area', p.areaSqm + ' Sq.m');
+    html += row('Area (ft²)', sqft(p.areaSqm) + ' Sq.ft');
+    html += row('Dimensions', p.widthM + ' m × ' + p.depthM + ' m');
+    html += row('Perimeter', ((Number(p.widthM) + Number(p.depthM)) * 2).toFixed(1) + ' m');
+    html += row('Facing', titleCase(p.facing));
+    html += row('Road width', p.roadWidthM ? Number(p.roadWidthM).toFixed(2) + ' m' : '—');
+    html += row('Corner plot', p.isCorner ? 'Yes' : 'No');
+    html += row('Status', statusLabel);
     html += '</div>';
+    html += '<div class="hint">Facing and corner status are read from the plan — they are not part of the DTCP approval.</div>';
 
-    html += '<div class="sec-title">Cost breakdown</div><div class="grid1">';
-    html += row('Plot price', offer || price);
-    html += row('Booking amount', inr(p.bookingAmount));
-    html += row('Registration charges', inr(p.registrationCharges));
-    html += row('Development charges', inr(p.developmentCharges));
-    html += '<div class="row total"><span>Total cost</span><b>' + (total || '—') + '</b></div>';
-    html += '</div>';
+    // ── money. A wall of dashes reads as "broken", so an unpriced plot gets an
+    //    honest single statement instead of an empty table.
+    if (Number(p.totalCost) > 0 || price) {
+      html += '<div class="sec-title">Cost breakdown</div><div class="grid1">';
+      html += row('Plot price', offer || price);
+      html += row('Booking amount', inr(p.bookingAmount));
+      html += row('Registration charges', inr(p.registrationCharges));
+      html += row('Development charges', inr(p.developmentCharges));
+      html += '<div class="row total"><span>Total cost</span><b>' + (total || '—') + '</b></div>';
+      html += '</div>';
+    } else {
+      html += '<div class="sec-title">Cost</div>';
+      html += '<div class="notice"><b>Pricing for this layout is not published yet.</b>' +
+        'Every plot above is confirmed against the sanctioned drawing. Talk to the sales desk ' +
+        'for the current rate, booking amount and registration charges on plot ' + p.number + '.</div>';
+    }
 
     // EMI — indicative only, on the total cost
     if (p.totalCost > 0) {
@@ -662,6 +732,8 @@
 
     el('sheetClose').addEventListener('click', closeSheet);
     el('scrim').addEventListener('click', closeSheet);
+    el('prevPlot').addEventListener('click', function () { step(-1); });
+    el('nextPlot').addEventListener('click', function () { step(1); });
     el('bookCancel').addEventListener('click', function () { el('bookModal').classList.remove('open'); });
     el('bookConfirm').addEventListener('click', confirmBooking);
     el('qrClose').addEventListener('click', function () { el('qrModal').classList.remove('open'); });

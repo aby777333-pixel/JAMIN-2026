@@ -3027,6 +3027,20 @@
         if (oq.error) { el.innerHTML = '<div class="head"><h2>Plot layouts</h2></div><div class="muted">' + esc(oq.error.message) + '</div>'; return; }
         layoutState.data = oq.data;
         var head = layouts.filter(function (l) { return l.slug === layoutState.slug; })[0];
+
+        // Full layout row + the buyer-facing spine, so every field the app can
+        // show has a control here (admin-parity rule).
+        var extra = await Promise.all([
+          sb.from('layouts').select('*').eq('id', head.id).maybeSingle(),
+          sb.from('layout_bookings')
+            .select('id,booking_ref,plot_id,buyer_id,amount,payment_method,status,expires_at,confirmed_at,created_at')
+            .eq('layout_id', head.id).order('created_at', { ascending: false }).limit(100),
+          sb.from('layout_plot_events').select('id,plot_id,from_status,to_status,note,created_at')
+            .order('created_at', { ascending: false }).limit(40)
+        ]);
+        var full = (extra[0] && extra[0].data) || {};
+        var bookings = (extra[1] && extra[1].data) || [];
+        var events = (extra[2] && extra[2].data) || [];
         var lay = (oq.data && oq.data.layout) || {};
         var plots = (oq.data && oq.data.plots) || [];
         var sum = (oq.data && oq.data.summary) || {};
@@ -3061,6 +3075,29 @@
 
           '<div class="panel"><h3>Plan</h3><div id="lay_plan">' + layoutPlanSvg(lay.geometry, plots, null) + '</div>' +
             '<div class="muted" style="margin-top:6px">Click a plot on the plan to jump to its row.</div></div>' +
+
+          // ── everything the buyer screen can show needs a control here ──
+          '<div class="panel"><h3>Layout details <span class="muted" style="font-weight:400">— shown on the plot sheet in the app</span></h3>' +
+            '<div class="row" style="flex-wrap:wrap;gap:8px">' +
+              '<label style="flex:1;min-width:230px">Brochure URL<input id="lay_brochure" class="inp" value="' + esc(full.brochure_url || '') + '" placeholder="https://…" /></label>' +
+              '<label style="flex:1;min-width:230px">Google Maps URL<input id="lay_maps" class="inp" value="' + esc(full.maps_url || '') + '" placeholder="https://maps.google.com/…" /></label>' +
+              '<label style="flex:1;min-width:230px">Street view URL<input id="lay_street" class="inp" value="' + esc(full.street_view_url || '') + '" placeholder="https://…" /></label>' +
+            '</div>' +
+            '<div class="row" style="flex-wrap:wrap;gap:8px;margin-top:8px">' +
+              '<label style="width:130px">Latitude<input id="lay_lat" class="inp" type="number" step="0.000001" value="' + (full.latitude == null ? '' : full.latitude) + '" /></label>' +
+              '<label style="width:130px">Longitude<input id="lay_lng" class="inp" type="number" step="0.000001" value="' + (full.longitude == null ? '' : full.longitude) + '" /></label>' +
+              '<label style="width:190px">Hold window (minutes)<input id="lay_hold" class="inp" type="number" min="15" max="20160" value="' + (full.hold_minutes || 2880) + '" /></label>' +
+              '<label style="flex:1;min-width:230px">Promoter (profile id)<input id="lay_promoter" class="inp" value="' + esc(full.promoter_id || '') + '" placeholder="optional" /></label>' +
+            '</div>' +
+            '<div class="row" style="margin-top:8px">' +
+              '<label style="flex:1">Nearby landmarks — one per line as <code>Name | distance</code>' +
+                '<textarea id="lay_landmarks" class="inp" rows="3" placeholder="Edappadi bus stand | 2.4 km">' +
+                  esc(((full.landmarks) || []).map(function (l) { return (l.name || '') + (l.distance ? ' | ' + l.distance : ''); }).join('\n')) +
+                '</textarea></label>' +
+            '</div>' +
+            '<div class="row" style="margin-top:8px"><button id="lay_save_details" class="btn btn-sm">Save layout details</button></div>' +
+            '<div class="muted" style="margin-top:6px">The plan geometry itself is not editable — it is regenerated from the approved DTCP drawing.</div>' +
+          '</div>' +
 
           '<div class="panel"><h3>Price a whole block</h3><div class="row">' +
             '<select id="lay_block" class="inp" style="max-width:150px"><option value="">— every plot —</option>' +
@@ -3097,8 +3134,47 @@
               '<td><input class="inp lp_reg" type="number" style="height:34px;width:105px" value="' + (p.registrationCharges || 0) + '" /></td>' +
               '<td><input class="inp lp_dev" type="number" style="height:34px;width:105px" value="' + (p.developmentCharges || 0) + '" /></td>' +
               '<td class="muted">' + (p.totalCost ? '₹' + Number(p.totalCost).toLocaleString('en-IN') : '—') + '</td>' +
-              '<td><button class="btn btn-sm lp_save">Save</button></td></tr>';
-          }).join('') + '</tbody></table>';
+              '<td style="white-space:nowrap"><button class="btn btn-sm lp_save">Save</button> ' +
+                '<button class="btn-o btn-sm lp_media" title="Photos and documents">📎' +
+                  ((p.media || []).length + (p.documents || []).length ? ' ' + ((p.media || []).length + (p.documents || []).length) : '') +
+                '</button></td></tr>';
+          }).join('') + '</tbody></table>' +
+
+          // ── holds and bookings ──
+          '<div class="panel"><h3>Holds &amp; bookings</h3>' +
+          (bookings.length
+            ? '<table><thead><tr><th>Reference</th><th>Plot</th><th>Amount</th><th>Method</th><th>Status</th><th>Expires</th><th></th></tr></thead><tbody>' +
+              bookings.map(function (b) {
+                var plot = plots.filter(function (x) { return x.id === b.plot_id; })[0];
+                return '<tr data-booking="' + b.id + '" data-bplot="' + b.plot_id + '">' +
+                  '<td class="mono">' + esc(b.booking_ref) + '</td>' +
+                  '<td>' + (plot ? 'Plot ' + plot.number : '—') + '</td>' +
+                  '<td>₹' + Number(b.amount || 0).toLocaleString('en-IN') + '</td>' +
+                  '<td class="muted">' + esc(b.payment_method) + '</td>' +
+                  '<td>' + esc(b.status) + '</td>' +
+                  '<td class="muted">' + (b.expires_at ? new Date(b.expires_at).toLocaleString('en-IN') : '—') + '</td>' +
+                  '<td style="white-space:nowrap">' + (b.status === 'held'
+                    ? '<button class="btn btn-sm bk_confirm">Confirm booked</button> ' +
+                      '<button class="btn btn-sm bk_cancel" style="background:#fee;color:#c00">Release</button>'
+                    : '<span class="muted">—</span>') + '</td></tr>';
+              }).join('') + '</tbody></table>'
+            : '<div class="muted">No holds yet. A buyer reserving a plot in the app appears here with a reference; ' +
+              'confirming it marks the plot Booked for everyone.</div>') +
+          '</div>' +
+
+          // ── audit trail ──
+          '<div class="panel"><h3>Recent status changes</h3>' +
+          (events.length
+            ? '<table><thead><tr><th>When</th><th>Plot</th><th>From</th><th>To</th><th>Note</th></tr></thead><tbody>' +
+              events.map(function (e) {
+                var plot = plots.filter(function (x) { return x.id === e.plot_id; })[0];
+                if (!plot) return '';
+                return '<tr><td class="muted">' + new Date(e.created_at).toLocaleString('en-IN') + '</td>' +
+                  '<td>Plot ' + plot.number + '</td><td class="muted">' + esc(e.from_status || '—') + '</td>' +
+                  '<td><b>' + esc(e.to_status) + '</b></td><td class="muted">' + esc(e.note || '') + '</td></tr>';
+              }).join('') + '</tbody></table>'
+            : '<div class="muted">No status changes recorded yet.</div>') +
+          '</div>';
 
         $('lay_pick').onchange = function () { layoutState.slug = this.value; renderLayouts(); };
 
@@ -3108,6 +3184,35 @@
           var r = await sb.from('layouts').update({ is_published: on }).eq('id', head.id);
           this.disabled = false;
           if (r.error) { this.checked = !on; return alert(r.error.message); }
+          renderLayouts();
+        };
+
+        $('lay_save_details').onclick = async function () {
+          var landmarks = $('lay_landmarks').value.split('\n')
+            .map(function (line) { return line.trim(); })
+            .filter(Boolean)
+            .map(function (line) {
+              var bits = line.split('|');
+              var o = { name: bits[0].trim() };
+              if (bits[1] && bits[1].trim()) o.distance = bits[1].trim();
+              return o;
+            });
+          var hold = parseInt($('lay_hold').value, 10);
+          if (!(hold >= 15 && hold <= 20160)) return alert('Hold window must be between 15 and 20160 minutes.');
+          var patch = {
+            brochure_url: $('lay_brochure').value.trim() || null,
+            maps_url: $('lay_maps').value.trim() || null,
+            street_view_url: $('lay_street').value.trim() || null,
+            latitude: $('lay_lat').value.trim() === '' ? null : Number($('lay_lat').value),
+            longitude: $('lay_lng').value.trim() === '' ? null : Number($('lay_lng').value),
+            hold_minutes: hold,
+            promoter_id: $('lay_promoter').value.trim() || null,
+            landmarks: landmarks
+          };
+          this.textContent = '…'; this.disabled = true;
+          var r = await sb.from('layouts').update(patch).eq('id', head.id);
+          this.disabled = false; this.textContent = 'Save layout details';
+          if (r.error) return alert(r.error.message);
           renderLayouts();
         };
 
@@ -3168,6 +3273,54 @@
               if (r2.error) { btn.disabled = false; btn.textContent = 'Save'; return alert(r2.error.message); }
             }
             btn.textContent = 'Saved'; setTimeout(function () { renderLayouts(); }, 400);
+          };
+
+          // Photos + documents for this plot. Kept to plain URL lists so the
+          // admin can paste links from anywhere without a new upload pipeline.
+          tr.querySelector('.lp_media').onclick = async function () {
+            var media = (before.media || []).map(function (m) { return typeof m === 'string' ? m : m.url; });
+            var next = prompt(
+              'Photo URLs for plot ' + before.number + ' — one per line:', media.join('\n'));
+            if (next === null) return;
+            var docs = (before.documents || []).map(function (d) { return (d.name || 'Document') + ' | ' + d.url; });
+            var nextDocs = prompt(
+              'Documents for plot ' + before.number + ' — one per line as  Name | URL :', docs.join('\n'));
+            if (nextDocs === null) return;
+
+            var patch = {
+              media: next.split('\n').map(function (u) { return u.trim(); }).filter(Boolean)
+                .map(function (u) { return { url: u }; }),
+              documents: nextDocs.split('\n').map(function (l) { return l.trim(); }).filter(Boolean)
+                .map(function (l) {
+                  var bits = l.split('|');
+                  return bits.length > 1
+                    ? { name: bits[0].trim(), url: bits.slice(1).join('|').trim() }
+                    : { name: 'Document', url: bits[0].trim() };
+                })
+            };
+            var r = await sb.rpc('admin_update_layout_plot', { p_plot: id, p_patch: patch });
+            if (r.error) return alert(r.error.message);
+            renderLayouts();
+          };
+        });
+
+        el.querySelectorAll('tr[data-booking]').forEach(function (tr) {
+          var plotId = tr.dataset.bplot;
+          var confirmBtn = tr.querySelector('.bk_confirm');
+          var cancelBtn = tr.querySelector('.bk_cancel');
+          if (confirmBtn) confirmBtn.onclick = async function () {
+            if (!confirm('Mark this plot Booked? Every buyer\'s map updates immediately.')) return;
+            this.disabled = true;
+            var r = await sb.rpc('admin_set_layout_plot_status', { p_plot: plotId, p_status: 'booked', p_note: null });
+            if (r.error) { this.disabled = false; return alert(r.error.message); }
+            renderLayouts();
+          };
+          if (cancelBtn) cancelBtn.onclick = async function () {
+            if (!confirm('Release this hold and put the plot back on sale?')) return;
+            this.disabled = true;
+            var r = await sb.rpc('admin_set_layout_plot_status', { p_plot: plotId, p_status: 'available', p_note: null });
+            if (r.error) { this.disabled = false; return alert(r.error.message); }
+            renderLayouts();
           };
         });
       }

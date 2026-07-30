@@ -65,8 +65,16 @@ export interface LayoutGeometry {
   /** Named road bands, for the plan legend. */
   roads: Array<{ label: string; widthM: number; band: [number, number, number, number]; rotate?: number }>;
   /** Overall dimension callouts drawn on the sheet. */
-  dimensions: Array<{ label: string; from: [number, number]; to: [number, number] }>;
+  dimensions: Array<{
+    label: string;
+    from: [number, number];
+    to: [number, number];
+    /** Boundary vertices this callout spans — the callout line itself runs offset and short. */
+    measures: number[];
+  }>;
   areaStatement: Array<{ label: string; areaSqm: number; percent: number }>;
+  /** Metres represented by one drawing unit — drives the scale bar. */
+  metresPerUnit: number;
   totalPlots: number;
   notes: string[];
   plots: LayoutPlotGeometry[];
@@ -85,7 +93,7 @@ export const EDAPPADI_LAYOUT: LayoutGeometry = {
   taluk: 'Edappadi',
   district: 'Salem',
   scale: '1:1000',
-  viewBox: [30, 100, 300, 540],
+  viewBox: [36, 110, 286, 545],
   boundary: [[150.21, 133.03], [284.25, 139.73], [293.19, 267.07], [296.54, 355.32], [206.06, 359.78], [181.48, 569.79], [83.19, 577.6]],
   osr: { rect: [206.06, 296.11, 306.59, 363.14], polygon: [[206.06, 296.11], [294.29, 296.11], [296.54, 355.32], [206.06, 359.78]], areaSqm: 1342.0, label: 'O.S.R.' },
   existingRoad: { quad: [[44.09, 588.77], [49.67, 615.58], [212.76, 598.83], [207.18, 572.02]], label: 'EXISTING ROAD — 12.00 m WIDE', widthM: 12.0 },
@@ -95,9 +103,9 @@ export const EDAPPADI_LAYOUT: LayoutGeometry = {
     { label: '12.00 m ROAD', widthM: 12.0, band: [152.44, 359.78, 206.06, 569.79], rotate: -84 },
   ],
   dimensions: [
-    { label: '72.40 m', from: [150.21, 121.86], to: [284.25, 128.56] },
-    { label: '118.60 m', from: [307.71, 144.2], to: [307.71, 356.43] },
-    { label: '246.15 m', from: [69.78, 138.61], to: [60.85, 574.25] },
+    { label: '72.40 m', from: [150.21, 121.86], to: [284.25, 128.56], measures: [0, 1] },
+    { label: '118.60 m', from: [307.71, 144.2], to: [307.71, 356.43], measures: [1, 2, 3] },
+    { label: '246.15 m', from: [69.78, 138.61], to: [60.85, 574.25], measures: [6, 0] },
   ],
   areaStatement: [
     { label: 'Total extent of site', areaSqm: 13420.0, percent: 100.0 },
@@ -105,6 +113,7 @@ export const EDAPPADI_LAYOUT: LayoutGeometry = {
     { label: 'Open space reservation', areaSqm: 1342.0, percent: 10.0 },
     { label: 'Saleable plot area', areaSqm: 8860.0, percent: 66.0 },
   ],
+  metresPerUnit: 0.547243,
   totalPlots: 27,
   notes: [
     'All dimensions are in metres; areas in square metres.',

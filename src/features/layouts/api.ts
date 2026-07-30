@@ -52,6 +52,8 @@ export interface LayoutGeometry {
   areaStatement: Array<{ label: string; areaSqm: number; percent: number }>;
   notes: string[];
   totalPlots: number;
+  /** Metres represented by one drawing unit — drives the scale bar. */
+  metresPerUnit?: number;
 }
 
 export interface LayoutHeader {

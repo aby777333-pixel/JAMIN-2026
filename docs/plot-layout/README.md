@@ -37,7 +37,12 @@ Every renderer reads the same object:
   },
   "existingRoad": { "quad": [[44.09, 588.77], ...], "label": "...", "widthM": 12.0 },
   "roads":      [{ "label": "9.00 m ROAD", "widthM": 9.0, "band": [x0,y0,x1,y1], "rotate": -84 }],
-  "dimensions": [{ "label": "72.40 m", "from": [x,y], "to": [x,y] }],
+  "dimensions": [
+    // `measures` = the boundary vertices this callout spans. The callout LINE is
+    // drawn offset from the site and runs 3-4% short, so never measure with it.
+    { "label": "72.40 m", "from": [x,y], "to": [x,y], "measures": [0, 1] }
+  ],
+  "metresPerUnit": 0.547243,   // scale-bar only — never for areas or sizes
   "plots": [
     { "number": 1, "block": "A", "rect": [x0,y0,x1,y1],
       "widthM": 12.2, "depthM": 18.3, "areaSqm": 223.26, "facing": "south" }
@@ -61,6 +66,15 @@ Every renderer reads the same object:
    site edge.
 5. `facing` and `is_corner` are read off the plan and are **not** stated on the
    DTCP sheet. Never present them as approval facts.
+6. **`metresPerUnit` drives the scale bar and nothing else.** It is a
+   least-squares fit of the three overall dimensions against the boundary edges
+   they annotate. The sheet is not perfectly uniform — those edges individually
+   imply 0.5395, 0.5492 and 0.5475 m/unit — so the fit is the honest single
+   number, good to ~1.5%. Any figure a buyer sees must come from the schedule.
+7. **Annotate each plot with its number and rounded area.** Round for the plan
+   (`223 m²`); the exact schedule value belongs in the detail sheet. Specify
+   `Inter, Helvetica, Arial, sans-serif` — a serif fallback is wide enough to
+   overflow the plot box.
 
 ## Plot states
 

@@ -20,10 +20,10 @@ window.JAMIN_LAYOUT = {
   "district": "Salem",
   "scale": "1:1000",
   "viewBox": [
-    30,
-    100,
-    300,
-    540
+    36,
+    110,
+    286,
+    545
   ],
   "boundary": [
     [
@@ -148,6 +148,10 @@ window.JAMIN_LAYOUT = {
       "to": [
         284.25,
         128.56
+      ],
+      "measures": [
+        0,
+        1
       ]
     },
     {
@@ -159,6 +163,11 @@ window.JAMIN_LAYOUT = {
       "to": [
         307.71,
         356.43
+      ],
+      "measures": [
+        1,
+        2,
+        3
       ]
     },
     {
@@ -170,9 +179,14 @@ window.JAMIN_LAYOUT = {
       "to": [
         60.85,
         574.25
+      ],
+      "measures": [
+        6,
+        0
       ]
     }
   ],
+  "metresPerUnit": 0.547243,
   "areaStatement": [
     {
       "label": "Total extent of site",
@@ -209,21 +223,12 @@ window.JAMIN_LAYOUT = {
   ],
   "amenities": [
     {
-      "kind": "osr",
-      "label": "Open Space Reservation",
-      "icon": "leaf",
-      "at": [
-        256.3,
-        329.6
-      ]
-    },
-    {
       "kind": "entrance",
       "label": "Entrance from existing road",
       "icon": "enter",
       "at": [
-        167.0,
-        566.0
+        171.0,
+        573.0
       ]
     }
   ],

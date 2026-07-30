@@ -29,6 +29,7 @@ Notes on the source sheet
 from __future__ import annotations
 
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -95,6 +96,24 @@ META = dict(
     scale="1:1000",
 )
 
+# Road bands and overall dimension callouts, read off the sheet. Shared by every
+# generated output so the plan, the scale bar and the SVG export cannot drift.
+ROADS = [
+    {"label": "9.00 m ROAD", "widthM": 9.0, "band": [141.83, 182.18, 293.74, 201.17]},
+    {"label": "9.00 m ROAD", "widthM": 9.0, "band": [127.87, 279.36, 293.74, 297.23]},
+    {"label": "12.00 m ROAD", "widthM": 12.0, "band": [152.44, 359.78, 206.06, 569.79], "rotate": -84},
+]
+
+# `measures` lists the site-boundary vertices each callout spans. The callout
+# lines themselves are drawn offset from the site and run a few per cent short,
+# so the scale must be fitted against the boundary edges they annotate — never
+# against the length of the callout line.
+DIMENSIONS = [
+    {"label": "72.40 m", "from": [150.21, 121.86], "to": [284.25, 128.56], "measures": [0, 1]},
+    {"label": "118.60 m", "from": [307.71, 144.2], "to": [307.71, 356.43], "measures": [1, 2, 3]},
+    {"label": "246.15 m", "from": [69.78, 138.61], "to": [60.85, 574.25], "measures": [6, 0]},
+]
+
 AREA_STATEMENT = [
     ("Total extent of site", 13420.00, 100.0),
     ("Area under roads", 3218.00, 24.0),
@@ -125,6 +144,31 @@ def decode(raw: str) -> str:
 
 def r2(v) -> float:
     return round(float(v), 2)
+
+
+def metres_per_unit(boundary) -> float:
+    """
+    How many metres one drawing unit represents.
+
+    Least-squares fit of the three overall dimensions against the boundary edges
+    they annotate, rather than the stated 1:1000 ratio. The sheet is not drawn
+    perfectly uniformly — the three edges individually imply 0.5395, 0.5492 and
+    0.5475 m/unit — so a single edge would misrepresent the other two by 3-4%.
+    The fit keeps every callout inside ~1.5%, and is weighted toward the longest
+    edge, which is the most reliably drawn.
+
+    Used only for the scale bar. No quoted area or size is ever derived from it.
+    """
+    def span(idx):
+        return sum(math.dist(boundary[idx[i]], boundary[idx[i + 1]]) for i in range(len(idx) - 1))
+
+    num = den = 0.0
+    for d in DIMENSIONS:
+        s = span(d["measures"])
+        m = float(d["label"].split()[0])
+        num += s * m
+        den += s * s
+    return round(num / den, 6)
 
 
 def clip_polygon(subject, clip):
@@ -267,7 +311,7 @@ def layout_payload(boundary, osr, existing_road, plots) -> dict:
         "slug": "edappadi-poolavari",
         "name": "Edappadi — Poolavari Layout",
         **META,
-        "viewBox": [30, 100, 300, 540],
+        "viewBox": [36, 110, 286, 545],
         "boundary": boundary,
         "osr": {
             "rect": osr,
@@ -280,22 +324,14 @@ def layout_payload(boundary, osr, existing_road, plots) -> dict:
             "label": "O.S.R.",
         },
         "existingRoad": {"quad": existing_road, "label": "EXISTING ROAD — 12.00 m WIDE", "widthM": 12.0},
-        "roads": [
-            {"label": "9.00 m ROAD", "widthM": 9.0, "band": [141.83, 182.18, 293.74, 201.17]},
-            {"label": "9.00 m ROAD", "widthM": 9.0, "band": [127.87, 279.36, 293.74, 297.23]},
-            {"label": "12.00 m ROAD", "widthM": 12.0, "band": [152.44, 359.78, 206.06, 569.79], "rotate": -84},
-        ],
-        "dimensions": [
-            {"label": "72.40 m", "from": [150.21, 121.86], "to": [284.25, 128.56]},
-            {"label": "118.60 m", "from": [307.71, 144.2], "to": [307.71, 356.43]},
-            {"label": "246.15 m", "from": [69.78, 138.61], "to": [60.85, 574.25]},
-        ],
+        "roads": ROADS,
+        "dimensions": DIMENSIONS,
+        "metresPerUnit": metres_per_unit(boundary),
         "areaStatement": [{"label": l, "areaSqm": a, "percent": p} for l, a, p in AREA_STATEMENT],
         "totalPlots": len(plots),
         "notes": NOTES,
         "amenities": [
-            {"kind": "osr", "label": "Open Space Reservation", "icon": "leaf", "at": [256.3, 329.6]},
-            {"kind": "entrance", "label": "Entrance from existing road", "icon": "enter", "at": [167.0, 566.0]},
+            {"kind": "entrance", "label": "Entrance from existing road", "icon": "enter", "at": [171.0, 573.0]},
         ],
         "plots": plots,
     }
@@ -332,6 +368,16 @@ def render_ts(boundary, osr, existing_road, plots) -> str:
     )
     area_lines = "\n".join(f"    {{ label: '{l}', areaSqm: {a}, percent: {p} }}," for l, a, p in AREA_STATEMENT)
     note_lines = "\n".join(f"    '{n}'," for n in NOTES)
+    road_lines = "\n".join(
+        "    {{ label: '{}', widthM: {}, band: [{}]{} }},".format(
+            r["label"], r["widthM"], ", ".join(str(v) for v in r["band"]),
+            f", rotate: {r['rotate']}" if r.get("rotate") else "")
+        for r in ROADS)
+    dim_lines = "\n".join(
+        "    {{ label: '{}', from: [{}, {}], to: [{}, {}], measures: [{}] }},".format(
+            d["label"], d["from"][0], d["from"][1], d["to"][0], d["to"][1],
+            ", ".join(str(i) for i in d["measures"]))
+        for d in DIMENSIONS)
 
     return f'''/**
  * Edappadi (Poolavari) DTCP layout — geometry traced from the approved drawing.
@@ -400,8 +446,16 @@ export interface LayoutGeometry {{
   /** Named road bands, for the plan legend. */
   roads: Array<{{ label: string; widthM: number; band: [number, number, number, number]; rotate?: number }}>;
   /** Overall dimension callouts drawn on the sheet. */
-  dimensions: Array<{{ label: string; from: [number, number]; to: [number, number] }}>;
+  dimensions: Array<{{
+    label: string;
+    from: [number, number];
+    to: [number, number];
+    /** Boundary vertices this callout spans — the callout line itself runs offset and short. */
+    measures: number[];
+  }}>;
   areaStatement: Array<{{ label: string; areaSqm: number; percent: number }}>;
+  /** Metres represented by one drawing unit — drives the scale bar. */
+  metresPerUnit: number;
   totalPlots: number;
   notes: string[];
   plots: LayoutPlotGeometry[];
@@ -420,23 +474,20 @@ export const EDAPPADI_LAYOUT: LayoutGeometry = {{
   taluk: '{META["taluk"]}',
   district: '{META["district"]}',
   scale: '{META["scale"]}',
-  viewBox: [30, 100, 300, 540],
+  viewBox: [36, 110, 286, 545],
   boundary: {pts(boundary)},
   osr: {{ rect: [{', '.join(str(v) for v in osr)}], polygon: {osr_poly}, areaSqm: 1342.0, label: 'O.S.R.' }},
   existingRoad: {{ quad: {pts(existing_road)}, label: 'EXISTING ROAD — 12.00 m WIDE', widthM: 12.0 }},
   roads: [
-    {{ label: '9.00 m ROAD', widthM: 9.0, band: [141.83, 182.18, 293.74, 201.17] }},
-    {{ label: '9.00 m ROAD', widthM: 9.0, band: [127.87, 279.36, 293.74, 297.23] }},
-    {{ label: '12.00 m ROAD', widthM: 12.0, band: [152.44, 359.78, 206.06, 569.79], rotate: -84 }},
+{road_lines}
   ],
   dimensions: [
-    {{ label: '72.40 m', from: [150.21, 121.86], to: [284.25, 128.56] }},
-    {{ label: '118.60 m', from: [307.71, 144.2], to: [307.71, 356.43] }},
-    {{ label: '246.15 m', from: [69.78, 138.61], to: [60.85, 574.25] }},
+{dim_lines}
   ],
   areaStatement: [
 {area_lines}
   ],
+  metresPerUnit: {metres_per_unit(boundary)},
   totalPlots: {len(plots)},
   notes: [
 {note_lines}

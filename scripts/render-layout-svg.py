@@ -63,7 +63,9 @@ def render(g: dict) -> str:
         f'sizes and areas quoted from the sanctioned plot schedule.</desc>')
 
     add("<defs><style>"
-        ".pn{font:600 5.2px Inter,Helvetica,Arial,sans-serif;fill:%s;text-anchor:middle}"
+        ".pn{font:700 6.6px Inter,Helvetica,Arial,sans-serif;fill:%s;text-anchor:middle}"
+        ".pa{font:500 3.1px Inter,Helvetica,Arial,sans-serif;fill:#74746e;text-anchor:middle;opacity:.85}"
+        ".sl{font:600 3.4px Inter,Helvetica,Arial,sans-serif;fill:#74746e;text-anchor:middle}"
         ".rl{font:500 4px Inter,Helvetica,Arial,sans-serif;fill:%s;text-anchor:middle}"
         ".ol{font:600 6px Inter,Helvetica,Arial,sans-serif;fill:%s;text-anchor:middle}"
         ".os{font:500 4px Inter,Helvetica,Arial,sans-serif;fill:%s;text-anchor:middle}"
@@ -99,7 +101,10 @@ def render(g: dict) -> str:
         add(f'<title>Plot {p["number"]} · Block {p["block"]} · {p["areaSqm"]} Sq.m</title>')
         add(f'<rect x="{x0}" y="{y0}" width="{w}" height="{h}" rx="1.8" '
             f'fill="{PALETTE["plot"]}" stroke="{PALETTE["plotLine"]}" stroke-width="0.9"/>')
-        add(f'<text class="pn" x="{cx}" y="{cy + 1.6}">{p["number"]}</text>')
+        add(f'<text class="pn" x="{cx}" y="{cy - 0.8}">{p["number"]}</text>')
+        # rounded so the annotation always fits inside the plot box; the exact
+        # schedule figure stays in data-area-sqm and in the detail sheet
+        add(f'<text class="pa" x="{cx}" y="{cy + 6}">{round(p["areaSqm"])} m\u00b2</text>')
         add("</g>")
     add("</g>")
 
@@ -123,13 +128,43 @@ def render(g: dict) -> str:
     for d in g["dimensions"]:
         f, t = d["from"], d["to"]
         add(f'<line x1="{f[0]}" y1="{f[1]}" x2="{t[0]}" y2="{t[1]}" '
-            f'stroke="{PALETTE["muted"]}" stroke-width="0.45" opacity="0.55"/>')
+            f'stroke="{PALETTE["muted"]}" stroke-width="0.5" opacity="0.6"/>')
+        rad = math.atan2(t[1] - f[1], t[0] - f[0])
+        tx, ty = math.cos(rad + math.pi / 2) * 2.4, math.sin(rad + math.pi / 2) * 2.4
+        for e in (f, t):
+            add(f'<line x1="{e[0] - tx:.2f}" y1="{e[1] - ty:.2f}" '
+                f'x2="{e[0] + tx:.2f}" y2="{e[1] + ty:.2f}" '
+                f'stroke="{PALETTE["muted"]}" stroke-width="0.5" opacity="0.6"/>')
         mx, my = round((f[0] + t[0]) / 2, 2), round((f[1] + t[1]) / 2, 2)
-        ang = math.degrees(math.atan2(t[1] - f[1], t[0] - f[0]))
+        ang = math.degrees(rad)
         if ang > 90 or ang < -90:
             ang += 180
-        add(f'<text class="dl" x="{mx}" y="{my - 2.5}" '
+        add(f'<text class="dl" x="{mx}" y="{my - 2.6}" '
             f'transform="rotate({ang:.2f} {mx} {my})">{esc(d["label"])}</text>')
+    add("</g>")
+
+    # Scale bar, sized from the sheet's own overall dimension rather than the
+    # stated 1:1000, so bar and callouts can never disagree.
+    mpu = g.get("metresPerUnit")
+    if mpu:
+        half = 10 / mpu
+        bx, by, bh = 46, 628, 2.6
+        add('<g id="scalebar">')
+        add(f'<rect x="{bx}" y="{by}" width="{half:.2f}" height="{bh}" fill="#1a1a1a"/>')
+        add(f'<rect x="{bx + half:.2f}" y="{by}" width="{half:.2f}" height="{bh}" '
+            f'fill="none" stroke="#1a1a1a" stroke-width="0.4"/>')
+        for i in range(3):
+            add(f'<text class="sl" x="{bx + half * i:.2f}" y="{by - 1.6}">{i * 10}</text>')
+        add(f'<text class="sl" x="{bx + half:.2f}" y="{by + bh + 3.8}">metres</text>')
+        add("</g>")
+
+    # North point
+    add('<g id="north" transform="translate(300 132)">')
+    add('<polygon points="0,-14 4,4 0,1" fill="#1a1a1a"/>')
+    add('<polygon points="0,-14 -4,4 0,1" fill="none" stroke="#1a1a1a" stroke-width="0.7"/>')
+    add('<circle cx="0" cy="9" r="5" fill="none" stroke="#1a1a1a" stroke-width="0.7"/>')
+    add('<text x="0" y="11" text-anchor="middle" '
+        'font-family="Inter,Helvetica,Arial,sans-serif" font-size="6" font-weight="700" fill="#1a1a1a">N</text>')
     add("</g>")
 
     add("</svg>")
